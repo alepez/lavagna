@@ -64,8 +64,10 @@ fn main() -> Result<(), Error> {
 
             let mouse = input.mouse();
 
-            if app.input.pressed {
-                debug!("Mouse pressed at {:?}", mouse);
+            if let Some(mouse) = mouse {
+                let (x, y) = mouse;
+                app.input.pos.x = x as u32;
+                app.input.pos.y = y as u32;
             }
 
             if input.mouse_pressed(0) {
@@ -79,7 +81,11 @@ fn main() -> Result<(), Error> {
             if let Some(size) = input.window_resized() {
                 debug!("Resize pixels to {}x{}", size.width, size.height);
                 pixels.resize_surface(size.width, size.height);
+                app.canvas.width = size.width;
+                app.canvas.height = size.height;
             }
+
+            app.update(pixels.get_frame());
 
             window.request_redraw();
         }
