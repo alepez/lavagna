@@ -19,6 +19,8 @@ fn main() -> Result<(), Error> {
     let event_loop = EventLoop::new();
     let mut input = WinitInputHelper::new();
 
+    let buffer_size = LogicalSize::new(640, 480);
+
     let window = {
         let default_size = LogicalSize::new(640., 480.);
         let min_size = LogicalSize::new(128., 128.);
@@ -32,12 +34,13 @@ fn main() -> Result<(), Error> {
     };
 
     let mut pixels = {
-        let window_size = window.inner_size();
-        let surface_texture = SurfaceTexture::new(window_size.width, window_size.height, &window);
-        Pixels::new(window_size.width, window_size.height, surface_texture)?
+        let surface_texture = SurfaceTexture::new(buffer_size.width, buffer_size.height, &window);
+        Pixels::new(buffer_size.width, buffer_size.height, surface_texture)?
     };
 
     let mut app = App::default();
+    app.canvas.width = buffer_size.width;
+    app.canvas.height = buffer_size.height;
 
     event_loop.run(move |event, _, control_flow| {
         // The one and only event that winit_input_helper doesn't have for us...
@@ -81,8 +84,6 @@ fn main() -> Result<(), Error> {
             if let Some(size) = input.window_resized() {
                 debug!("Resize pixels to {}x{}", size.width, size.height);
                 pixels.resize_surface(size.width, size.height);
-                app.canvas.width = size.width;
-                app.canvas.height = size.height;
             }
 
             app.update(pixels.get_frame());
