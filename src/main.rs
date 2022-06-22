@@ -26,7 +26,7 @@ fn main() -> Result<(), Error> {
         let min_size = LogicalSize::new(128, 128);
 
         WindowBuilder::new()
-            .with_title("Lavagna")
+            .with_title("lavagna")
             .with_inner_size(canvas_size)
             .with_min_inner_size(min_size)
             .build(&event_loop)
