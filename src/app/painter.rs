@@ -1,4 +1,5 @@
 use crate::app::{Canvas, CursorPos};
+use crate::app::color::*;
 use crate::app::line::BresenhamLine;
 
 pub struct Painter<'a> {
@@ -25,8 +26,7 @@ impl<'a> Painter<'a> {
         if let Some(pix) = self.frame
             .chunks_exact_mut(4)
             .nth(pix_index) {
-            let color = [0xff, 0xff, 0xff, 0xff];
-            pix.copy_from_slice(&color);
+            pix.copy_from_slice(WHITE.as_bytes());
         }
     }
 

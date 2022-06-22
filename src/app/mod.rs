@@ -1,5 +1,6 @@
 mod line;
 mod painter;
+mod color;
 
 use std::collections::VecDeque;
 use crate::app::painter::Painter;
