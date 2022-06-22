@@ -6,28 +6,30 @@ pub struct App {
     canvas: Canvas,
 }
 
+#[derive(Default)]
 pub struct AppBuilder {
-    app: App,
+    width: u32,
+    height: u32,
 }
 
 impl AppBuilder {
     pub fn new() -> AppBuilder {
-        AppBuilder {
-            app: App {
-                input: Default::default(),
-                canvas: Default::default(),
-            }
-        }
+        AppBuilder::default()
     }
 
     pub fn with_size(mut self, width: u32, height: u32) -> AppBuilder {
-        self.app.canvas.width = width;
-        self.app.canvas.height = height;
+        self.width = width;
+        self.height = height;
         self
     }
 
     pub fn build(self) -> App {
-        self.app
+        let AppBuilder { width, height } = self;
+
+        App {
+            input: InputState { pressed: false, pos: CursorPos { x: 0, y: 0 } },
+            canvas: Canvas { width, height },
+        }
     }
 }
 
@@ -35,6 +37,7 @@ impl AppBuilder {
 #[derive(Default, Debug)]
 pub struct Canvas {
     width: u32,
+    #[allow(dead_code)]
     height: u32,
 }
 
