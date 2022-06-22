@@ -76,7 +76,7 @@ impl App {
     }
 
     fn draw_line(&mut self, frame: &mut [u8], from: CursorPos, to: CursorPos) {
-        bresenham_line(from, to).into_iter().for_each(|p| {
+        BresenhamLine::new(from, to).for_each(|p| {
             self.draw_pixel(frame, p);
         });
     }
@@ -95,35 +95,57 @@ impl App {
     }
 }
 
-fn bresenham_line(from: CursorPos, to: CursorPos) -> Vec<CursorPos> {
-    let mut points = vec![];
+struct BresenhamLine {
+    error: isize,
+    x: isize,
+    y: isize,
+    sx: isize,
+    sy: isize,
+    dx: isize,
+    dy: isize,
+    to: CursorPos,
+}
 
-    let dx = (to.x - from.x).abs();
-    let dy = (to.y - from.y).abs();
+impl BresenhamLine {
+    fn new(from: CursorPos, to: CursorPos) -> BresenhamLine {
+        let dx = (to.x - from.x).abs();
+        let dy = (to.y - from.y).abs();
 
-    let sx = if from.x < to.x { 1 } else { -1 };
-    let sy = if from.y < to.y { 1 } else { -1 };
-
-    let mut error = (if dx > dy { dx } else { -dy }) / 2;
-
-    let mut x = from.x;
-    let mut y = from.y;
-
-    while (x != to.x) || (y != to.y) {
-        points.push(CursorPos { x, y });
-
-        let e = error;
-
-        if e > -dx {
-            error -= dy;
-            x += sx;
-        }
-
-        if e < dy {
-            error += dx;
-            y += sy;
+        BresenhamLine {
+            error: (if dx > dy { dx } else { -dy }) / 2,
+            x: from.x,
+            y: from.y,
+            sx: if from.x < to.x { 1 } else { -1 },
+            sy: if from.y < to.y { 1 } else { -1 },
+            dx,
+            dy,
+            to,
         }
     }
+}
 
-    points
+impl Iterator for BresenhamLine {
+    type Item = CursorPos;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if (self.x != self.to.x) || (self.y != self.to.y) {
+            let next = CursorPos { x: self.x, y: self.y };
+
+            let e = self.error;
+
+            if e > -self.dx {
+                self.error -= self.dy;
+                self.x += self.sx;
+            }
+
+            if e < self.dy {
+                self.error += self.dx;
+                self.y += self.sy;
+            }
+
+            Some(next)
+        } else {
+            None
+        }
+    }
 }
