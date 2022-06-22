@@ -69,16 +69,15 @@ fn main() -> Result<(), Error> {
 
             if let Some(mouse) = mouse {
                 let (x, y) = mouse;
-                app.input.pos.x = x as u32;
-                app.input.pos.y = y as u32;
+                app.set_position(x as u32, y as u32);
             }
 
             if input.mouse_pressed(0) {
-                app.input.pressed = true;
+                app.set_pressed(true);
             }
 
             if input.mouse_released(0) {
-                app.input.pressed = false;
+                app.set_pressed(false);
             }
 
             if let Some(size) = input.window_resized() {

@@ -2,7 +2,7 @@ use log::debug;
 
 #[derive(Debug)]
 pub struct App {
-    pub input: InputState,
+    input: InputState,
     canvas: Canvas,
 }
 
@@ -34,20 +34,20 @@ impl AppBuilder {
 
 #[derive(Default, Debug)]
 pub struct Canvas {
-    pub width: u32,
-    pub height: u32,
+    width: u32,
+    height: u32,
 }
 
 #[derive(Default, Debug)]
 pub struct InputState {
-    pub pressed: bool,
-    pub pos: CursorPos,
+    pressed: bool,
+    pos: CursorPos,
 }
 
 #[derive(Default, Debug)]
 pub struct CursorPos {
-    pub x: u32,
-    pub y: u32,
+    x: u32,
+    y: u32,
 }
 
 impl App {
@@ -55,6 +55,15 @@ impl App {
         if self.input.pressed {
             self.draw_with_brush(frame);
         }
+    }
+
+    pub fn set_position(&mut self, x: u32, y: u32) {
+        self.input.pos.x = x;
+        self.input.pos.y = y;
+    }
+
+    pub fn set_pressed(&mut self, pressed: bool) {
+        self.input.pressed = pressed;
     }
 
     fn draw_with_brush(&mut self, frame: &mut [u8]) {
