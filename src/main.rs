@@ -68,8 +68,9 @@ fn main() -> Result<(), Error> {
             let mouse = input.mouse();
 
             if let Some(mouse) = mouse {
-                let (x, y) = mouse;
-                app.set_position(x as u32, y as u32);
+                if let Ok((x, y)) = pixels.window_pos_to_pixel(mouse) {
+                    app.set_position(x as u32, y as u32);
+                }
             }
 
             if input.mouse_pressed(0) {
