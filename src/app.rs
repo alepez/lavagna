@@ -78,7 +78,7 @@ impl App {
         if let Some(pix) = frame
             .chunks_exact_mut(4)
             .skip(pix_index).next() {
-            let color = [0, 0xff, 0xff, 0xff];
+            let color = [0xff, 0xff, 0xff, 0xff];
             pix.copy_from_slice(&color);
         }
     }
