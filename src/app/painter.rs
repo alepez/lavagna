@@ -24,7 +24,7 @@ impl<'a> Painter<'a> {
 
         if let Some(pix) = self.frame
             .chunks_exact_mut(4)
-            .skip(pix_index).next() {
+            .nth(pix_index) {
             let color = [0xff, 0xff, 0xff, 0xff];
             pix.copy_from_slice(&color);
         }
