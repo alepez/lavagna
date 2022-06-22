@@ -81,4 +81,9 @@ impl App {
     pub fn set_pressed(&mut self, pressed: bool) {
         self.cursor.pressed = pressed;
     }
+
+    pub fn resize(&mut self, width: isize, height: isize) {
+        self.canvas.width = width;
+        self.canvas.height = height;
+    }
 }

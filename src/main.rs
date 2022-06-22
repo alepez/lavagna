@@ -84,6 +84,8 @@ fn main() -> Result<(), Error> {
             if let Some(size) = input.window_resized() {
                 debug!("Resize pixels to {}x{}", size.width, size.height);
                 pixels.resize_surface(size.width, size.height);
+                pixels.resize_buffer(size.width, size.height);
+                app.resize(size.width as isize, size.height as isize);
             }
 
             app.update(pixels.get_frame());
