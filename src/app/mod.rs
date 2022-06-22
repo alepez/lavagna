@@ -70,10 +70,9 @@ impl App {
     pub fn update(&mut self, frame: &mut [u8]) {
         let mut painter = Painter::new(frame, &self.canvas);
 
-        loop {
-            match self.commands.pop_front() {
-                None => { break; }
-                Some(Command::ClearAll) => { painter.clear(); }
+        while let Some(command) = self.commands.pop_front() {
+            match command {
+                Command::ClearAll => { painter.clear(); }
             }
         }
 
