@@ -12,7 +12,7 @@ use winit::{
     window::WindowBuilder,
 };
 use winit_input_helper::WinitInputHelper;
-use crate::app::App;
+use crate::app::AppBuilder;
 
 fn main() -> Result<(), Error> {
     env_logger::init();
@@ -38,9 +38,9 @@ fn main() -> Result<(), Error> {
         Pixels::new(buffer_size.width, buffer_size.height, surface_texture)?
     };
 
-    let mut app = App::default();
-    app.canvas.width = buffer_size.width;
-    app.canvas.height = buffer_size.height;
+    let mut app = AppBuilder::build()
+        .with_size(buffer_size.width, buffer_size.height)
+        .app();
 
     event_loop.run(move |event, _, control_flow| {
         // The one and only event that winit_input_helper doesn't have for us...

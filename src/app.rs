@@ -6,6 +6,29 @@ pub struct App {
     pub canvas: Canvas,
 }
 
+pub struct AppBuilder {
+    app: App,
+}
+
+impl AppBuilder {
+    pub fn build() -> AppBuilder {
+        AppBuilder {
+            app: App::default()
+        }
+    }
+
+    pub fn with_size(mut self, width: u32, height: u32) -> AppBuilder {
+        self.app.canvas.width = width;
+        self.app.canvas.height = height;
+        self
+    }
+
+    pub fn app(self) -> App {
+        self.app
+    }
+}
+
+
 #[derive(Default, Debug)]
 pub struct Canvas {
     pub width: u32,
