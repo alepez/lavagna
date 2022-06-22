@@ -1,6 +1,7 @@
 mod line;
+mod painter;
 
-use crate::app::line::BresenhamLine;
+use crate::app::painter::Painter;
 
 #[derive(Debug)]
 pub struct App {
@@ -39,7 +40,7 @@ impl AppBuilder {
 
 
 #[derive(Default, Debug)]
-struct Canvas {
+pub struct Canvas {
     width: isize,
     #[allow(dead_code)]
     height: isize,
@@ -59,7 +60,7 @@ pub struct CursorPos {
 
 impl App {
     pub fn update(&mut self, frame: &mut [u8]) {
-        let mut painter = Painter { frame, width: self.canvas.width };
+        let mut painter = Painter::new(frame, &self.canvas);
 
         if self.cursor.pressed {
             if self.prev_cursor.pressed {
@@ -79,31 +80,5 @@ impl App {
 
     pub fn set_pressed(&mut self, pressed: bool) {
         self.cursor.pressed = pressed;
-    }
-}
-
-struct Painter<'a> {
-    frame: &'a mut [u8],
-    width: isize,
-}
-
-impl<'a> Painter<'a> {
-    fn draw_line(&mut self, from: CursorPos, to: CursorPos) {
-        BresenhamLine::new(from, to).for_each(|p| {
-            self.draw_pixel(p);
-        });
-    }
-
-    fn draw_pixel(&mut self, pos: CursorPos) {
-        let CursorPos { x, y } = pos;
-
-        let pix_index = (self.width * y + x) as usize;
-
-        if let Some(pix) = self.frame
-            .chunks_exact_mut(4)
-            .skip(pix_index).next() {
-            let color = [0xff, 0xff, 0xff, 0xff];
-            pix.copy_from_slice(&color);
-        }
     }
 }
