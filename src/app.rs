@@ -35,20 +35,20 @@ impl AppBuilder {
 
 
 #[derive(Default, Debug)]
-pub struct Canvas {
+struct Canvas {
     width: u32,
     #[allow(dead_code)]
     height: u32,
 }
 
 #[derive(Default, Debug)]
-pub struct InputState {
+struct InputState {
     pressed: bool,
     pos: CursorPos,
 }
 
 #[derive(Default, Debug)]
-pub struct CursorPos {
+struct CursorPos {
     x: u32,
     y: u32,
 }
