@@ -59,12 +59,14 @@ pub struct CursorPos {
 
 impl App {
     pub fn update(&mut self, frame: &mut [u8]) {
+        let mut painter = Painter { frame, width: self.canvas.width };
+
         if self.cursor.pressed {
             if self.prev_cursor.pressed {
-                self.draw_line(frame, self.prev_cursor.pos, self.cursor.pos);
+                painter.draw_line(self.prev_cursor.pos, self.cursor.pos);
             }
 
-            self.draw_pixel(frame, self.cursor.pos);
+            painter.draw_pixel(self.cursor.pos);
         }
 
         self.prev_cursor = self.cursor;
@@ -78,19 +80,26 @@ impl App {
     pub fn set_pressed(&mut self, pressed: bool) {
         self.cursor.pressed = pressed;
     }
+}
 
-    fn draw_line(&mut self, frame: &mut [u8], from: CursorPos, to: CursorPos) {
+struct Painter<'a> {
+    frame: &'a mut [u8],
+    width: isize,
+}
+
+impl<'a> Painter<'a> {
+    fn draw_line(&mut self, from: CursorPos, to: CursorPos) {
         BresenhamLine::new(from, to).for_each(|p| {
-            self.draw_pixel(frame, p);
+            self.draw_pixel(p);
         });
     }
 
-    fn draw_pixel(&mut self, frame: &mut [u8], pos: CursorPos) {
+    fn draw_pixel(&mut self, pos: CursorPos) {
         let CursorPos { x, y } = pos;
 
-        let pix_index = (self.canvas.width * y + x) as usize;
+        let pix_index = (self.width * y + x) as usize;
 
-        if let Some(pix) = frame
+        if let Some(pix) = self.frame
             .chunks_exact_mut(4)
             .skip(pix_index).next() {
             let color = [0xff, 0xff, 0xff, 0xff];
