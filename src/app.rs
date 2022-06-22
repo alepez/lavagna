@@ -3,6 +3,7 @@ use log::debug;
 #[derive(Debug)]
 pub struct App {
     cursor: Cursor,
+    prev_cursor: Cursor,
     canvas: Canvas,
 }
 
@@ -27,7 +28,8 @@ impl AppBuilder {
         let AppBuilder { width, height } = self;
 
         App {
-            cursor: Cursor { pressed: false, pos: CursorPos { x: 0, y: 0 } },
+            cursor: Cursor::default(),
+            prev_cursor: Cursor::default(),
             canvas: Canvas { width, height },
         }
     }
