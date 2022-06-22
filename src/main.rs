@@ -11,8 +11,9 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
 };
+use winit::dpi::PhysicalSize;
 use winit_input_helper::WinitInputHelper;
-use crate::app::AppBuilder;
+use crate::app::{App, AppBuilder};
 
 fn main() -> Result<(), Error> {
     env_logger::init();
@@ -82,25 +83,7 @@ fn main() -> Result<(), Error> {
             }
 
             if let Some(new_size) = input.window_resized() {
-                debug!("Resize pixels to {}x{}", new_size.width, new_size.height);
-                let mut backup = Vec::from(pixels.get_frame());
-
-                pixels.get_frame().fill(0x00);
-                pixels.resize_surface(new_size.width, new_size.height);
-                pixels.resize_buffer(new_size.width, new_size.height);
-
-                copy_frame(
-                    pixels.get_frame(),
-                    new_size.width as usize,
-                    new_size.height as usize,
-                    backup.as_mut_slice(),
-                    canvas_size.width as usize,
-                    canvas_size.height as usize,
-                );
-
-                canvas_size.width = new_size.width;
-                canvas_size.height = new_size.height;
-                app.resize(new_size.width as isize, new_size.height as isize);
+                resize_canvas(&mut canvas_size, &mut pixels, &mut app, new_size);
             }
 
             app.update(pixels.get_frame());
@@ -108,6 +91,32 @@ fn main() -> Result<(), Error> {
             window.request_redraw();
         }
     });
+}
+
+fn resize_canvas(canvas_size: &mut LogicalSize<u32>, pixels: &mut Pixels, app: &mut App, new_size: PhysicalSize<u32>) {
+    resize_buffer(canvas_size, pixels, new_size);
+
+    canvas_size.width = new_size.width;
+    canvas_size.height = new_size.height;
+
+    app.resize(new_size.width as isize, new_size.height as isize);
+}
+
+fn resize_buffer(canvas_size: &LogicalSize<u32>, pixels: &mut Pixels, new_size: PhysicalSize<u32>) {
+    let mut backup = Vec::from(pixels.get_frame());
+
+    pixels.get_frame().fill(0x00);
+    pixels.resize_surface(new_size.width, new_size.height);
+    pixels.resize_buffer(new_size.width, new_size.height);
+
+    copy_frame(
+        pixels.get_frame(),
+        new_size.width as usize,
+        new_size.height as usize,
+        backup.as_mut_slice(),
+        canvas_size.width as usize,
+        canvas_size.height as usize,
+    );
 }
 
 fn copy_frame(dst: &mut [u8], dst_w: usize, dst_h: usize, src: &mut [u8], src_w: usize, src_h: usize) {
