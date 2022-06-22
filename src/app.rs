@@ -1,5 +1,3 @@
-use log::debug;
-
 #[derive(Debug)]
 pub struct App {
     cursor: Cursor,
@@ -78,32 +76,9 @@ impl App {
     }
 
     fn draw_line(&mut self, frame: &mut [u8], from: CursorPos, to: CursorPos) {
-        let dx = (to.x - from.x).abs();
-        let dy = (to.y - from.y).abs();
-
-        let sx = if from.x < to.x { 1 } else { -1 };
-        let sy = if from.y < to.y { 1 } else { -1 };
-
-        let mut error = (if dx > dy { dx } else { -dy }) / 2;
-
-        let mut x = from.x;
-        let mut y = from.y;
-
-        while (x != to.x) || (y != to.y) {
-            self.draw_pixel(frame, CursorPos { x, y });
-
-            let e = error;
-
-            if e > -dx {
-                error -= dy;
-                x += sx;
-            }
-
-            if e < dy {
-                error += dx;
-                y += sy;
-            }
-        }
+        bresenham_line(from, to).into_iter().for_each(|p| {
+            self.draw_pixel(frame, p);
+        });
     }
 
     fn draw_pixel(&mut self, frame: &mut [u8], pos: CursorPos) {
@@ -118,4 +93,37 @@ impl App {
             pix.copy_from_slice(&color);
         }
     }
+}
+
+fn bresenham_line(from: CursorPos, to: CursorPos) -> Vec<CursorPos> {
+    let mut points = vec![];
+
+    let dx = (to.x - from.x).abs();
+    let dy = (to.y - from.y).abs();
+
+    let sx = if from.x < to.x { 1 } else { -1 };
+    let sy = if from.y < to.y { 1 } else { -1 };
+
+    let mut error = (if dx > dy { dx } else { -dy }) / 2;
+
+    let mut x = from.x;
+    let mut y = from.y;
+
+    while (x != to.x) || (y != to.y) {
+        points.push(CursorPos { x, y });
+
+        let e = error;
+
+        if e > -dx {
+            error -= dy;
+            x += sx;
+        }
+
+        if e < dy {
+            error += dx;
+            y += sy;
+        }
+    }
+
+    points
 }
