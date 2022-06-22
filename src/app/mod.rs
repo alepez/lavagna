@@ -19,7 +19,7 @@ pub struct App {
     commands: VecDeque<Command>,
     palette: ColorSelector,
     color: Color,
-    old_frame: Option<Vec<u8>>,
+    backups: Vec<Vec<u8>>,
 }
 
 #[derive(Default)]
@@ -51,7 +51,7 @@ impl AppBuilder {
             commands: VecDeque::with_capacity(10),
             palette,
             color,
-            old_frame: None,
+            backups: Vec::new(),
         }
     }
 }
@@ -81,14 +81,11 @@ impl App {
         while let Some(command) = self.commands.pop_front() {
             match command {
                 Command::ClearAll => {
-                    let mut backup = Vec::new();
-                    backup.resize(frame.len(), 0x00);
-                    backup.clone_from_slice(frame);
-                    self.old_frame = Some(backup);
+                    self.backups.push(frame.to_owned());
                     frame.fill(0x00);
                 }
                 Command::Resume => {
-                    if let Some(backup) = &self.old_frame {
+                    if let Some(backup) = &self.backups.pop() {
                         frame.clone_from_slice(backup);
                     }
                 }
