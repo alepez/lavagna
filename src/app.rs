@@ -2,7 +2,7 @@ use log::debug;
 
 #[derive(Debug)]
 pub struct App {
-    input: Cursor,
+    cursor: Cursor,
     canvas: Canvas,
 }
 
@@ -27,7 +27,7 @@ impl AppBuilder {
         let AppBuilder { width, height } = self;
 
         App {
-            input: Cursor { pressed: false, pos: CursorPos { x: 0, y: 0 } },
+            cursor: Cursor { pressed: false, pos: CursorPos { x: 0, y: 0 } },
             canvas: Canvas { width, height },
         }
     }
@@ -55,25 +55,25 @@ struct CursorPos {
 
 impl App {
     pub fn update(&mut self, frame: &mut [u8]) {
-        if self.input.pressed {
+        if self.cursor.pressed {
             self.draw_with_brush(frame);
         }
     }
 
     pub fn set_position(&mut self, x: u32, y: u32) {
-        self.input.pos.x = x;
-        self.input.pos.y = y;
+        self.cursor.pos.x = x;
+        self.cursor.pos.y = y;
     }
 
     pub fn set_pressed(&mut self, pressed: bool) {
-        self.input.pressed = pressed;
+        self.cursor.pressed = pressed;
     }
 
     fn draw_with_brush(&mut self, frame: &mut [u8]) {
-        let CursorPos { x, y } = self.input.pos;
+        let CursorPos { x, y } = self.cursor.pos;
         let pix_index = (self.canvas.width * y + x) as usize;
 
-        debug!("Mouse pressed at {:?}", self.input.pos);
+        debug!("Mouse pressed at {:?}", self.cursor.pos);
 
         if let Some(pix) = frame
             .chunks_exact_mut(4)
