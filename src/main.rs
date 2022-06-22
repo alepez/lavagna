@@ -19,7 +19,7 @@ fn main() -> Result<(), Error> {
     let event_loop = EventLoop::new();
     let mut input = WinitInputHelper::new();
 
-    let buffer_size = LogicalSize::new(640, 480);
+    let canvas_size = LogicalSize::new(640, 480);
 
     let window = {
         let default_size = LogicalSize::new(640., 480.);
@@ -34,12 +34,12 @@ fn main() -> Result<(), Error> {
     };
 
     let mut pixels = {
-        let surface_texture = SurfaceTexture::new(buffer_size.width, buffer_size.height, &window);
-        Pixels::new(buffer_size.width, buffer_size.height, surface_texture)?
+        let surface_texture = SurfaceTexture::new(canvas_size.width, canvas_size.height, &window);
+        Pixels::new(canvas_size.width, canvas_size.height, surface_texture)?
     };
 
     let mut app = AppBuilder::build()
-        .with_size(buffer_size.width, buffer_size.height)
+        .with_size(canvas_size.width, canvas_size.height)
         .app();
 
     event_loop.run(move |event, _, control_flow| {
