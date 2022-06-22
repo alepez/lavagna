@@ -9,6 +9,7 @@ use crate::app::painter::Painter;
 #[derive(Debug)]
 enum Command {
     ClearAll,
+    Resume,
 }
 
 pub struct App {
@@ -18,6 +19,7 @@ pub struct App {
     commands: VecDeque<Command>,
     palette: ColorSelector,
     color: Color,
+    old_frame: Option<Vec<u8>>,
 }
 
 #[derive(Default)]
@@ -49,6 +51,7 @@ impl AppBuilder {
             commands: VecDeque::with_capacity(10),
             palette,
             color,
+            old_frame: None,
         }
     }
 }
@@ -75,13 +78,24 @@ pub struct CursorPos {
 
 impl App {
     pub fn update(&mut self, frame: &mut [u8]) {
-        let mut painter = Painter::new(frame, &self.canvas, self.color);
-
         while let Some(command) = self.commands.pop_front() {
             match command {
-                Command::ClearAll => { painter.clear(); }
+                Command::ClearAll => {
+                    let mut backup = Vec::new();
+                    backup.resize(frame.len(), 0x00);
+                    backup.clone_from_slice(frame);
+                    self.old_frame = Some(backup);
+                    frame.fill(0x00);
+                }
+                Command::Resume => {
+                    if let Some(backup) = &self.old_frame {
+                        frame.clone_from_slice(backup);
+                    }
+                }
             }
         }
+
+        let mut painter = Painter::new(frame, &self.canvas, self.color);
 
         if self.cursor.pressed {
             if self.prev_cursor.pressed {
@@ -110,6 +124,10 @@ impl App {
 
     pub fn clear_all(&mut self) {
         self.commands.push_back(Command::ClearAll);
+    }
+
+    pub fn resume(&mut self) {
+        self.commands.push_back(Command::Resume);
     }
 
     pub fn change_color(&mut self) {

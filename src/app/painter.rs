@@ -30,8 +30,4 @@ impl<'a> Painter<'a> {
             pix.copy_from_slice(self.color.as_bytes());
         }
     }
-
-    pub fn clear(&mut self) {
-        self.frame.fill(0x00);
-    }
 }

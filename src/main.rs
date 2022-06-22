@@ -66,6 +66,10 @@ fn main() -> Result<(), Error> {
                 app.change_color();
             }
 
+            if input.key_pressed(VirtualKeyCode::Z) {
+                app.resume();
+            }
+
             let mouse = input.mouse();
 
             if let Some(mouse) = mouse {
