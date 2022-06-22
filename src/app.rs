@@ -1,9 +1,9 @@
 use log::debug;
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct App {
     pub input: InputState,
-    pub canvas: Canvas,
+    canvas: Canvas,
 }
 
 pub struct AppBuilder {
@@ -13,7 +13,10 @@ pub struct AppBuilder {
 impl AppBuilder {
     pub fn build() -> AppBuilder {
         AppBuilder {
-            app: App::default()
+            app: App {
+                input: Default::default(),
+                canvas: Default::default(),
+            }
         }
     }
 
