@@ -70,6 +70,10 @@ fn main() -> Result<(), Error> {
                 app.resume();
             }
 
+            if input.key_pressed(VirtualKeyCode::B) {
+                app.backup();
+            }
+
             let mouse = input.mouse();
 
             if let Some(mouse) = mouse {

@@ -10,6 +10,7 @@ use crate::app::painter::Painter;
 enum Command {
     ClearAll,
     Resume,
+    Backup,
 }
 
 pub struct App {
@@ -84,6 +85,9 @@ impl App {
                     self.backups.push(frame.to_owned());
                     frame.fill(0x00);
                 }
+                Command::Backup => {
+                    self.backups.push(frame.to_owned());
+                }
                 Command::Resume => {
                     if let Some(backup) = &self.backups.pop() {
                         frame.clone_from_slice(backup);
@@ -125,6 +129,10 @@ impl App {
 
     pub fn resume(&mut self) {
         self.commands.push_back(Command::Resume);
+    }
+
+    pub fn backup(&mut self) {
+        self.commands.push_back(Command::Backup);
     }
 
     pub fn change_color(&mut self) {
