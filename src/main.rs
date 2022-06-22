@@ -1,6 +1,8 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
+mod app;
+
 use log::{debug, error};
 use pixels::{Error, Pixels, SurfaceTexture};
 use winit::{
@@ -10,11 +12,7 @@ use winit::{
     window::WindowBuilder,
 };
 use winit_input_helper::WinitInputHelper;
-
-#[derive(Default)]
-struct AppState {
-    pressed: bool,
-}
+use crate::app::App;
 
 fn main() -> Result<(), Error> {
     env_logger::init();
@@ -39,7 +37,7 @@ fn main() -> Result<(), Error> {
         Pixels::new(window_size.width, window_size.height, surface_texture)?
     };
 
-    let mut state = AppState::default();
+    let mut app = App::default();
 
     event_loop.run(move |event, _, control_flow| {
         // The one and only event that winit_input_helper doesn't have for us...
@@ -66,19 +64,20 @@ fn main() -> Result<(), Error> {
 
             let mouse = input.mouse();
 
-            if state.pressed {
+            if app.input.pressed {
                 debug!("Mouse pressed at {:?}", mouse);
             }
 
             if input.mouse_pressed(0) {
-                state.pressed = true;
+                app.input.pressed = true;
             }
 
             if input.mouse_released(0) {
-                state.pressed = false;
+                app.input.pressed = false;
             }
 
             if let Some(size) = input.window_resized() {
+                debug!("Resize pixels to {}x{}", size.width, size.height);
                 pixels.resize_surface(size.width, size.height);
             }
 
