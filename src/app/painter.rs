@@ -5,11 +5,12 @@ use crate::app::line::BresenhamLine;
 pub struct Painter<'a> {
     frame: &'a mut [u8],
     width: isize,
+    color: Color,
 }
 
 impl<'a> Painter<'a> {
     pub fn new(frame: &'a mut [u8], canvas: &Canvas) -> Self {
-        Painter { frame, width: canvas.width }
+        Painter { frame, width: canvas.width, color: WHITE }
     }
 
     pub fn draw_line(&mut self, from: CursorPos, to: CursorPos) {
@@ -26,7 +27,7 @@ impl<'a> Painter<'a> {
         if let Some(pix) = self.frame
             .chunks_exact_mut(4)
             .nth(pix_index) {
-            pix.copy_from_slice(WHITE.as_bytes());
+            pix.copy_from_slice(self.color.as_bytes());
         }
     }
 
