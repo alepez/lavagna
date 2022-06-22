@@ -39,7 +39,7 @@ fn main() -> Result<(), Error> {
     };
 
     let mut app = AppBuilder::new()
-        .with_size(canvas_size.width, canvas_size.height)
+        .with_size(canvas_size.width as isize, canvas_size.height as isize)
         .build();
 
     event_loop.run(move |event, _, control_flow| {
@@ -69,7 +69,7 @@ fn main() -> Result<(), Error> {
 
             if let Some(mouse) = mouse {
                 if let Ok((x, y)) = pixels.window_pos_to_pixel(mouse) {
-                    app.set_position(x as u32, y as u32);
+                    app.set_position(x as isize, y as isize);
                 }
             }
 

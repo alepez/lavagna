@@ -9,8 +9,8 @@ pub struct App {
 
 #[derive(Default)]
 pub struct AppBuilder {
-    width: u32,
-    height: u32,
+    width: isize,
+    height: isize,
 }
 
 impl AppBuilder {
@@ -18,7 +18,7 @@ impl AppBuilder {
         AppBuilder::default()
     }
 
-    pub fn with_size(mut self, width: u32, height: u32) -> AppBuilder {
+    pub fn with_size(mut self, width: isize, height: isize) -> AppBuilder {
         self.width = width;
         self.height = height;
         self
@@ -38,31 +38,37 @@ impl AppBuilder {
 
 #[derive(Default, Debug)]
 struct Canvas {
-    width: u32,
+    width: isize,
     #[allow(dead_code)]
-    height: u32,
+    height: isize,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Copy, Clone)]
 struct Cursor {
     pressed: bool,
     pos: CursorPos,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Copy, Clone)]
 struct CursorPos {
-    x: u32,
-    y: u32,
+    x: isize,
+    y: isize,
 }
 
 impl App {
     pub fn update(&mut self, frame: &mut [u8]) {
         if self.cursor.pressed {
-            self.draw_with_brush(frame);
+            if self.prev_cursor.pressed {
+                self.draw_line(frame, self.prev_cursor.pos, self.cursor.pos);
+            }
+
+            self.draw_pixel(frame, self.cursor.pos);
         }
+
+        self.prev_cursor = self.cursor;
     }
 
-    pub fn set_position(&mut self, x: u32, y: u32) {
+    pub fn set_position(&mut self, x: isize, y: isize) {
         self.cursor.pos.x = x;
         self.cursor.pos.y = y;
     }
@@ -71,11 +77,39 @@ impl App {
         self.cursor.pressed = pressed;
     }
 
-    fn draw_with_brush(&mut self, frame: &mut [u8]) {
-        let CursorPos { x, y } = self.cursor.pos;
-        let pix_index = (self.canvas.width * y + x) as usize;
+    fn draw_line(&mut self, frame: &mut [u8], from: CursorPos, to: CursorPos) {
+        let dx = (to.x - from.x).abs();
+        let dy = (to.y - from.y).abs();
 
-        debug!("Mouse pressed at {:?}", self.cursor.pos);
+        let sx = if from.x < to.x { 1 } else { -1 };
+        let sy = if from.y < to.y { 1 } else { -1 };
+
+        let mut error = (if dx > dy { dx } else { -dy }) / 2;
+
+        let mut x = from.x;
+        let mut y = from.y;
+
+        while (x != to.x) || (y != to.y) {
+            self.draw_pixel(frame, CursorPos { x, y });
+
+            let e = error;
+
+            if e > -dx {
+                error -= dy;
+                x += sx;
+            }
+
+            if e < dy {
+                error += dx;
+                y += sy;
+            }
+        }
+    }
+
+    fn draw_pixel(&mut self, frame: &mut [u8], pos: CursorPos) {
+        let CursorPos { x, y } = pos;
+
+        let pix_index = (self.canvas.width * y + x) as usize;
 
         if let Some(pix) = frame
             .chunks_exact_mut(4)
