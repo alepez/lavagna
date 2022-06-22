@@ -1,13 +1,20 @@
 mod line;
 mod painter;
 
+use std::collections::VecDeque;
 use crate::app::painter::Painter;
+
+#[derive(Debug)]
+enum Command {
+    ClearAll,
+}
 
 #[derive(Debug)]
 pub struct App {
     cursor: Cursor,
     prev_cursor: Cursor,
     canvas: Canvas,
+    commands: VecDeque<Command>,
 }
 
 #[derive(Default)]
@@ -34,6 +41,7 @@ impl AppBuilder {
             cursor: Cursor::default(),
             prev_cursor: Cursor::default(),
             canvas: Canvas { width, height },
+            commands: VecDeque::with_capacity(10),
         }
     }
 }
@@ -62,6 +70,13 @@ impl App {
     pub fn update(&mut self, frame: &mut [u8]) {
         let mut painter = Painter::new(frame, &self.canvas);
 
+        loop {
+            match self.commands.pop_front() {
+                None => { break; }
+                Some(Command::ClearAll) => { painter.clear(); }
+            }
+        }
+
         if self.cursor.pressed {
             if self.prev_cursor.pressed {
                 painter.draw_line(self.prev_cursor.pos, self.cursor.pos);
@@ -85,5 +100,9 @@ impl App {
     pub fn resize(&mut self, width: isize, height: isize) {
         self.canvas.width = width;
         self.canvas.height = height;
+    }
+
+    pub fn clear_all(&mut self) {
+        self.commands.push_back(Command::ClearAll);
     }
 }

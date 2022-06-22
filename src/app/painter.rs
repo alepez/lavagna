@@ -29,4 +29,8 @@ impl<'a> Painter<'a> {
             pix.copy_from_slice(&color);
         }
     }
+
+    pub fn clear(&mut self) {
+        self.frame.fill(0x00);
+    }
 }
