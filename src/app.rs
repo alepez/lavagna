@@ -2,7 +2,7 @@ use log::debug;
 
 #[derive(Debug)]
 pub struct App {
-    input: InputState,
+    input: Cursor,
     canvas: Canvas,
 }
 
@@ -27,7 +27,7 @@ impl AppBuilder {
         let AppBuilder { width, height } = self;
 
         App {
-            input: InputState { pressed: false, pos: CursorPos { x: 0, y: 0 } },
+            input: Cursor { pressed: false, pos: CursorPos { x: 0, y: 0 } },
             canvas: Canvas { width, height },
         }
     }
@@ -42,7 +42,7 @@ struct Canvas {
 }
 
 #[derive(Default, Debug)]
-struct InputState {
+struct Cursor {
     pressed: bool,
     pos: CursorPos,
 }
