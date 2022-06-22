@@ -3,7 +3,7 @@
 
 mod app;
 
-use log::{debug, error};
+use log::error;
 use pixels::{Error, Pixels, SurfaceTexture};
 use winit::{
     dpi::LogicalSize,
@@ -23,12 +23,10 @@ fn main() -> Result<(), Error> {
     let mut canvas_size = LogicalSize::new(640, 480);
 
     let window = {
-        let min_size = LogicalSize::new(128, 128);
-
         WindowBuilder::new()
             .with_title("lavagna")
             .with_inner_size(canvas_size)
-            .with_min_inner_size(min_size)
+            .with_min_inner_size(canvas_size)
             .build(&event_loop)
             .unwrap()
     };
