@@ -62,6 +62,10 @@ fn main() -> Result<(), Error> {
                 app.clear_all();
             }
 
+            if input.key_pressed(VirtualKeyCode::C) {
+                app.change_color();
+            }
+
             let mouse = input.mouse();
 
             if let Some(mouse) = mouse {

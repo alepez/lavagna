@@ -9,8 +9,8 @@ pub struct Painter<'a> {
 }
 
 impl<'a> Painter<'a> {
-    pub fn new(frame: &'a mut [u8], canvas: &Canvas) -> Self {
-        Painter { frame, width: canvas.width, color: WHITE }
+    pub fn new(frame: &'a mut [u8], canvas: &Canvas, color: Color) -> Self {
+        Painter { frame, width: canvas.width, color }
     }
 
     pub fn draw_line(&mut self, from: CursorPos, to: CursorPos) {

@@ -3,6 +3,7 @@ mod painter;
 mod color;
 
 use std::collections::VecDeque;
+use crate::app::color::*;
 use crate::app::painter::Painter;
 
 #[derive(Debug)]
@@ -10,12 +11,13 @@ enum Command {
     ClearAll,
 }
 
-#[derive(Debug)]
 pub struct App {
     cursor: Cursor,
     prev_cursor: Cursor,
     canvas: Canvas,
     commands: VecDeque<Command>,
+    palette: ColorSelector,
+    color: Color,
 }
 
 #[derive(Default)]
@@ -37,12 +39,16 @@ impl AppBuilder {
 
     pub fn build(self) -> App {
         let AppBuilder { width, height } = self;
+        let mut palette = ColorSelector::new(&PALETTE);
+        let color = palette.next().unwrap();
 
         App {
             cursor: Cursor::default(),
             prev_cursor: Cursor::default(),
             canvas: Canvas { width, height },
             commands: VecDeque::with_capacity(10),
+            palette,
+            color,
         }
     }
 }
@@ -69,7 +75,7 @@ pub struct CursorPos {
 
 impl App {
     pub fn update(&mut self, frame: &mut [u8]) {
-        let mut painter = Painter::new(frame, &self.canvas);
+        let mut painter = Painter::new(frame, &self.canvas, self.color);
 
         while let Some(command) = self.commands.pop_front() {
             match command {
@@ -104,5 +110,11 @@ impl App {
 
     pub fn clear_all(&mut self) {
         self.commands.push_back(Command::ClearAll);
+    }
+
+    pub fn change_color(&mut self) {
+        if let Some(color) = self.palette.next() {
+            self.color = color;
+        }
     }
 }
