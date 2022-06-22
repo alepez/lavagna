@@ -11,7 +11,7 @@ pub struct AppBuilder {
 }
 
 impl AppBuilder {
-    pub fn build() -> AppBuilder {
+    pub fn new() -> AppBuilder {
         AppBuilder {
             app: App {
                 input: Default::default(),
@@ -26,7 +26,7 @@ impl AppBuilder {
         self
     }
 
-    pub fn app(self) -> App {
+    pub fn build(self) -> App {
         self.app
     }
 }

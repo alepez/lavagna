@@ -38,9 +38,9 @@ fn main() -> Result<(), Error> {
         Pixels::new(canvas_size.width, canvas_size.height, surface_texture)?
     };
 
-    let mut app = AppBuilder::build()
+    let mut app = AppBuilder::new()
         .with_size(canvas_size.width, canvas_size.height)
-        .app();
+        .build();
 
     event_loop.run(move |event, _, control_flow| {
         // The one and only event that winit_input_helper doesn't have for us...
