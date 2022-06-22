@@ -1,4 +1,3 @@
-mod line;
 mod painter;
 mod color;
 

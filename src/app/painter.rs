@@ -1,6 +1,6 @@
+use line_drawing::Bresenham;
 use crate::app::{Canvas, CursorPos};
 use crate::app::color::*;
-use crate::app::line::BresenhamLine;
 
 pub struct Painter<'a> {
     frame: &'a mut [u8],
@@ -14,8 +14,8 @@ impl<'a> Painter<'a> {
     }
 
     pub fn draw_line(&mut self, from: CursorPos, to: CursorPos) {
-        BresenhamLine::new(from, to).for_each(|p| {
-            self.draw_pixel(p);
+        Bresenham::new((from.x, from.y), (to.x, to.y)).for_each(|(x, y)| {
+            self.draw_pixel(CursorPos { x, y });
         });
     }
 
