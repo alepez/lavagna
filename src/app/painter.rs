@@ -21,10 +21,17 @@ impl<'a> Painter<'a> {
 
     pub fn draw_pixel(&mut self, pos: CursorPos) {
         let CursorPos { x, y } = pos;
-        let x = x as usize;
-        let y = y as usize;
 
-        let pix_index = (self.sketch.size.width * y + x) as usize;
+        let w = self.sketch.size.width as isize;
+
+        let pix_index = w * y + x;
+        let pix_max = self.sketch.frame.len() as isize;
+
+        if pix_index < 0 || pix_index > pix_max {
+            return;
+        }
+
+        let pix_index = pix_index as usize;
 
         if let Some(pix) = self.sketch.frame
             .chunks_exact_mut(4)
