@@ -2,6 +2,8 @@
 
 > It's a blackboard, not a lasagna.
 
+![preview](.lavagna.gif)
+
 *Lavagna* is a "no frills" blackboard, ideal for simple sketches during online
 meetings. You have just a black screen, without icons or buttons cluttering
 your beautiful drawings. 
