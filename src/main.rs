@@ -13,6 +13,7 @@ use winit::{
 use winit::dpi::PhysicalSize;
 use winit_input_helper::WinitInputHelper;
 use crate::app::AppBuilder;
+use crate::app::doc::Sketch;
 
 fn main() -> Result<(), Error> {
     env_logger::init();
@@ -97,7 +98,9 @@ fn main() -> Result<(), Error> {
                 }
             }
 
-            app.update(pixels.get_frame());
+            let sketch = Sketch::new(pixels.get_frame(), canvas_size.width as isize, canvas_size.height as isize);
+
+            app.update(sketch);
 
             window.request_redraw();
         }
