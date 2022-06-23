@@ -12,7 +12,7 @@ use winit::{
 };
 use winit::dpi::PhysicalSize;
 use winit_input_helper::WinitInputHelper;
-use crate::app::{App, AppBuilder};
+use crate::app::AppBuilder;
 
 fn main() -> Result<(), Error> {
     env_logger::init();
@@ -91,7 +91,9 @@ fn main() -> Result<(), Error> {
 
             if let Some(new_size) = input.window_resized() {
                 if canvas_size != new_size {
-                    resize_canvas(&mut canvas_size, &mut pixels, &mut app, new_size);
+                    resize_buffer(&mut pixels, canvas_size, new_size);
+                    canvas_size = new_size;
+                    app.resize(canvas_size.width as isize, canvas_size.height as isize);
                 }
             }
 
@@ -102,16 +104,7 @@ fn main() -> Result<(), Error> {
     });
 }
 
-fn resize_canvas(canvas_size: &mut PhysicalSize<u32>, pixels: &mut Pixels, app: &mut App, new_size: PhysicalSize<u32>) {
-    resize_buffer(canvas_size, pixels, new_size);
-
-    canvas_size.width = new_size.width;
-    canvas_size.height = new_size.height;
-
-    app.resize(new_size.width as isize, new_size.height as isize);
-}
-
-fn resize_buffer(canvas_size: &PhysicalSize<u32>, pixels: &mut Pixels, new_size: PhysicalSize<u32>) {
+fn resize_buffer(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, new_size: PhysicalSize<u32>) {
     let mut backup = Vec::from(pixels.get_frame());
 
     pixels.get_frame().fill(0x00);
