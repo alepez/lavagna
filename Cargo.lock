@@ -537,7 +537,7 @@ dependencies = [
 
 [[package]]
 name = "lavagna"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "env_logger",
  "line_drawing",

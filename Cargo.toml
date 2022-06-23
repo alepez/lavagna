@@ -1,9 +1,13 @@
 [package]
 name = "lavagna"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["Alessandro Pezzato <alessandro@pezzato.net>"]
 edition = "2021"
-publish = false
+description = "The uncluttered blackboard"
+homepage = "https://github.com/alepez/lavagna"
+repository = "https://github.com/alepez/lavagna"
+readme = "README.md"
+license = "MIT/Apache-2.0"
 
 [dependencies]
 env_logger = "0.9"
