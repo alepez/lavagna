@@ -4,7 +4,7 @@ pub(crate) mod doc;
 
 use std::collections::VecDeque;
 use crate::app::color::*;
-use crate::app::doc::Sketch;
+use crate::app::doc::MutSketch;
 use crate::app::painter::Painter;
 
 #[derive(Debug)]
@@ -59,7 +59,7 @@ pub struct CursorPos {
 }
 
 impl App {
-    pub fn update(&mut self, sketch: Sketch) {
+    pub fn update(&mut self, sketch: MutSketch) {
         while let Some(command) = self.commands.pop_front() {
             match command {
                 Command::ClearAll => {

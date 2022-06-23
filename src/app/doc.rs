@@ -1,9 +1,9 @@
-pub struct Sketch<'a> {
+pub struct MutSketch<'a> {
     pub size: Size,
     pub frame: &'a mut [u8],
 }
 
-impl<'a> Sketch<'a> {
+impl<'a> MutSketch<'a> {
     pub fn new(frame: &'a mut [u8], width: impl TryInto<usize>, height: impl TryInto<usize>) -> Self {
         let width = width.try_into().ok().unwrap();
         let height = height.try_into().ok().unwrap();
@@ -21,7 +21,7 @@ impl<'a> Sketch<'a> {
         }
     }
 
-    pub fn copy_from(&mut self, other: &Sketch<'_>) {
+    pub fn copy_from(&mut self, other: &MutSketch<'_>) {
         let min_h = usize::min(self.size.height, other.size.height);
         let min_w = usize::min(self.size.width, other.size.width);
         let dst_w = self.size.width;
@@ -47,8 +47,8 @@ pub struct OwnedSketch {
 }
 
 impl OwnedSketch {
-    pub fn as_sketch(&mut self) -> Sketch {
-        Sketch {
+    pub fn as_sketch(&mut self) -> MutSketch {
+        MutSketch {
             size: self.size,
             frame: self.frame.as_mut_slice(),
         }

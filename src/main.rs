@@ -15,7 +15,7 @@ use winit::{
 use winit::dpi::PhysicalSize;
 use winit_input_helper::WinitInputHelper;
 use crate::app::AppBuilder;
-use crate::app::doc::Sketch;
+use crate::app::doc::MutSketch;
 
 fn main() -> Result<(), Error> {
     env_logger::init();
@@ -97,7 +97,7 @@ fn main() -> Result<(), Error> {
                 }
             }
 
-            let sketch = Sketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height);
+            let sketch = MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height);
 
             app.update(sketch);
 
@@ -107,13 +107,13 @@ fn main() -> Result<(), Error> {
 }
 
 fn resize_buffer(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, new_size: PhysicalSize<u32>) {
-    let mut old_sketch = Sketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height).to_owned();
+    let mut old_sketch = MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height).to_owned();
 
     pixels.get_frame().fill(0x00);
     pixels.resize_surface(new_size.width, new_size.height);
     pixels.resize_buffer(new_size.width, new_size.height);
 
-    let mut new_sketch = Sketch::new(pixels.get_frame(), new_size.width, new_size.height);
+    let mut new_sketch = MutSketch::new(pixels.get_frame(), new_size.width, new_size.height);
 
     new_sketch.copy_from(&old_sketch.as_sketch());
 }

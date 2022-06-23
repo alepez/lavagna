@@ -1,15 +1,15 @@
 use line_drawing::Bresenham;
 use crate::app::CursorPos;
 use crate::app::color::*;
-use crate::Sketch;
+use crate::MutSketch;
 
 pub struct Painter<'a> {
-    sketch: Sketch<'a>,
+    sketch: MutSketch<'a>,
     color: Color,
 }
 
 impl<'a> Painter<'a> {
-    pub fn new(sketch: Sketch<'a>, color: Color) -> Self {
+    pub fn new(sketch: MutSketch<'a>, color: Color) -> Self {
         Painter { sketch, color }
     }
 
