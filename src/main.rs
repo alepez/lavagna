@@ -13,6 +13,7 @@ use winit::{
     window::WindowBuilder,
 };
 use winit::dpi::PhysicalSize;
+use winit::window::CursorIcon;
 use winit_input_helper::WinitInputHelper;
 use crate::app::AppBuilder;
 use crate::app::doc::MutSketch;
@@ -32,6 +33,8 @@ fn main() -> Result<(), Error> {
             .build(&event_loop)
             .unwrap()
     };
+
+    window.set_cursor_icon(CursorIcon::Crosshair);
 
     let mut pixels = {
         let surface_texture = SurfaceTexture::new(canvas_size.width, canvas_size.height, &window);
