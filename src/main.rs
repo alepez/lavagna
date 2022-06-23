@@ -6,7 +6,6 @@ mod app;
 use log::error;
 use pixels::{Error, Pixels, SurfaceTexture};
 use winit::{
-    dpi::LogicalSize,
     event::{Event, VirtualKeyCode},
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
@@ -20,7 +19,7 @@ fn main() -> Result<(), Error> {
     let event_loop = EventLoop::new();
     let mut input = WinitInputHelper::new();
 
-    let mut canvas_size = LogicalSize::new(640, 480);
+    let mut canvas_size = PhysicalSize::new(640, 480);
 
     let window = {
         WindowBuilder::new()
@@ -91,7 +90,9 @@ fn main() -> Result<(), Error> {
             }
 
             if let Some(new_size) = input.window_resized() {
-                resize_canvas(&mut canvas_size, &mut pixels, &mut app, new_size);
+                if canvas_size != new_size {
+                    resize_canvas(&mut canvas_size, &mut pixels, &mut app, new_size);
+                }
             }
 
             app.update(pixels.get_frame());
@@ -101,7 +102,7 @@ fn main() -> Result<(), Error> {
     });
 }
 
-fn resize_canvas(canvas_size: &mut LogicalSize<u32>, pixels: &mut Pixels, app: &mut App, new_size: PhysicalSize<u32>) {
+fn resize_canvas(canvas_size: &mut PhysicalSize<u32>, pixels: &mut Pixels, app: &mut App, new_size: PhysicalSize<u32>) {
     resize_buffer(canvas_size, pixels, new_size);
 
     canvas_size.width = new_size.width;
@@ -110,7 +111,7 @@ fn resize_canvas(canvas_size: &mut LogicalSize<u32>, pixels: &mut Pixels, app: &
     app.resize(new_size.width as isize, new_size.height as isize);
 }
 
-fn resize_buffer(canvas_size: &LogicalSize<u32>, pixels: &mut Pixels, new_size: PhysicalSize<u32>) {
+fn resize_buffer(canvas_size: &PhysicalSize<u32>, pixels: &mut Pixels, new_size: PhysicalSize<u32>) {
     let mut backup = Vec::from(pixels.get_frame());
 
     pixels.get_frame().fill(0x00);
