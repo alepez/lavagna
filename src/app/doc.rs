@@ -13,7 +13,8 @@ impl<'a> Sketch<'a> {
 }
 
 pub struct Size {
-    width: isize,
-    height: isize,
+    pub(crate) width: isize,
+    #[allow(dead_code)]
+    pub(crate) height: isize,
 }
 

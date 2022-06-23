@@ -80,26 +80,24 @@ pub struct CursorPos {
 
 impl App {
     pub fn update(&mut self, sketch: Sketch) {
-        let frame = sketch.frame.as_mut();
-
         while let Some(command) = self.commands.pop_front() {
             match command {
                 Command::ClearAll => {
-                    self.backups.push(frame.to_owned());
-                    frame.fill(0x00);
+                    self.backups.push(sketch.frame.to_owned());
+                    sketch.frame.fill(0x00);
                 }
                 Command::Backup => {
-                    self.backups.push(frame.to_owned());
+                    self.backups.push(sketch.frame.to_owned());
                 }
                 Command::Resume => {
                     if let Some(backup) = &self.backups.pop() {
-                        frame.clone_from_slice(backup);
+                        sketch.frame.clone_from_slice(backup);
                     }
                 }
             }
         }
 
-        let mut painter = Painter::new(frame, &self.canvas, self.color);
+        let mut painter = Painter::new(sketch, self.color);
 
         if self.cursor.pressed {
             if self.prev_cursor.pressed {
