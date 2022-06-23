@@ -107,7 +107,7 @@ fn main() -> Result<(), Error> {
 }
 
 fn resize_buffer(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, new_size: PhysicalSize<u32>) {
-    let mut old_sketch = MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height).to_owned();
+    let old_sketch = MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height).to_owned();
 
     pixels.get_frame().fill(0x00);
     pixels.resize_surface(new_size.width, new_size.height);
