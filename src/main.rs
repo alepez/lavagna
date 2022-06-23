@@ -13,14 +13,14 @@ use winit::{
 use winit::dpi::PhysicalSize;
 use winit::window::CursorIcon;
 use winit_input_helper::WinitInputHelper;
-use crate::app::AppBuilder;
+use crate::app::App;
 use crate::app::doc::MutSketch;
 
 fn main() -> Result<(), Error> {
     env_logger::init();
+
     let event_loop = EventLoop::new();
     let mut input = WinitInputHelper::new();
-
     let mut canvas_size = PhysicalSize::new(640, 480);
 
     let window = {
@@ -39,7 +39,7 @@ fn main() -> Result<(), Error> {
         Pixels::new(canvas_size.width, canvas_size.height, surface_texture)?
     };
 
-    let mut app = AppBuilder::new().build();
+    let mut app = App::new();
 
     event_loop.run(move |event, _, control_flow| {
         if let Event::RedrawRequested(_) = event {

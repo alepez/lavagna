@@ -23,29 +23,6 @@ pub struct App {
     snapshots: Vec<OwnedSketch>,
 }
 
-#[derive(Default)]
-pub struct AppBuilder {}
-
-impl AppBuilder {
-    pub fn new() -> AppBuilder {
-        AppBuilder::default()
-    }
-
-    pub fn build(self) -> App {
-        let mut palette = ColorSelector::new(&PALETTE);
-        let color = palette.next().unwrap();
-
-        App {
-            cursor: Cursor::default(),
-            prev_cursor: Cursor::default(),
-            commands: VecDeque::with_capacity(10),
-            palette,
-            color,
-            snapshots: Vec::new(),
-        }
-    }
-}
-
 #[derive(Default, Debug, Copy, Clone)]
 struct Cursor {
     pressed: bool,
@@ -59,6 +36,20 @@ pub struct CursorPos {
 }
 
 impl App {
+    pub fn new() -> Self {
+        let mut palette = ColorSelector::new(&PALETTE);
+        let color = palette.next().unwrap();
+
+        App {
+            cursor: Cursor::default(),
+            prev_cursor: Cursor::default(),
+            commands: VecDeque::with_capacity(10),
+            palette,
+            color,
+            snapshots: Vec::new(),
+        }
+    }
+
     pub fn update(&mut self, mut sketch: MutSketch) {
         while let Some(command) = self.commands.pop_front() {
             match command {
