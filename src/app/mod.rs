@@ -81,6 +81,8 @@ impl App {
 
         if self.cursor.pressed && self.prev_cursor.pressed {
             painter.draw_line(self.prev_cursor.pos, self.cursor.pos);
+        } else {
+            draw_current_color_icon(&mut painter);
         }
 
         self.prev_cursor = self.cursor;
@@ -110,6 +112,16 @@ impl App {
     pub fn change_color(&mut self) {
         if let Some(color) = self.palette.next() {
             self.color = color;
+        }
+    }
+}
+
+fn draw_current_color_icon(painter: &mut Painter) {
+    const SQUARE_SIZE: isize = 10;
+
+    for x in 0..SQUARE_SIZE {
+        for y in 0..(SQUARE_SIZE - x) {
+            painter.draw_pixel(CursorPos { x, y });
         }
     }
 }
