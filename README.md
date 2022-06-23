@@ -16,4 +16,4 @@ Just you and your chalk.
 | X      | Clear    | Take a snapshot and clear everything |
 | C      | Color    | Change the chalk color               |
 | Z      | Undo     | Resume the last snapshot             |
-| B      | Snapshot | Take a snapshot                      |
+| S      | Snapshot | Take a snapshot                      |

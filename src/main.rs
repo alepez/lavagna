@@ -73,7 +73,7 @@ fn main() -> Result<(), Error> {
                 app.resume();
             }
 
-            if input.key_pressed(VirtualKeyCode::B) {
+            if input.key_pressed(VirtualKeyCode::S) {
                 app.backup();
             }
 
