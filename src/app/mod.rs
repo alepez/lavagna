@@ -17,7 +17,6 @@ enum Command {
 pub struct App {
     cursor: Cursor,
     prev_cursor: Cursor,
-    canvas: Canvas,
     commands: VecDeque<Command>,
     palette: ColorSelector,
     color: Color,
@@ -25,45 +24,26 @@ pub struct App {
 }
 
 #[derive(Default)]
-pub struct AppBuilder {
-    width: isize,
-    height: isize,
-}
+pub struct AppBuilder {}
 
 impl AppBuilder {
     pub fn new() -> AppBuilder {
         AppBuilder::default()
     }
 
-    pub fn with_size(mut self, width: isize, height: isize) -> AppBuilder {
-        self.width = width;
-        self.height = height;
-        self
-    }
-
     pub fn build(self) -> App {
-        let AppBuilder { width, height } = self;
         let mut palette = ColorSelector::new(&PALETTE);
         let color = palette.next().unwrap();
 
         App {
             cursor: Cursor::default(),
             prev_cursor: Cursor::default(),
-            canvas: Canvas { width, height },
             commands: VecDeque::with_capacity(10),
             palette,
             color,
             backups: Vec::new(),
         }
     }
-}
-
-
-#[derive(Default, Debug)]
-pub struct Canvas {
-    width: isize,
-    #[allow(dead_code)]
-    height: isize,
 }
 
 #[derive(Default, Debug, Copy, Clone)]
@@ -117,11 +97,6 @@ impl App {
 
     pub fn set_pressed(&mut self, pressed: bool) {
         self.cursor.pressed = pressed;
-    }
-
-    pub fn resize(&mut self, width: isize, height: isize) {
-        self.canvas.width = width;
-        self.canvas.height = height;
     }
 
     pub fn clear_all(&mut self) {

@@ -36,9 +36,7 @@ fn main() -> Result<(), Error> {
         Pixels::new(canvas_size.width, canvas_size.height, surface_texture)?
     };
 
-    let mut app = AppBuilder::new()
-        .with_size(canvas_size.width as isize, canvas_size.height as isize)
-        .build();
+    let mut app = AppBuilder::new().build();
 
     event_loop.run(move |event, _, control_flow| {
         if let Event::RedrawRequested(_) = event {
@@ -94,7 +92,6 @@ fn main() -> Result<(), Error> {
                 if canvas_size != new_size {
                     resize_buffer(&mut pixels, canvas_size, new_size);
                     canvas_size = new_size;
-                    app.resize(canvas_size.width as isize, canvas_size.height as isize);
                 }
             }
 
