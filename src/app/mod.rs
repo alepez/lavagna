@@ -79,12 +79,8 @@ impl App {
 
         let mut painter = Painter::new(sketch, self.color);
 
-        if self.cursor.pressed {
-            if self.prev_cursor.pressed {
-                painter.draw_line(self.prev_cursor.pos, self.cursor.pos);
-            }
-
-            painter.draw_pixel(self.cursor.pos);
+        if self.cursor.pressed && self.prev_cursor.pressed {
+            painter.draw_line(self.prev_cursor.pos, self.cursor.pos);
         }
 
         self.prev_cursor = self.cursor;
