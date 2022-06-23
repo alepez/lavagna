@@ -21,6 +21,8 @@ impl<'a> Painter<'a> {
 
     pub fn draw_pixel(&mut self, pos: CursorPos) {
         let CursorPos { x, y } = pos;
+        let x = x as usize;
+        let y = y as usize;
 
         let pix_index = (self.sketch.size.width * y + x) as usize;
 

@@ -1,6 +1,8 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
+extern crate core;
+
 mod app;
 
 use log::error;
@@ -105,33 +107,13 @@ fn main() -> Result<(), Error> {
 }
 
 fn resize_buffer(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, new_size: PhysicalSize<u32>) {
-    let mut backup = Vec::from(pixels.get_frame());
+    let mut old_sketch = Sketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height).to_owned();
 
     pixels.get_frame().fill(0x00);
     pixels.resize_surface(new_size.width, new_size.height);
     pixels.resize_buffer(new_size.width, new_size.height);
 
-    copy_frame(
-        pixels.get_frame(),
-        new_size.width as usize,
-        new_size.height as usize,
-        backup.as_mut_slice(),
-        canvas_size.width as usize,
-        canvas_size.height as usize,
-    );
-}
+    let mut new_sketch = Sketch::new(pixels.get_frame(), new_size.width, new_size.height);
 
-fn copy_frame(dst: &mut [u8], dst_w: usize, dst_h: usize, src: &mut [u8], src_w: usize, src_h: usize) {
-    let min_h = usize::min(dst_h, src_h);
-    let min_w = usize::min(dst_w, src_w);
-
-    for y in 0..min_h {
-        let dst_begin = dst_w * y;
-        let dst_end = dst_begin + min_w;
-        let src_begin = src_w * y;
-        let src_end = src_begin + min_w;
-        let dst_range = (4 * dst_begin)..(4 * dst_end);
-        let src_range = (4 * src_begin)..(4 * src_end);
-        dst[dst_range].copy_from_slice(&src[src_range]);
-    }
+    new_sketch.copy_from(&old_sketch.as_sketch());
 }
