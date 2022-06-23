@@ -1,7 +1,7 @@
-use line_drawing::Bresenham;
-use crate::app::CursorPos;
 use crate::app::color::*;
+use crate::app::CursorPos;
 use crate::MutSketch;
+use line_drawing::Bresenham;
 
 pub struct Painter<'a> {
     sketch: MutSketch<'a>,
@@ -33,9 +33,7 @@ impl<'a> Painter<'a> {
 
         let pix_index = pix_index as usize;
 
-        if let Some(pix) = self.sketch.frame
-            .chunks_exact_mut(4)
-            .nth(pix_index) {
+        if let Some(pix) = self.sketch.frame.chunks_exact_mut(4).nth(pix_index) {
             pix.copy_from_slice(self.color.as_bytes());
         }
     }

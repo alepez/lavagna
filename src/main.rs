@@ -3,18 +3,18 @@
 
 mod app;
 
+use crate::app::doc::MutSketch;
+use crate::app::App;
 use log::error;
 use pixels::{Error, Pixels, SurfaceTexture};
+use winit::dpi::PhysicalSize;
+use winit::window::CursorIcon;
 use winit::{
     event::{Event, VirtualKeyCode},
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
 };
-use winit::dpi::PhysicalSize;
-use winit::window::CursorIcon;
 use winit_input_helper::WinitInputHelper;
-use crate::app::App;
-use crate::app::doc::MutSketch;
 
 fn main() -> Result<(), Error> {
     env_logger::init();
@@ -108,7 +108,8 @@ fn main() -> Result<(), Error> {
 }
 
 fn resize_buffer(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, new_size: PhysicalSize<u32>) {
-    let old_sketch = MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height).to_owned();
+    let old_sketch =
+        MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height).to_owned();
 
     pixels.get_frame().fill(0x00);
     pixels.resize_surface(new_size.width, new_size.height);

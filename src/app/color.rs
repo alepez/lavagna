@@ -15,15 +15,7 @@ impl<'a> Color {
     }
 }
 
-pub const PALETTE: [Color; 7] = [
-    WHITE,
-    BLUE,
-    LIGHT_BLUE,
-    GREEN,
-    YELLOW,
-    ORANGE,
-    RED,
-];
+pub const PALETTE: [Color; 7] = [WHITE, BLUE, LIGHT_BLUE, GREEN, YELLOW, ORANGE, RED];
 
 pub struct ColorSelector {
     index: usize,

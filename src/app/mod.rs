@@ -1,11 +1,11 @@
-mod painter;
 mod color;
 pub(crate) mod doc;
+mod painter;
 
-use std::collections::VecDeque;
 use crate::app::color::*;
 use crate::app::doc::{MutSketch, OwnedSketch};
 use crate::app::painter::Painter;
+use std::collections::VecDeque;
 
 #[derive(Debug)]
 enum Command {
