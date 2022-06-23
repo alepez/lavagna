@@ -11,7 +11,7 @@ use crate::app::painter::Painter;
 enum Command {
     ClearAll,
     Resume,
-    Backup,
+    TakeSnapshot,
 }
 
 pub struct App {
@@ -20,7 +20,7 @@ pub struct App {
     commands: VecDeque<Command>,
     palette: ColorSelector,
     color: Color,
-    backups: Vec<OwnedSketch>,
+    snapshots: Vec<OwnedSketch>,
 }
 
 #[derive(Default)]
@@ -41,7 +41,7 @@ impl AppBuilder {
             commands: VecDeque::with_capacity(10),
             palette,
             color,
-            backups: Vec::new(),
+            snapshots: Vec::new(),
         }
     }
 }
@@ -63,14 +63,14 @@ impl App {
         while let Some(command) = self.commands.pop_front() {
             match command {
                 Command::ClearAll => {
-                    self.backups.push(sketch.to_owned());
+                    self.snapshots.push(sketch.to_owned());
                     sketch.frame.fill(0x00);
                 }
-                Command::Backup => {
-                    self.backups.push(sketch.to_owned());
+                Command::TakeSnapshot => {
+                    self.snapshots.push(sketch.to_owned());
                 }
                 Command::Resume => {
-                    if let Some(backup) = &self.backups.pop() {
+                    if let Some(backup) = &self.snapshots.pop() {
                         sketch.copy_from(&backup.as_sketch());
                     }
                 }
@@ -88,7 +88,7 @@ impl App {
         self.prev_cursor = self.cursor;
     }
 
-    pub fn set_position(&mut self, x: isize, y: isize) {
+    pub fn set_cursor_position(&mut self, x: isize, y: isize) {
         self.cursor.pos.x = x;
         self.cursor.pos.y = y;
     }
@@ -105,8 +105,8 @@ impl App {
         self.commands.push_back(Command::Resume);
     }
 
-    pub fn backup(&mut self) {
-        self.commands.push_back(Command::Backup);
+    pub fn take_snapshot(&mut self) {
+        self.commands.push_back(Command::TakeSnapshot);
     }
 
     pub fn change_color(&mut self) {

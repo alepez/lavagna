@@ -74,14 +74,14 @@ fn main() -> Result<(), Error> {
             }
 
             if input.key_pressed(VirtualKeyCode::S) {
-                app.backup();
+                app.take_snapshot();
             }
 
             let mouse = input.mouse();
 
             if let Some(mouse) = mouse {
                 if let Ok((x, y)) = pixels.window_pos_to_pixel(mouse) {
-                    app.set_position(x as isize, y as isize);
+                    app.set_cursor_position(x as isize, y as isize);
                 }
             }
 
