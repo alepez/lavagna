@@ -1,8 +1,6 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
-extern crate core;
-
 mod app;
 
 use log::error;
