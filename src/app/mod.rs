@@ -4,7 +4,7 @@ pub(crate) mod doc;
 
 use std::collections::VecDeque;
 use crate::app::color::*;
-use crate::app::doc::MutSketch;
+use crate::app::doc::{MutSketch, OwnedSketch};
 use crate::app::painter::Painter;
 
 #[derive(Debug)]
@@ -20,7 +20,7 @@ pub struct App {
     commands: VecDeque<Command>,
     palette: ColorSelector,
     color: Color,
-    backups: Vec<Vec<u8>>,
+    backups: Vec<OwnedSketch>,
 }
 
 #[derive(Default)]
@@ -59,19 +59,19 @@ pub struct CursorPos {
 }
 
 impl App {
-    pub fn update(&mut self, sketch: MutSketch) {
+    pub fn update(&mut self, mut sketch: MutSketch) {
         while let Some(command) = self.commands.pop_front() {
             match command {
                 Command::ClearAll => {
-                    self.backups.push(sketch.frame.to_owned());
+                    self.backups.push(sketch.to_owned());
                     sketch.frame.fill(0x00);
                 }
                 Command::Backup => {
-                    self.backups.push(sketch.frame.to_owned());
+                    self.backups.push(sketch.to_owned());
                 }
                 Command::Resume => {
                     if let Some(backup) = &self.backups.pop() {
-                        sketch.frame.clone_from_slice(backup);
+                        sketch.copy_from(&backup.as_sketch());
                     }
                 }
             }
