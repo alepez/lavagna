@@ -95,7 +95,7 @@ fn main() -> Result<(), Error> {
                 }
             }
 
-            let sketch = Sketch::new(pixels.get_frame(), canvas_size.width as isize, canvas_size.height as isize);
+            let sketch = Sketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height);
 
             app.update(sketch);
 
