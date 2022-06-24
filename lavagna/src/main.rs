@@ -14,9 +14,7 @@ use winit::{
 };
 use winit_input_helper::WinitInputHelper;
 
-fn main() -> Result<(), Error> {
-    env_logger::init();
-
+fn run() -> Result<(), Error> {
     let event_loop = EventLoop::new();
     let mut input = WinitInputHelper::new();
     let mut canvas_size = PhysicalSize::new(640, 480);
@@ -116,4 +114,9 @@ fn resize_buffer(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, new_size: 
     let mut new_sketch = MutSketch::new(pixels.get_frame(), new_size.width, new_size.height);
 
     new_sketch.copy_from(&old_sketch.as_sketch());
+}
+
+fn main() -> Result<(), Error> {
+    env_logger::init();
+    run()
 }

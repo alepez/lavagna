@@ -8,14 +8,14 @@ use log::error;
 use pixels::{Error, Pixels, SurfaceTexture};
 use winit::dpi::PhysicalSize;
 use winit::event::{TouchPhase, WindowEvent};
-use winit::window::{CursorIcon, Window};
+use winit::window::Window;
 use winit::{
     event::Event,
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
 };
 
-pub fn lavagna() -> Result<(), Error> {
+pub fn run() -> Result<(), Error> {
     let event_loop = EventLoop::new();
     let mut canvas_size = PhysicalSize::new(640, 480);
 
@@ -27,8 +27,6 @@ pub fn lavagna() -> Result<(), Error> {
             .build(&event_loop)
             .unwrap()
     };
-
-    window.set_cursor_icon(CursorIcon::Crosshair);
 
     let mut pixels: Option<Pixels> = None;
     let mut app = App::new();
@@ -140,6 +138,6 @@ fn resume(
     )
 )]
 fn main() {
-    lavagna().unwrap();
+    run().unwrap();
 }
 
