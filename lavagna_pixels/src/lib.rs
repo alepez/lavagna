@@ -33,37 +33,35 @@ pub fn run() -> Result<(), Error> {
     let mut pixels: Option<Pixels> = None;
 
     event_loop.run(move |event, _, control_flow| {
-        if let Event::Resumed = event {
-            canvas_size = window.inner_size();
-            pixels = resume(&window, canvas_size, frozen_sketch.take());
+        match event {
+            Event::Resumed => {
+                canvas_size = window.inner_size();
+                pixels = resume(&window, canvas_size, frozen_sketch.take());
 
-            // Prevent drawing a line from the last location when resuming
-            app.set_pressed(false);
-        }
-
-        if let Event::Suspended = event {
-            if let Some(mut pixels) = pixels.take() {
-                let sketch =
-                    MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height);
-                frozen_sketch = Some(sketch.to_owned());
+                // Prevent drawing a line from the last location when resuming
+                app.set_pressed(false);
             }
-        }
-
-        if let Event::WindowEvent {
-            event: WindowEvent::Resized(new_size),
-            ..
-        } = event {
-            if let Some(mut pixels) = pixels.take() {
-                let sketch =
-                    MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height);
-                frozen_sketch = Some(sketch.to_owned());
+            Event::Suspended => {
+                if let Some(mut pixels) = pixels.take() {
+                    let sketch =
+                        MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height);
+                    frozen_sketch = Some(sketch.to_owned());
+                }
             }
+            Event::WindowEvent {
+                event: WindowEvent::Resized(new_size),
+                ..
+            } => {
+                if let Some(mut pixels) = pixels.take() {
+                    let sketch =
+                        MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height);
+                    frozen_sketch = Some(sketch.to_owned());
+                }
 
-            canvas_size = new_size;
-            pixels = resume(&window, canvas_size, frozen_sketch.take());
-
-            // Prevent drawing a line from the last location when resuming
-            app.set_pressed(false);
+                canvas_size = new_size;
+                pixels = resume(&window, canvas_size, frozen_sketch.take());
+            }
+            _ => (),
         }
 
         if let Some(pixels) = pixels.as_mut() {
