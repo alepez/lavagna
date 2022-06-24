@@ -12,6 +12,8 @@ enum Command {
     ClearAll,
     Resume,
     TakeSnapshot,
+    ChangeColor(Color),
+    MoveCursor(CursorPos),
 }
 
 pub struct App {
@@ -65,6 +67,12 @@ impl App {
                         sketch.copy_from(&backup.as_sketch());
                     }
                 }
+                Command::ChangeColor(color) => {
+                    self.color = color;
+                }
+                Command::MoveCursor(pos) => {
+                    self.cursor.pos = pos;
+                }
             }
         }
 
@@ -80,8 +88,7 @@ impl App {
     }
 
     pub fn set_cursor_position(&mut self, x: isize, y: isize) {
-        self.cursor.pos.x = x;
-        self.cursor.pos.y = y;
+        self.commands.push_back(Command::MoveCursor(CursorPos { x, y }));
     }
 
     pub fn set_pressed(&mut self, pressed: bool) {
@@ -102,8 +109,12 @@ impl App {
 
     pub fn change_color(&mut self) {
         if let Some(color) = self.palette.next() {
-            self.color = color;
+            self.commands.push_back(Command::ChangeColor(color));
         }
+    }
+
+    pub fn needs_update(&self) -> bool {
+        !self.commands.is_empty()
     }
 }
 

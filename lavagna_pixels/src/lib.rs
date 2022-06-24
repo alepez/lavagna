@@ -74,9 +74,6 @@ pub fn run() -> Result<(), Error> {
                         return;
                     }
                 }
-                Event::MainEventsCleared => {
-                    window.request_redraw();
-                }
                 Event::WindowEvent {
                     event: WindowEvent::CloseRequested,
                     ..
@@ -134,6 +131,10 @@ pub fn run() -> Result<(), Error> {
                 }
                 _ => (),
             }
+        }
+
+        if app.needs_update() {
+            window.request_redraw();
         }
     });
 }
