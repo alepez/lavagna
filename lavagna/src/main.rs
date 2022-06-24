@@ -1,10 +1,8 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
-mod app;
-
-use crate::app::doc::MutSketch;
-use crate::app::App;
+use lavagna_core::doc::MutSketch;
+use lavagna_core::App;
 use log::error;
 use pixels::{Error, Pixels, SurfaceTexture};
 use winit::dpi::PhysicalSize;

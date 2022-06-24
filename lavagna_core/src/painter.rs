@@ -1,5 +1,5 @@
-use crate::app::color::*;
-use crate::app::CursorPos;
+use crate::color::*;
+use crate::CursorPos;
 use crate::MutSketch;
 use line_drawing::Bresenham;
 

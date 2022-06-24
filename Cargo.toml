@@ -1,5 +1,6 @@
 [workspace]
 members = [
   "lavagna",
+  "lavagna_core",
 ]
 resolver = "2"

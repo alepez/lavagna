@@ -1,10 +1,10 @@
 mod color;
-pub(crate) mod doc;
+pub mod doc;
 mod painter;
 
-use crate::app::color::*;
-use crate::app::doc::{MutSketch, OwnedSketch};
-use crate::app::painter::Painter;
+use crate::color::*;
+use crate::doc::{MutSketch, OwnedSketch};
+use crate::painter::Painter;
 use std::collections::VecDeque;
 
 #[derive(Debug)]
