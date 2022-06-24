@@ -1,22 +1,21 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
-use lavagna_core::doc::MutSketch;
+use lavagna_core::doc::{MutSketch};
 use lavagna_core::App;
 use log::error;
 use pixels::{Error, Pixels, SurfaceTexture};
 use winit::dpi::PhysicalSize;
-use winit::window::CursorIcon;
+use winit::window::{CursorIcon};
 use winit::{
-    event::{Event, VirtualKeyCode},
+    event::{Event, VirtualKeyCode, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
 };
-use winit_input_helper::WinitInputHelper;
+use winit::event::{ElementState, KeyboardInput, MouseButton};
 
 fn run() -> Result<(), Error> {
     let event_loop = EventLoop::new();
-    let mut input = WinitInputHelper::new();
     let mut canvas_size = PhysicalSize::new(640, 480);
 
     let window = {
@@ -30,75 +29,81 @@ fn run() -> Result<(), Error> {
 
     window.set_cursor_icon(CursorIcon::Crosshair);
 
-    let mut pixels = {
-        let surface_texture = SurfaceTexture::new(canvas_size.width, canvas_size.height, &window);
-        Pixels::new(canvas_size.width, canvas_size.height, surface_texture)?
-    };
-
     let mut app = App::new();
 
+    let mut pixels = {
+        let surface_texture = SurfaceTexture::new(canvas_size.width, canvas_size.height, &window);
+        Pixels::new(canvas_size.width, canvas_size.height, surface_texture).ok()
+    };
+
     event_loop.run(move |event, _, control_flow| {
-        if let Event::RedrawRequested(_) = event {
-            if pixels
-                .render()
-                .map_err(|e| error!("pixels.render() failed: {}", e))
-                .is_err()
-            {
-                *control_flow = ControlFlow::Exit;
-                return;
-            }
-        }
+        if let Some(mut pixels) = pixels.as_mut() {
+            match event {
+                Event::RedrawRequested(_) => {
+                    let sketch =
+                        MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height);
+                    app.update(sketch);
 
-        if input.update(&event) {
-            if input.key_pressed(VirtualKeyCode::Escape) || input.quit() {
-                *control_flow = ControlFlow::Exit;
-                return;
-            }
-
-            if input.key_pressed(VirtualKeyCode::X) {
-                app.clear_all();
-            }
-
-            if input.key_pressed(VirtualKeyCode::C) {
-                app.change_color();
-            }
-
-            if input.key_pressed(VirtualKeyCode::Z) {
-                app.resume();
-            }
-
-            if input.key_pressed(VirtualKeyCode::S) {
-                app.take_snapshot();
-            }
-
-            let mouse = input.mouse();
-
-            if let Some(mouse) = mouse {
-                if let Ok((x, y)) = pixels.window_pos_to_pixel(mouse) {
-                    app.set_cursor_position(x as isize, y as isize);
+                    if pixels
+                        .render()
+                        .map_err(|e| error!("pixels.render() failed: {}", e))
+                        .is_err()
+                    {
+                        *control_flow = ControlFlow::Exit;
+                        return;
+                    }
                 }
-            }
-
-            if input.mouse_pressed(0) {
-                app.set_pressed(true);
-            }
-
-            if input.mouse_released(0) {
-                app.set_pressed(false);
-            }
-
-            if let Some(new_size) = input.window_resized() {
-                if canvas_size != new_size {
-                    resize_buffer(&mut pixels, canvas_size, new_size);
-                    canvas_size = new_size;
+                Event::MainEventsCleared => {
+                    window.request_redraw();
                 }
+                Event::WindowEvent {
+                    event: WindowEvent::Resized(new_size),
+                    ..
+                } => {
+                    if canvas_size != new_size {
+                        resize_buffer(&mut pixels, canvas_size, new_size);
+                        canvas_size = new_size;
+                    }
+                }
+                Event::WindowEvent {
+                    event: WindowEvent::CloseRequested,
+                    ..
+                } => {
+                    *control_flow = ControlFlow::Exit;
+                }
+                Event::WindowEvent {
+                    event: WindowEvent::CursorMoved { position, .. },
+                    ..
+                } => {
+                    if let Ok((x, y)) = pixels.window_pos_to_pixel(position.into()) {
+                        app.set_cursor_position(x as isize, y as isize);
+                    }
+                }
+                Event::WindowEvent {
+                    event: WindowEvent::MouseInput { state, button, .. },
+                    ..
+                } => {
+                    match (button, state) {
+                        (MouseButton::Left, ElementState::Pressed) => app.set_pressed(true),
+                        (MouseButton::Left, ElementState::Released) => app.set_pressed(false),
+                        _ => (),
+                    }
+                }
+                Event::WindowEvent {
+                    event: WindowEvent::KeyboardInput { input, .. },
+                    ..
+                } => {
+                    match input {
+                        KeyboardInput { state: ElementState::Released, virtual_keycode: Some(VirtualKeyCode::Escape), .. } => { *control_flow = ControlFlow::Exit; }
+                        KeyboardInput { state: ElementState::Released, virtual_keycode: Some(VirtualKeyCode::X), .. } => { app.clear_all(); }
+                        KeyboardInput { state: ElementState::Released, virtual_keycode: Some(VirtualKeyCode::C), .. } => { app.change_color(); }
+                        KeyboardInput { state: ElementState::Released, virtual_keycode: Some(VirtualKeyCode::Z), .. } => { app.resume(); }
+                        KeyboardInput { state: ElementState::Released, virtual_keycode: Some(VirtualKeyCode::S), .. } => { app.take_snapshot(); }
+                        _ => (),
+                    }
+                }
+                _ => (),
             }
-
-            let sketch = MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height);
-
-            app.update(sketch);
-
-            window.request_redraw();
         }
     });
 }
