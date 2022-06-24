@@ -30,12 +30,7 @@ pub fn run() -> Result<(), Error> {
 
     let mut app = App::new();
     let mut frozen_sketch: Option<OwnedSketch> = None;
-
-    #[cfg(target_os = "android")]
-        let mut pixels: Option<Pixels> = None;
-
-    #[cfg(not(target_os = "android"))]
-        let mut pixels = resume(&window, canvas_size, frozen_sketch.take());
+    let mut pixels: Option<Pixels> = None;
 
     event_loop.run(move |event, _, control_flow| {
         if let Event::Resumed = event {
@@ -54,7 +49,24 @@ pub fn run() -> Result<(), Error> {
             }
         }
 
-        if let Some(mut pixels) = pixels.as_mut() {
+        if let Event::WindowEvent {
+            event: WindowEvent::Resized(new_size),
+            ..
+        } = event {
+            if let Some(mut pixels) = pixels.take() {
+                let sketch =
+                    MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height);
+                frozen_sketch = Some(sketch.to_owned());
+            }
+
+            canvas_size = new_size;
+            pixels = resume(&window, canvas_size, frozen_sketch.take());
+
+            // Prevent drawing a line from the last location when resuming
+            app.set_pressed(false);
+        }
+
+        if let Some(pixels) = pixels.as_mut() {
             match event {
                 Event::RedrawRequested(_) => {
                     let sketch =
@@ -72,15 +84,6 @@ pub fn run() -> Result<(), Error> {
                 }
                 Event::MainEventsCleared => {
                     window.request_redraw();
-                }
-                Event::WindowEvent {
-                    event: WindowEvent::Resized(new_size),
-                    ..
-                } => {
-                    if canvas_size != new_size {
-                        resize_buffer(&mut pixels, canvas_size, new_size);
-                        canvas_size = new_size;
-                    }
                 }
                 Event::WindowEvent {
                     event: WindowEvent::CloseRequested,
@@ -161,17 +164,3 @@ fn resume(
 
     Some(pixels)
 }
-
-fn resize_buffer(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, new_size: PhysicalSize<u32>) {
-    let old_sketch =
-        MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height).to_owned();
-
-    pixels.get_frame().fill(0x00);
-    pixels.resize_surface(new_size.width, new_size.height);
-    pixels.resize_buffer(new_size.width, new_size.height);
-
-    let mut new_sketch = MutSketch::new(pixels.get_frame(), new_size.width, new_size.height);
-
-    new_sketch.copy_from(&old_sketch.as_sketch());
-}
-
