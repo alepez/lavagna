@@ -16,8 +16,36 @@ pixels = "0.9"
 winit = { git = "https://github.com/rust-windowing/winit.git", rev = "8646cbc" }
 lavagna_core = { path = "../lavagna_core" }
 
-[target.'cfg(target_os = "android")'.dependencies]
-ndk-glue = { git = "https://github.com/rust-windowing/android-ndk-rs", features = ["logger"], rev = "7e33384" }
+[target.'cfg(target_os = "android")'.dependencies.ndk-glue]
+features = ["logger"]
+rev = "7e33384"
+git = "https://github.com/rust-windowing/android-ndk-rs"
 
 [lib]
 crate-type = ["cdylib"]
+
+[package.metadata.android]
+package = "net.pezzato.lavagna"
+build_targets = [
+  # "armv7-linux-androideabi",
+  "aarch64-linux-android",
+  # "i686-linux-android",
+  # "x86_64-linux-android",
+]
+
+apk_name = "lavagna"
+
+[package.metadata.android.sdk]
+min_sdk_version = 23
+target_sdk_version = 29
+max_sdk_version = 29
+
+[[package.metadata.android.uses_feature]]
+name = "android.hardware.vulkan.level"
+required = true
+version = 1
+
+[package.metadata.android.application]
+debuggable = false
+theme = "@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen"
+label = "lavagna"
