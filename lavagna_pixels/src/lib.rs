@@ -51,9 +51,17 @@ pub fn run() -> Result<(), Error> {
                 event: WindowEvent::Resized(new_size),
                 ..
             } => {
-                frozen_sketch = sketch_from_pixels(pixels.take(), canvas_size);
+                if let Some(pixels) = pixels.as_mut() {
+                    if canvas_size != new_size {
+                        resize_buffer(pixels, canvas_size, new_size);
+                    }
+                } else {
+                    frozen_sketch = sketch_from_pixels(pixels.take(), canvas_size);
+                    pixels = resume(&window, new_size, frozen_sketch.take());
+                    window.request_redraw();
+                }
+
                 canvas_size = new_size;
-                pixels = resume(&window, canvas_size, frozen_sketch.take());
             }
             _ => (),
         }
@@ -164,4 +172,17 @@ fn sketch_from_pixels(pixels: Option<Pixels>, canvas_size: PhysicalSize<u32>) ->
     let sketch =
         MutSketch::new(frame, canvas_size.width, canvas_size.height);
     Some(sketch.to_owned())
+}
+
+fn resize_buffer(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, new_size: PhysicalSize<u32>) {
+    let old_sketch =
+        MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height).to_owned();
+
+    pixels.get_frame().fill(0x00);
+    pixels.resize_surface(new_size.width, new_size.height);
+    pixels.resize_buffer(new_size.width, new_size.height);
+
+    let mut new_sketch = MutSketch::new(pixels.get_frame(), new_size.width, new_size.height);
+
+    new_sketch.copy_from(&old_sketch.as_sketch());
 }
