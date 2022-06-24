@@ -2,5 +2,6 @@
 members = [
   "lavagna",
   "lavagna_core",
+  "lavagna_android",
 ]
 resolver = "2"
