@@ -1,5 +1,5 @@
 [package]
-name = "lavagna"
+name = "lavagna_pixels"
 version = "1.0.0"
 authors = ["Alessandro Pezzato <alessandro@pezzato.net>"]
 edition = "2021"
@@ -11,4 +11,7 @@ license = "MIT/Apache-2.0"
 
 [dependencies]
 env_logger = "0.9"
-lavagna_pixels = { path = "../lavagna_pixels" }
+log = "0.4"
+pixels = "0.9"
+winit = { git = "https://github.com/rust-windowing/winit.git", rev = "8646cbc" }
+lavagna_core = { path = "../lavagna_core" }

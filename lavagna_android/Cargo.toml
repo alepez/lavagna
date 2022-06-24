@@ -10,11 +10,7 @@ readme = "README.md"
 license = "MIT/Apache-2.0"
 
 [dependencies]
-env_logger = "0.9"
-log = "0.4"
-pixels = "0.9"
-winit = { git = "https://github.com/rust-windowing/winit.git", rev = "8646cbc" }
-lavagna_core = { path = "../lavagna_core" }
+lavagna_pixels = { path = "../lavagna_pixels" }
 
 [target.'cfg(target_os = "android")'.dependencies.ndk-glue]
 features = ["logger"]
