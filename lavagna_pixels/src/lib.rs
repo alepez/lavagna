@@ -34,6 +34,7 @@ pub fn run() -> Result<(), Error> {
 
     event_loop.run(move |event, _, control_flow| {
         match event {
+            // Resumed on Android
             Event::Resumed => {
                 canvas_size = window.inner_size();
                 pixels = resume(&window, canvas_size, frozen_sketch.take());
@@ -41,23 +42,16 @@ pub fn run() -> Result<(), Error> {
                 // Prevent drawing a line from the last location when resuming
                 app.set_pressed(false);
             }
+            // Suspended on Android
             Event::Suspended => {
-                if let Some(mut pixels) = pixels.take() {
-                    let sketch =
-                        MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height);
-                    frozen_sketch = Some(sketch.to_owned());
-                }
+                frozen_sketch = sketch_from_pixels(pixels.take(), canvas_size);
             }
+            // Window resized on Desktop (Linux/Windows/iOS)
             Event::WindowEvent {
                 event: WindowEvent::Resized(new_size),
                 ..
             } => {
-                if let Some(mut pixels) = pixels.take() {
-                    let sketch =
-                        MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height);
-                    frozen_sketch = Some(sketch.to_owned());
-                }
-
+                frozen_sketch = sketch_from_pixels(pixels.take(), canvas_size);
                 canvas_size = new_size;
                 pixels = resume(&window, canvas_size, frozen_sketch.take());
             }
@@ -161,4 +155,12 @@ fn resume(
     }
 
     Some(pixels)
+}
+
+fn sketch_from_pixels(pixels: Option<Pixels>, canvas_size: PhysicalSize<u32>) -> Option<OwnedSketch> {
+    let mut pixels = pixels?;
+    let frame = pixels.get_frame();
+    let sketch =
+        MutSketch::new(frame, canvas_size.width, canvas_size.height);
+    Some(sketch.to_owned())
 }
