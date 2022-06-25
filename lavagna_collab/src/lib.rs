@@ -87,10 +87,6 @@ impl CollaborationChannel {
         self.tx.blocking_send(cmd)
     }
 
-    // pub fn tx(&mut self) -> &mut Sender<Command> {
-    //     &mut self.tx
-    // }
-
     pub fn rx(&mut self) -> &mut Receiver<Command> {
         &mut self.rx
     }
