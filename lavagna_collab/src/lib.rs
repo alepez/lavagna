@@ -14,14 +14,14 @@ use tokio::sync::mpsc::{Receiver, Sender};
 
 const TIMEOUT: Duration = Duration::from_millis(10);
 
-pub struct CollaborationChannel {
+pub struct WebRtcCollaborationChannel {
     #[allow(dead_code)]
     runtime: tokio::runtime::Runtime,
     tx: Sender<Command>,
     rx: Receiver<Command>,
 }
 
-impl CollaborationChannel {
+impl WebRtcCollaborationChannel {
     pub fn new(room_url: &str) -> Self {
         let (incoming_tx, incoming_rx) = channel::<Command>(1024);
         let (outgoing_tx, mut outgoing_rx) = channel::<Command>(1024);
@@ -74,7 +74,7 @@ impl CollaborationChannel {
             }
         });
 
-        CollaborationChannel {
+        WebRtcCollaborationChannel {
             runtime,
             tx: outgoing_tx,
             rx: incoming_rx,

@@ -1,7 +1,7 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
-use lavagna_collab::CollaborationChannel;
+use lavagna_collab::WebRtcCollaborationChannel;
 use lavagna_core::doc::MutSketch;
 use lavagna_core::doc::OwnedSketch;
 use lavagna_core::{App, Command, CursorPos};
@@ -32,7 +32,7 @@ pub fn run() -> Result<(), Error> {
 
     window.set_cursor_icon(CursorIcon::Crosshair);
 
-    let mut collab = CollaborationChannel::new("ws://localhost:3536/example_room");
+    let mut collab = WebRtcCollaborationChannel::new("ws://localhost:3536/example_room");
 
     let mut app = App::new();
     let mut frozen_sketch: Option<OwnedSketch> = None;
