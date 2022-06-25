@@ -9,6 +9,7 @@ use lavagna_core::Command;
 use matchbox_socket::WebRtcSocket;
 use std::time::Duration;
 use tokio::sync::mpsc::channel;
+use tokio::sync::mpsc::error::SendError;
 use tokio::sync::mpsc::{Receiver, Sender};
 
 pub struct CollaborationChannel {
@@ -82,9 +83,13 @@ impl CollaborationChannel {
         }
     }
 
-    pub fn tx(&mut self) -> &mut Sender<Command> {
-        &mut self.tx
+    pub fn send_command(&self, cmd: Command) -> Result<(), SendError<Command>> {
+        self.tx.blocking_send(cmd)
     }
+
+    // pub fn tx(&mut self) -> &mut Sender<Command> {
+    //     &mut self.tx
+    // }
 
     pub fn rx(&mut self) -> &mut Receiver<Command> {
         &mut self.rx

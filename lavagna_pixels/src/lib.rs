@@ -109,7 +109,7 @@ pub fn run() -> Result<(), Error> {
                             y: y as isize,
                         });
                         app.send_command(cmd);
-                        collab.tx().blocking_send(cmd).unwrap();
+                        collab.send_command(cmd).unwrap();
                     }
                 }
                 Event::WindowEvent {
@@ -119,11 +119,11 @@ pub fn run() -> Result<(), Error> {
                     match touch.phase {
                         TouchPhase::Started => {
                             app.send_command(Command::Pressed);
-                            collab.tx().blocking_send(Command::Pressed).unwrap();
+                            collab.send_command(Command::Pressed).unwrap();
                         }
                         TouchPhase::Ended => {
                             app.send_command(Command::Released);
-                            collab.tx().blocking_send(Command::Released).unwrap();
+                            collab.send_command(Command::Released).unwrap();
                         }
                         _ => (),
                     }
@@ -134,7 +134,7 @@ pub fn run() -> Result<(), Error> {
                             y: y as isize,
                         });
                         app.send_command(cmd);
-                        collab.tx().blocking_send(cmd).unwrap();
+                        collab.send_command(cmd).unwrap();
                     }
                 }
                 Event::WindowEvent {
@@ -143,11 +143,11 @@ pub fn run() -> Result<(), Error> {
                 } => match (button, state) {
                     (MouseButton::Left, ElementState::Pressed) => {
                         app.send_command(Command::Pressed);
-                        collab.tx().blocking_send(Command::Pressed).unwrap();
+                        collab.send_command(Command::Pressed).unwrap();
                     }
                     (MouseButton::Left, ElementState::Released) => {
                         app.send_command(Command::Released);
-                        collab.tx().blocking_send(Command::Released).unwrap();
+                        collab.send_command(Command::Released).unwrap();
                     }
                     _ => (),
                 },
