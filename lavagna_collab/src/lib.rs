@@ -101,7 +101,7 @@ pub struct DummyCollaborationChannel(Receiver<Command>);
 
 impl Default for DummyCollaborationChannel {
     fn default() -> Self {
-        let (_, rx) = channel(0);
+        let (_, rx) = channel(1);
         Self(rx)
     }
 }
