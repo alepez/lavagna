@@ -19,6 +19,10 @@ pub enum Command {
     Released,
 }
 
+pub trait CommandSender {
+    fn send_command(&mut self, cmd: Command);
+}
+
 pub struct App {
     cursor: Cursor,
     prev_cursor: Cursor,
@@ -119,8 +123,10 @@ impl App {
     pub fn needs_update(&self) -> bool {
         !self.commands.is_empty()
     }
+}
 
-    pub fn send_command(&mut self, cmd: Command) {
+impl CommandSender for App {
+    fn send_command(&mut self, cmd: Command) {
         self.commands.push_back(cmd);
     }
 }

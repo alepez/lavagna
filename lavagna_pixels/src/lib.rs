@@ -4,7 +4,7 @@
 use lavagna_collab::{CollaborationChannel, DummyCollaborationChannel, WebRtcCollaborationChannel};
 use lavagna_core::doc::MutSketch;
 use lavagna_core::doc::OwnedSketch;
-use lavagna_core::{App, Command, CursorPos};
+use lavagna_core::{App, Command, CommandSender, CursorPos};
 use log::error;
 pub use pixels::Error;
 use pixels::{Pixels, SurfaceTexture};
