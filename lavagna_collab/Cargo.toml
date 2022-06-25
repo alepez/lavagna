@@ -10,13 +10,10 @@ readme = "README.md"
 license = "MIT/Apache-2.0"
 
 [dependencies]
-env_logger = "0.9"
-log = "0.4"
-pixels = "0.9"
-winit = { git = "https://github.com/rust-windowing/winit.git", rev = "8646cbc" }
-lavagna_core = { path = "../lavagna_core" }
-futures-timer = { version = "3", features = ["wasm-bindgen"] }
-matchbox_socket = { git = "https://github.com/johanhelsing/matchbox", rev = "50c1e69" }
 futures = "0.3"
-tokio = "1.12"
+futures-timer = { version = "3" }
+lavagna_core = { path = "../lavagna_core" }
+log = "0.4"
+matchbox_socket = { git = "https://github.com/johanhelsing/matchbox", rev = "50c1e69" }
 serde_json = "1.0"
+tokio = "1.12"
