@@ -12,6 +12,8 @@ use tokio::sync::mpsc::channel;
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::mpsc::{Receiver, Sender};
 
+const TIMEOUT: Duration = Duration::from_millis(100);
+
 pub struct CollaborationChannel {
     #[allow(dead_code)]
     runtime: tokio::runtime::Runtime,
@@ -37,7 +39,7 @@ impl CollaborationChannel {
             let loop_fut = loop_fut.fuse();
             futures::pin_mut!(loop_fut);
 
-            let timeout = Delay::new(Duration::from_millis(100));
+            let timeout = Delay::new(TIMEOUT);
             futures::pin_mut!(timeout);
 
             let mut peers = Vec::new();
@@ -62,7 +64,7 @@ impl CollaborationChannel {
 
                 select! {
                     _ = (&mut timeout).fuse() => {
-                        timeout.reset(Duration::from_millis(100));
+                        timeout.reset(TIMEOUT);
                     }
 
                     _ = &mut loop_fut => {
