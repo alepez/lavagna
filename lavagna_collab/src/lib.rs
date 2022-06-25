@@ -87,7 +87,9 @@ impl CollaborationChannel {
         self.tx.blocking_send(cmd)
     }
 
-    pub fn rx(&mut self) -> &mut Receiver<Command> {
-        &mut self.rx
+    pub fn receive_commands(&mut self, mut callback: impl FnMut(Command)) {
+        while let Ok(cmd) = self.rx.try_recv() {
+            callback(cmd);
+        }
     }
 }

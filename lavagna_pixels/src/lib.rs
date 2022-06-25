@@ -75,9 +75,9 @@ pub fn run() -> Result<(), Error> {
         if let Some(pixels) = pixels.as_mut() {
             match event {
                 Event::MainEventsCleared => {
-                    while let Ok(cmd) = collab.rx().try_recv() {
+                    collab.receive_commands(|cmd| {
                         app.send_command(cmd);
-                    }
+                    });
                 }
                 Event::RedrawRequested(_) => {
                     let sketch =
