@@ -32,8 +32,6 @@ impl CollaborationChannel {
         let room_url = room_url.to_string();
 
         runtime.spawn(async move {
-            log::info!("Runtime spawn");
-
             let (mut socket, loop_fut) = WebRtcSocket::new(room_url);
 
             let loop_fut = loop_fut.fuse();
@@ -46,7 +44,6 @@ impl CollaborationChannel {
 
             loop {
                 for peer in socket.accept_new_connections() {
-                    log::info!("Peer connected: {:?}", peer);
                     peers.push(peer);
                 }
 
@@ -57,10 +54,9 @@ impl CollaborationChannel {
                     }
                 }
 
-                for (peer, packet) in socket.receive() {
+                for (_peer, packet) in socket.receive() {
                     let packet = packet;
                     let msg = serde_json::from_slice(&packet).unwrap();
-                    log::info!("Received from {:?}: {:?}", peer, msg);
                     incoming_tx.send(msg).await.unwrap();
                 }
 
