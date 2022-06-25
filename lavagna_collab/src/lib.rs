@@ -12,13 +12,16 @@ use tokio::sync::mpsc::channel;
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::mpsc::{Receiver, Sender};
 
+/// If this timeout is too long, the reactivity degrades
 const TIMEOUT: Duration = Duration::from_millis(10);
 
+/// A trait for all kinds of collaboration channels
 pub trait CollaborationChannel {
     fn send_command(&self, cmd: Command) -> Result<(), SendError<Command>>;
     fn rx(&mut self) -> &mut Receiver<Command>;
 }
 
+/// An implementation of collaboration channel over WebRtc
 pub struct WebRtcCollaborationChannel {
     #[allow(dead_code)]
     runtime: tokio::runtime::Runtime,
@@ -27,6 +30,7 @@ pub struct WebRtcCollaborationChannel {
 }
 
 impl WebRtcCollaborationChannel {
+    /// Create a WebRtc collaboration channel, given an url on a signaling server
     pub fn new(room_url: &str) -> Self {
         let (incoming_tx, incoming_rx) = channel::<Command>(1024);
         let (outgoing_tx, mut outgoing_rx) = channel::<Command>(1024);
@@ -97,6 +101,8 @@ impl CollaborationChannel for WebRtcCollaborationChannel {
     }
 }
 
+/// A dummy collaboration channel, which sends to nobody and never receive any
+/// message.
 pub struct DummyCollaborationChannel(Receiver<Command>);
 
 impl Default for DummyCollaborationChannel {
