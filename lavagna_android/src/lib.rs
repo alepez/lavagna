@@ -2,7 +2,7 @@
 #![forbid(unsafe_code)]
 
 #[cfg(target_os = "android")]
-use lavagna_pixels::run;
+use lavagna_pixels::{run, Opt};
 
 #[cfg(target_os = "android")]
 #[cfg_attr(
@@ -17,5 +17,8 @@ use lavagna_pixels::run;
     )
 )]
 fn main() {
-    run().unwrap();
+    // Collaboration is not yet supported on Android
+    let opt = Opt { collab_url: None };
+
+    run(opt).unwrap();
 }
