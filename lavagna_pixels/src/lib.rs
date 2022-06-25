@@ -1,10 +1,14 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
+use std::time::Duration;
+use futures::{select, FutureExt};
+use futures_timer::Delay;
 use lavagna_core::doc::MutSketch;
 use lavagna_core::App;
 use lavagna_core::doc::OwnedSketch;
 use log::error;
+use matchbox_socket::WebRtcSocket;
 use pixels::{Pixels, SurfaceTexture};
 use winit::dpi::PhysicalSize;
 use winit::event::{TouchPhase, WindowEvent, Event, VirtualKeyCode, ElementState, KeyboardInput, MouseButton};
@@ -27,6 +31,48 @@ pub fn run() -> Result<(), Error> {
     };
 
     window.set_cursor_icon(CursorIcon::Crosshair);
+
+    let runtime = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap();
+
+    runtime.spawn(async {
+        log::info!("Connecting to matchbox");
+        let (mut socket, loop_fut) = WebRtcSocket::new("ws://localhost:3536/example_room");
+
+        log::info!("my id is {:?}", socket.id());
+
+        let loop_fut = loop_fut.fuse();
+        futures::pin_mut!(loop_fut);
+
+        let timeout = Delay::new(Duration::from_millis(100));
+        futures::pin_mut!(timeout);
+
+        loop {
+            for peer in socket.accept_new_connections() {
+                log::info!("Found a peer {:?}", peer);
+                let packet = "hello friend!".as_bytes().to_vec().into_boxed_slice();
+                socket.send(packet, peer);
+            }
+
+            for (peer, packet) in socket.receive() {
+                log::info!("Received from {:?}: {:?}", peer, packet);
+            }
+
+            select! {
+            _ = (&mut timeout).fuse() => {
+                timeout.reset(Duration::from_millis(100));
+            }
+
+            _ = &mut loop_fut => {
+                break;
+            }
+        }
+        }
+
+        log::info!("Done");
+    });
 
     let mut app = App::new();
     let mut frozen_sketch: Option<OwnedSketch> = None;
