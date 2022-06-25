@@ -4,10 +4,12 @@
 use lavagna_collab::{CollaborationChannel, DummyCollaborationChannel, WebRtcCollaborationChannel};
 use lavagna_core::doc::MutSketch;
 use lavagna_core::doc::OwnedSketch;
-use lavagna_core::{App, Command, CommandSender, CursorPos};
+use lavagna_core::{App, Command, CommandSender};
 use log::error;
 pub use pixels::Error;
 use pixels::{Pixels, SurfaceTexture};
+use std::cell::RefCell;
+use std::sync::Arc;
 use winit::dpi::PhysicalSize;
 use winit::event::{
     ElementState, Event, KeyboardInput, MouseButton, TouchPhase, VirtualKeyCode, WindowEvent,
@@ -36,13 +38,23 @@ pub fn run(opt: Opt) -> Result<(), Error> {
 
     window.set_cursor_icon(CursorIcon::Crosshair);
 
-    let mut collab: Box<dyn CollaborationChannel> = if let Some(collab_url) = &opt.collab_url {
+    let collab: Box<dyn CollaborationChannel> = if let Some(collab_url) = &opt.collab_url {
         Box::new(WebRtcCollaborationChannel::new(collab_url))
     } else {
         Box::new(DummyCollaborationChannel::default())
     };
 
+    let collab = Arc::new(RefCell::new(collab));
+
     let mut app = App::default();
+
+    {
+        let collab = collab.clone();
+        app.connect_command_sender(Box::new(move |cmd| {
+            collab.borrow_mut().send_command(cmd);
+        }));
+    }
+
     let mut frozen_sketch: Option<OwnedSketch> = None;
     let mut pixels: Option<Pixels> = None;
 
@@ -83,7 +95,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
         if let Some(pixels) = pixels.as_mut() {
             match event {
                 Event::MainEventsCleared => {
-                    while let Ok(cmd) = collab.rx().try_recv() {
+                    while let Ok(cmd) = collab.borrow_mut().rx().try_recv() {
                         app.send_command(cmd);
                     }
                 }
@@ -112,12 +124,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                     ..
                 } => {
                     if let Ok((x, y)) = pixels.window_pos_to_pixel(position.into()) {
-                        let cmd = Command::MoveCursor(CursorPos {
-                            x: x as isize,
-                            y: y as isize,
-                        });
-                        app.send_command(cmd);
-                        collab.send_command(cmd);
+                        app.move_cursor(x as isize, y as isize);
                     }
                 }
                 Event::WindowEvent {
@@ -126,23 +133,16 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                 } => {
                     match touch.phase {
                         TouchPhase::Started => {
-                            app.send_command(Command::Pressed);
-                            collab.send_command(Command::Pressed);
+                            app.press();
                         }
                         TouchPhase::Ended => {
-                            app.send_command(Command::Released);
-                            collab.send_command(Command::Released);
+                            app.release();
                         }
                         _ => (),
                     }
 
                     if let Ok((x, y)) = pixels.window_pos_to_pixel(touch.location.into()) {
-                        let cmd = Command::MoveCursor(CursorPos {
-                            x: x as isize,
-                            y: y as isize,
-                        });
-                        app.send_command(cmd);
-                        collab.send_command(cmd);
+                        app.move_cursor(x as isize, y as isize);
                     }
                 }
                 Event::WindowEvent {
@@ -150,12 +150,10 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                     ..
                 } => match (button, state) {
                     (MouseButton::Left, ElementState::Pressed) => {
-                        app.send_command(Command::Pressed);
-                        collab.send_command(Command::Pressed);
+                        app.press();
                     }
                     (MouseButton::Left, ElementState::Released) => {
-                        app.send_command(Command::Released);
-                        collab.send_command(Command::Released);
+                        app.release();
                     }
                     _ => (),
                 },

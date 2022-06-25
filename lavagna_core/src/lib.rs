@@ -30,6 +30,7 @@ pub struct App {
     palette: ColorSelector,
     color: Color,
     snapshots: Vec<OwnedSketch>,
+    chained_command_sender: Option<Box<dyn FnMut(Command)>>,
 }
 
 #[derive(Default, Debug, Copy, Clone)]
@@ -56,6 +57,7 @@ impl Default for App {
             palette,
             color,
             snapshots: Vec::new(),
+            chained_command_sender: Default::default(),
         }
     }
 }
@@ -103,25 +105,49 @@ impl App {
     }
 
     pub fn clear_all(&mut self) {
-        self.commands.push_back(Command::ClearAll);
+        self.send_command_chained(Command::ClearAll);
     }
 
     pub fn resume(&mut self) {
-        self.commands.push_back(Command::Resume);
+        self.send_command_chained(Command::Resume);
     }
 
     pub fn take_snapshot(&mut self) {
-        self.commands.push_back(Command::TakeSnapshot);
+        self.send_command_chained(Command::TakeSnapshot);
+    }
+
+    pub fn move_cursor(&mut self, x: isize, y: isize) {
+        self.send_command_chained(Command::MoveCursor(CursorPos { x, y }));
+    }
+
+    pub fn press(&mut self) {
+        self.send_command_chained(Command::Pressed);
+    }
+
+    pub fn release(&mut self) {
+        self.send_command_chained(Command::Released);
     }
 
     pub fn change_color(&mut self) {
         if let Some(color) = self.palette.next() {
-            self.commands.push_back(Command::ChangeColor(color));
+            self.send_command_chained(Command::ChangeColor(color));
         }
     }
 
     pub fn needs_update(&self) -> bool {
         !self.commands.is_empty()
+    }
+
+    pub fn connect_command_sender(&mut self, chained: Box<dyn FnMut(Command)>) {
+        self.chained_command_sender = Some(chained);
+    }
+
+    fn send_command_chained(&mut self, cmd: Command) {
+        self.commands.push_back(cmd);
+
+        if let Some(chained) = self.chained_command_sender.as_mut() {
+            chained(cmd);
+        }
     }
 }
 
