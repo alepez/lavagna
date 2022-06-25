@@ -38,10 +38,7 @@ pub fn run() -> Result<(), Error> {
         .unwrap();
 
     runtime.spawn(async {
-        log::info!("Connecting to matchbox");
         let (mut socket, loop_fut) = WebRtcSocket::new("ws://localhost:3536/example_room");
-
-        log::info!("my id is {:?}", socket.id());
 
         let loop_fut = loop_fut.fuse();
         futures::pin_mut!(loop_fut);
@@ -51,7 +48,6 @@ pub fn run() -> Result<(), Error> {
 
         loop {
             for peer in socket.accept_new_connections() {
-                log::info!("Found a peer {:?}", peer);
                 let packet = "hello friend!".as_bytes().to_vec().into_boxed_slice();
                 socket.send(packet, peer);
             }
@@ -70,8 +66,6 @@ pub fn run() -> Result<(), Error> {
             }
         }
         }
-
-        log::info!("Done");
     });
 
     let mut app = App::new();
