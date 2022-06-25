@@ -1,5 +1,5 @@
 [package]
-name = "lavagna_pixels"
+name = "lavagna_collab"
 version = "1.0.0"
 authors = ["Alessandro Pezzato <alessandro@pezzato.net>"]
 edition = "2021"
@@ -15,7 +15,6 @@ log = "0.4"
 pixels = "0.9"
 winit = { git = "https://github.com/rust-windowing/winit.git", rev = "8646cbc" }
 lavagna_core = { path = "../lavagna_core" }
-lavagna_collab = { path = "../lavagna_collab" }
 futures-timer = { version = "3", features = ["wasm-bindgen"] }
 matchbox_socket = { git = "https://github.com/johanhelsing/matchbox", rev = "50c1e69" }
 futures = "0.3"

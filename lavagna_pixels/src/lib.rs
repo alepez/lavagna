@@ -1,27 +1,19 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
-extern crate core;
-
-use futures::{select, FutureExt};
-use futures_timer::Delay;
+use lavagna_collab::CollaborationChannel;
 use lavagna_core::doc::MutSketch;
 use lavagna_core::doc::OwnedSketch;
 use lavagna_core::{App, Command, CursorPos};
 use log::error;
-use matchbox_socket::WebRtcSocket;
+pub use pixels::Error;
 use pixels::{Pixels, SurfaceTexture};
-use std::time::Duration;
-use tokio::sync::mpsc::channel;
 use winit::dpi::PhysicalSize;
 use winit::event::{
     ElementState, Event, KeyboardInput, MouseButton, TouchPhase, VirtualKeyCode, WindowEvent,
 };
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorIcon, Window, WindowBuilder};
-
-pub use pixels::Error;
-use tokio::sync::mpsc::{Receiver, Sender};
 
 pub fn run() -> Result<(), Error> {
     log::info!("lavagna start");
@@ -40,7 +32,7 @@ pub fn run() -> Result<(), Error> {
 
     window.set_cursor_icon(CursorIcon::Crosshair);
 
-    let mut collab = CollaborationChannel::new();
+    let mut collab = CollaborationChannel::new("ws://localhost:3536/example_room");
 
     let mut app = App::new();
     let mut frozen_sketch: Option<OwnedSketch> = None;
@@ -83,7 +75,7 @@ pub fn run() -> Result<(), Error> {
         if let Some(pixels) = pixels.as_mut() {
             match event {
                 Event::MainEventsCleared => {
-                    while let Ok(cmd) = collab.rx.try_recv() {
+                    while let Ok(cmd) = collab.rx().try_recv() {
                         app.send_command(cmd);
                     }
                 }
@@ -117,7 +109,7 @@ pub fn run() -> Result<(), Error> {
                             y: y as isize,
                         });
                         app.send_command(cmd);
-                        collab.tx.blocking_send(cmd).unwrap();
+                        collab.tx().blocking_send(cmd).unwrap();
                     }
                 }
                 Event::WindowEvent {
@@ -127,11 +119,11 @@ pub fn run() -> Result<(), Error> {
                     match touch.phase {
                         TouchPhase::Started => {
                             app.send_command(Command::Pressed);
-                            collab.tx.blocking_send(Command::Pressed).unwrap();
+                            collab.tx().blocking_send(Command::Pressed).unwrap();
                         }
                         TouchPhase::Ended => {
                             app.send_command(Command::Released);
-                            collab.tx.blocking_send(Command::Released).unwrap();
+                            collab.tx().blocking_send(Command::Released).unwrap();
                         }
                         _ => (),
                     }
@@ -142,7 +134,7 @@ pub fn run() -> Result<(), Error> {
                             y: y as isize,
                         });
                         app.send_command(cmd);
-                        collab.tx.blocking_send(cmd).unwrap();
+                        collab.tx().blocking_send(cmd).unwrap();
                     }
                 }
                 Event::WindowEvent {
@@ -151,11 +143,11 @@ pub fn run() -> Result<(), Error> {
                 } => match (button, state) {
                     (MouseButton::Left, ElementState::Pressed) => {
                         app.send_command(Command::Pressed);
-                        collab.tx.blocking_send(Command::Pressed).unwrap();
+                        collab.tx().blocking_send(Command::Pressed).unwrap();
                     }
                     (MouseButton::Left, ElementState::Released) => {
                         app.send_command(Command::Released);
-                        collab.tx.blocking_send(Command::Released).unwrap();
+                        collab.tx().blocking_send(Command::Released).unwrap();
                     }
                     _ => (),
                 },
@@ -250,74 +242,4 @@ fn resize_buffer(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, new_size: 
     let mut new_sketch = MutSketch::new(pixels.get_frame(), new_size.width, new_size.height);
 
     new_sketch.copy_from(&old_sketch.as_sketch());
-}
-
-struct CollaborationChannel {
-    #[allow(dead_code)]
-    runtime: tokio::runtime::Runtime,
-    tx: Sender<Command>,
-    rx: Receiver<Command>,
-}
-
-impl CollaborationChannel {
-    fn new() -> Self {
-        let (incoming_tx, incoming_rx) = channel::<Command>(1024);
-        let (outgoing_tx, mut outgoing_rx) = channel::<Command>(1024);
-
-        let runtime = tokio::runtime::Builder::new_multi_thread()
-            .enable_all()
-            .build()
-            .unwrap();
-
-        runtime.spawn(async move {
-            log::info!("Runtime spawn");
-
-            let (mut socket, loop_fut) = WebRtcSocket::new("ws://localhost:3536/example_room");
-
-            let loop_fut = loop_fut.fuse();
-            futures::pin_mut!(loop_fut);
-
-            let timeout = Delay::new(Duration::from_millis(100));
-            futures::pin_mut!(timeout);
-
-            let mut peers = Vec::new();
-
-            loop {
-                for peer in socket.accept_new_connections() {
-                    log::info!("Peer connected: {:?}", peer);
-                    peers.push(peer);
-                }
-
-                while let Ok(msg) = outgoing_rx.try_recv() {
-                    for peer in &peers {
-                        let packet = serde_json::to_vec(&msg).unwrap().into_boxed_slice();
-                        socket.send(packet, peer);
-                    }
-                }
-
-                for (peer, packet) in socket.receive() {
-                    let packet = packet;
-                    let msg = serde_json::from_slice(&packet).unwrap();
-                    log::info!("Received from {:?}: {:?}", peer, msg);
-                    incoming_tx.send(msg).await.unwrap();
-                }
-
-                select! {
-                    _ = (&mut timeout).fuse() => {
-                        timeout.reset(Duration::from_millis(100));
-                    }
-
-                    _ = &mut loop_fut => {
-                        break;
-                    }
-                }
-            }
-        });
-
-        CollaborationChannel {
-            runtime,
-            tx: outgoing_tx,
-            rx: incoming_rx,
-        }
-    }
 }

@@ -1,8 +1,9 @@
 [workspace]
 members = [
   "lavagna",
-  "lavagna_core",
   "lavagna_android",
+  "lavagna_collab",
+  "lavagna_core",
   "lavagna_pixels",
 ]
 resolver = "2"
