@@ -14,6 +14,11 @@ use tokio::sync::mpsc::{Receiver, Sender};
 
 const TIMEOUT: Duration = Duration::from_millis(10);
 
+pub trait CollaborationChannel {
+    fn send_command(&self, cmd: Command) -> Result<(), SendError<Command>>;
+    fn rx(&mut self) -> &mut Receiver<Command>;
+}
+
 pub struct WebRtcCollaborationChannel {
     #[allow(dead_code)]
     runtime: tokio::runtime::Runtime,
@@ -80,14 +85,14 @@ impl WebRtcCollaborationChannel {
             rx: incoming_rx,
         }
     }
+}
 
-    pub fn send_command(&self, cmd: Command) -> Result<(), SendError<Command>> {
+impl CollaborationChannel for WebRtcCollaborationChannel {
+    fn send_command(&self, cmd: Command) -> Result<(), SendError<Command>> {
         self.tx.blocking_send(cmd)
     }
 
-    pub fn receive_commands(&mut self, mut callback: impl FnMut(Command)) {
-        while let Ok(cmd) = self.rx.try_recv() {
-            callback(cmd);
-        }
+    fn rx(&mut self) -> &mut Receiver<Command> {
+        &mut self.rx
     }
 }

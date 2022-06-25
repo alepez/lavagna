@@ -1,7 +1,7 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
-use lavagna_collab::WebRtcCollaborationChannel;
+use lavagna_collab::{CollaborationChannel, WebRtcCollaborationChannel};
 use lavagna_core::doc::MutSketch;
 use lavagna_core::doc::OwnedSketch;
 use lavagna_core::{App, Command, CursorPos};
@@ -32,7 +32,9 @@ pub fn run() -> Result<(), Error> {
 
     window.set_cursor_icon(CursorIcon::Crosshair);
 
-    let mut collab = WebRtcCollaborationChannel::new("ws://localhost:3536/example_room");
+    let mut collab: Box<dyn CollaborationChannel> = Box::new(WebRtcCollaborationChannel::new(
+        "ws://localhost:3536/example_room",
+    ));
 
     let mut app = App::new();
     let mut frozen_sketch: Option<OwnedSketch> = None;
@@ -75,9 +77,9 @@ pub fn run() -> Result<(), Error> {
         if let Some(pixels) = pixels.as_mut() {
             match event {
                 Event::MainEventsCleared => {
-                    collab.receive_commands(|cmd| {
+                    while let Ok(cmd) = collab.rx().try_recv() {
                         app.send_command(cmd);
-                    });
+                    }
                 }
                 Event::RedrawRequested(_) => {
                     let sketch =
