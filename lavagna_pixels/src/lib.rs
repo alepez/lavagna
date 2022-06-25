@@ -1,7 +1,7 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
-use lavagna_collab::{CollaborationChannel, WebRtcCollaborationChannel};
+use lavagna_collab::{CollaborationChannel, DummyCollaborationChannel, WebRtcCollaborationChannel};
 use lavagna_core::doc::MutSketch;
 use lavagna_core::doc::OwnedSketch;
 use lavagna_core::{App, Command, CursorPos};
@@ -15,7 +15,11 @@ use winit::event::{
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorIcon, Window, WindowBuilder};
 
-pub fn run() -> Result<(), Error> {
+pub struct Opt {
+    pub collab_url: Option<String>,
+}
+
+pub fn run(opt: Opt) -> Result<(), Error> {
     log::info!("lavagna start");
 
     let event_loop = EventLoop::new();
@@ -32,9 +36,11 @@ pub fn run() -> Result<(), Error> {
 
     window.set_cursor_icon(CursorIcon::Crosshair);
 
-    let mut collab: Box<dyn CollaborationChannel> = Box::new(WebRtcCollaborationChannel::new(
-        "ws://localhost:3536/example_room",
-    ));
+    let mut collab: Box<dyn CollaborationChannel> = if let Some(collab_url) = &opt.collab_url {
+        Box::new(WebRtcCollaborationChannel::new(collab_url))
+    } else {
+        Box::new(DummyCollaborationChannel::default())
+    };
 
     let mut app = App::new();
     let mut frozen_sketch: Option<OwnedSketch> = None;

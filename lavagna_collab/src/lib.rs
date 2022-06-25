@@ -96,3 +96,23 @@ impl CollaborationChannel for WebRtcCollaborationChannel {
         &mut self.rx
     }
 }
+
+pub struct DummyCollaborationChannel(Receiver<Command>);
+
+impl Default for DummyCollaborationChannel {
+    fn default() -> Self {
+        let (_, rx) = channel(0);
+        Self(rx)
+    }
+}
+
+impl CollaborationChannel for DummyCollaborationChannel {
+    fn send_command(&self, _cmd: Command) -> Result<(), SendError<Command>> {
+        /* Just ignore everything */
+        Ok(())
+    }
+
+    fn rx(&mut self) -> &mut Receiver<Command> {
+        &mut self.0
+    }
+}
