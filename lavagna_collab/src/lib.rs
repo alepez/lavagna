@@ -5,19 +5,17 @@ extern crate core;
 
 use futures::{select, FutureExt};
 use futures_timer::Delay;
-use lavagna_core::Command;
+use lavagna_core::{Command, CommandSender};
 use matchbox_socket::WebRtcSocket;
 use std::time::Duration;
 use tokio::sync::mpsc::channel;
-use tokio::sync::mpsc::error::SendError;
 use tokio::sync::mpsc::{Receiver, Sender};
 
 /// If this timeout is too long, the reactivity degrades
 const TIMEOUT: Duration = Duration::from_millis(10);
 
 /// A trait for all kinds of collaboration channels
-pub trait CollaborationChannel {
-    fn send_command(&self, cmd: Command) -> Result<(), SendError<Command>>;
+pub trait CollaborationChannel: CommandSender {
     fn rx(&mut self) -> &mut Receiver<Command>;
 }
 
@@ -91,11 +89,18 @@ impl WebRtcCollaborationChannel {
     }
 }
 
-impl CollaborationChannel for WebRtcCollaborationChannel {
-    fn send_command(&self, cmd: Command) -> Result<(), SendError<Command>> {
-        self.tx.blocking_send(cmd)
+impl CommandSender for WebRtcCollaborationChannel {
+    fn send_command(&mut self, cmd: Command) {
+        self.tx
+            .blocking_send(cmd)
+            .map_err(|e| {
+                log::error!("Cannot send to WebRtc: {}", e);
+            })
+            .ok();
     }
+}
 
+impl CollaborationChannel for WebRtcCollaborationChannel {
     fn rx(&mut self) -> &mut Receiver<Command> {
         &mut self.rx
     }
@@ -112,12 +117,13 @@ impl Default for DummyCollaborationChannel {
     }
 }
 
-impl CollaborationChannel for DummyCollaborationChannel {
-    fn send_command(&self, _cmd: Command) -> Result<(), SendError<Command>> {
+impl CommandSender for DummyCollaborationChannel {
+    fn send_command(&mut self, _cmd: Command) {
         /* Just ignore everything */
-        Ok(())
     }
+}
 
+impl CollaborationChannel for DummyCollaborationChannel {
     fn rx(&mut self) -> &mut Receiver<Command> {
         &mut self.0
     }
