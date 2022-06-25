@@ -1,23 +1,29 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
-use std::time::Duration;
+extern crate core;
+
 use futures::{select, FutureExt};
 use futures_timer::Delay;
 use lavagna_core::doc::MutSketch;
-use lavagna_core::App;
 use lavagna_core::doc::OwnedSketch;
+use lavagna_core::{App, Command, CursorPos};
 use log::error;
 use matchbox_socket::WebRtcSocket;
 use pixels::{Pixels, SurfaceTexture};
+use std::time::Duration;
 use winit::dpi::PhysicalSize;
-use winit::event::{TouchPhase, WindowEvent, Event, VirtualKeyCode, ElementState, KeyboardInput, MouseButton};
-use winit::window::{CursorIcon, Window, WindowBuilder};
+use winit::event::{
+    ElementState, Event, KeyboardInput, MouseButton, TouchPhase, VirtualKeyCode, WindowEvent,
+};
 use winit::event_loop::{ControlFlow, EventLoop};
+use winit::window::{CursorIcon, Window, WindowBuilder};
 
 pub use pixels::Error;
 
 pub fn run() -> Result<(), Error> {
+    log::info!("lavagna start");
+
     let event_loop = EventLoop::new();
     let mut canvas_size = PhysicalSize::new(640, 480);
 
@@ -32,12 +38,17 @@ pub fn run() -> Result<(), Error> {
 
     window.set_cursor_icon(CursorIcon::Crosshair);
 
+    let (incoming_tx, mut incoming_rx) = tokio::sync::mpsc::channel::<lavagna_core::Command>(1024);
+    let (outgoing_tx, mut outgoing_rx) = tokio::sync::mpsc::channel::<lavagna_core::Command>(1024);
+
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
         .unwrap();
 
-    runtime.spawn(async {
+    runtime.spawn(async move {
+        log::info!("Runtime spawn");
+
         let (mut socket, loop_fut) = WebRtcSocket::new("ws://localhost:3536/example_room");
 
         let loop_fut = loop_fut.fuse();
@@ -46,25 +57,37 @@ pub fn run() -> Result<(), Error> {
         let timeout = Delay::new(Duration::from_millis(100));
         futures::pin_mut!(timeout);
 
+        let mut peers = Vec::new();
+
         loop {
             for peer in socket.accept_new_connections() {
-                let packet = "hello friend!".as_bytes().to_vec().into_boxed_slice();
-                socket.send(packet, peer);
+                log::info!("Peer connected: {:?}", peer);
+                peers.push(peer);
+            }
+
+            while let Ok(msg) = outgoing_rx.try_recv() {
+                for peer in &peers {
+                    let packet = serde_json::to_vec(&msg).unwrap().into_boxed_slice();
+                    socket.send(packet, peer);
+                }
             }
 
             for (peer, packet) in socket.receive() {
-                log::info!("Received from {:?}: {:?}", peer, packet);
+                let packet = packet;
+                let msg = serde_json::from_slice(&packet).unwrap();
+                log::info!("Received from {:?}: {:?}", peer, msg);
+                incoming_tx.send(msg).await.unwrap();
             }
 
             select! {
-            _ = (&mut timeout).fuse() => {
-                timeout.reset(Duration::from_millis(100));
-            }
+                _ = (&mut timeout).fuse() => {
+                    timeout.reset(Duration::from_millis(100));
+                }
 
-            _ = &mut loop_fut => {
-                break;
+                _ = &mut loop_fut => {
+                    break;
+                }
             }
-        }
         }
     });
 
@@ -80,7 +103,7 @@ pub fn run() -> Result<(), Error> {
                 pixels = resume(&window, canvas_size, frozen_sketch.take());
 
                 // Prevent drawing a line from the last location when resuming
-                app.set_pressed(false);
+                app.send_command(Command::Released);
             }
             // Suspended on Android
             Event::Suspended => {
@@ -108,6 +131,11 @@ pub fn run() -> Result<(), Error> {
 
         if let Some(pixels) = pixels.as_mut() {
             match event {
+                Event::MainEventsCleared => {
+                    while let Ok(cmd) = incoming_rx.try_recv() {
+                        app.send_command(cmd);
+                    }
+                }
                 Event::RedrawRequested(_) => {
                     let sketch =
                         MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height);
@@ -133,7 +161,12 @@ pub fn run() -> Result<(), Error> {
                     ..
                 } => {
                     if let Ok((x, y)) = pixels.window_pos_to_pixel(position.into()) {
-                        app.set_cursor_position(x as isize, y as isize);
+                        let cmd = Command::MoveCursor(CursorPos {
+                            x: x as isize,
+                            y: y as isize,
+                        });
+                        app.send_command(cmd);
+                        outgoing_tx.blocking_send(cmd).unwrap();
                     }
                 }
                 Event::WindowEvent {
@@ -142,41 +175,80 @@ pub fn run() -> Result<(), Error> {
                 } => {
                     match touch.phase {
                         TouchPhase::Started => {
-                            app.set_pressed(true);
+                            app.send_command(Command::Pressed);
+                            outgoing_tx.blocking_send(Command::Pressed).unwrap();
                         }
                         TouchPhase::Ended => {
-                            app.set_pressed(false);
+                            app.send_command(Command::Released);
+                            outgoing_tx.blocking_send(Command::Released).unwrap();
                         }
                         _ => (),
                     }
 
                     if let Ok((x, y)) = pixels.window_pos_to_pixel(touch.location.into()) {
-                        app.set_cursor_position(x as isize, y as isize);
+                        let cmd = Command::MoveCursor(CursorPos {
+                            x: x as isize,
+                            y: y as isize,
+                        });
+                        app.send_command(cmd);
+                        outgoing_tx.blocking_send(cmd).unwrap();
                     }
                 }
                 Event::WindowEvent {
                     event: WindowEvent::MouseInput { state, button, .. },
                     ..
-                } => {
-                    match (button, state) {
-                        (MouseButton::Left, ElementState::Pressed) => app.set_pressed(true),
-                        (MouseButton::Left, ElementState::Released) => app.set_pressed(false),
-                        _ => (),
+                } => match (button, state) {
+                    (MouseButton::Left, ElementState::Pressed) => {
+                        app.send_command(Command::Pressed);
+                        outgoing_tx.blocking_send(Command::Pressed).unwrap();
                     }
-                }
+                    (MouseButton::Left, ElementState::Released) => {
+                        app.send_command(Command::Released);
+                        outgoing_tx.blocking_send(Command::Released).unwrap();
+                    }
+                    _ => (),
+                },
                 Event::WindowEvent {
                     event: WindowEvent::KeyboardInput { input, .. },
                     ..
-                } => {
-                    match input {
-                        KeyboardInput { state: ElementState::Released, virtual_keycode: Some(VirtualKeyCode::Escape), .. } => { *control_flow = ControlFlow::Exit; }
-                        KeyboardInput { state: ElementState::Released, virtual_keycode: Some(VirtualKeyCode::X), .. } => { app.clear_all(); }
-                        KeyboardInput { state: ElementState::Released, virtual_keycode: Some(VirtualKeyCode::C), .. } => { app.change_color(); }
-                        KeyboardInput { state: ElementState::Released, virtual_keycode: Some(VirtualKeyCode::Z), .. } => { app.resume(); }
-                        KeyboardInput { state: ElementState::Released, virtual_keycode: Some(VirtualKeyCode::S), .. } => { app.take_snapshot(); }
-                        _ => (),
+                } => match input {
+                    KeyboardInput {
+                        state: ElementState::Released,
+                        virtual_keycode: Some(VirtualKeyCode::Escape),
+                        ..
+                    } => {
+                        *control_flow = ControlFlow::Exit;
                     }
-                }
+                    KeyboardInput {
+                        state: ElementState::Released,
+                        virtual_keycode: Some(VirtualKeyCode::X),
+                        ..
+                    } => {
+                        app.clear_all();
+                    }
+                    KeyboardInput {
+                        state: ElementState::Released,
+                        virtual_keycode: Some(VirtualKeyCode::C),
+                        ..
+                    } => {
+                        app.change_color();
+                    }
+                    KeyboardInput {
+                        state: ElementState::Released,
+                        virtual_keycode: Some(VirtualKeyCode::Z),
+                        ..
+                    } => {
+                        app.resume();
+                    }
+                    KeyboardInput {
+                        state: ElementState::Released,
+                        virtual_keycode: Some(VirtualKeyCode::S),
+                        ..
+                    } => {
+                        app.take_snapshot();
+                    }
+                    _ => (),
+                },
                 _ => (),
             }
         }
@@ -206,11 +278,13 @@ fn resume(
     Some(pixels)
 }
 
-fn sketch_from_pixels(pixels: Option<Pixels>, canvas_size: PhysicalSize<u32>) -> Option<OwnedSketch> {
+fn sketch_from_pixels(
+    pixels: Option<Pixels>,
+    canvas_size: PhysicalSize<u32>,
+) -> Option<OwnedSketch> {
     let mut pixels = pixels?;
     let frame = pixels.get_frame();
-    let sketch =
-        MutSketch::new(frame, canvas_size.width, canvas_size.height);
+    let sketch = MutSketch::new(frame, canvas_size.width, canvas_size.height);
     Some(sketch.to_owned())
 }
 

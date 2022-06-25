@@ -1739,6 +1739,7 @@ version = "1.0.0"
 dependencies = [
  "line_drawing",
  "log",
+ "serde",
 ]
 
 [[package]]
@@ -1752,6 +1753,7 @@ dependencies = [
  "log",
  "matchbox_socket",
  "pixels",
+ "serde_json",
  "tokio",
  "winit",
 ]

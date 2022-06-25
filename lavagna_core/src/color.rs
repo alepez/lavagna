@@ -1,4 +1,6 @@
-#[derive(Copy, Clone, Debug)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Color([u8; 4]);
 
 pub const WHITE: Color = Color([0xff, 0xff, 0xff, 0xff]);

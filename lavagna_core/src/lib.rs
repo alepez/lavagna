@@ -5,15 +5,18 @@ mod painter;
 use crate::color::*;
 use crate::doc::{MutSketch, OwnedSketch};
 use crate::painter::Painter;
+use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 
-#[derive(Debug)]
-enum Command {
+#[derive(Debug, Serialize, Deserialize, Copy, Clone)]
+pub enum Command {
     ClearAll,
     Resume,
     TakeSnapshot,
     ChangeColor(Color),
     MoveCursor(CursorPos),
+    Pressed,
+    Released,
 }
 
 pub struct App {
@@ -31,10 +34,10 @@ struct Cursor {
     pos: CursorPos,
 }
 
-#[derive(Default, Debug, Copy, Clone)]
+#[derive(Default, Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct CursorPos {
-    x: isize,
-    y: isize,
+    pub x: isize,
+    pub y: isize,
 }
 
 impl App {
@@ -73,6 +76,12 @@ impl App {
                 Command::MoveCursor(pos) => {
                     self.cursor.pos = pos;
                 }
+                Command::Pressed => {
+                    self.cursor.pressed = true;
+                }
+                Command::Released => {
+                    self.cursor.pressed = false;
+                }
             }
         }
 
@@ -85,14 +94,6 @@ impl App {
         }
 
         self.prev_cursor = self.cursor;
-    }
-
-    pub fn set_cursor_position(&mut self, x: isize, y: isize) {
-        self.commands.push_back(Command::MoveCursor(CursorPos { x, y }));
-    }
-
-    pub fn set_pressed(&mut self, pressed: bool) {
-        self.cursor.pressed = pressed;
     }
 
     pub fn clear_all(&mut self) {
@@ -115,6 +116,10 @@ impl App {
 
     pub fn needs_update(&self) -> bool {
         !self.commands.is_empty()
+    }
+
+    pub fn send_command(&mut self, cmd: Command) {
+        self.commands.push_back(cmd);
     }
 }
 
