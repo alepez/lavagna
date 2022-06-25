@@ -42,7 +42,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
         Box::new(DummyCollaborationChannel::default())
     };
 
-    let mut app = App::new();
+    let mut app = App::default();
     let mut frozen_sketch: Option<OwnedSketch> = None;
     let mut pixels: Option<Pixels> = None;
 

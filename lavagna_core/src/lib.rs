@@ -40,8 +40,8 @@ pub struct CursorPos {
     pub y: isize,
 }
 
-impl App {
-    pub fn new() -> Self {
+impl Default for App {
+    fn default() -> Self {
         let mut palette = ColorSelector::new(&PALETTE);
         let color = palette.next().unwrap();
 
@@ -54,7 +54,9 @@ impl App {
             snapshots: Vec::new(),
         }
     }
+}
 
+impl App {
     pub fn update(&mut self, mut sketch: MutSketch) {
         while let Some(command) = self.commands.pop_front() {
             match command {
