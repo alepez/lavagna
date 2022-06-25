@@ -12,7 +12,7 @@ use tokio::sync::mpsc::channel;
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::mpsc::{Receiver, Sender};
 
-const TIMEOUT: Duration = Duration::from_millis(100);
+const TIMEOUT: Duration = Duration::from_millis(10);
 
 pub struct CollaborationChannel {
     #[allow(dead_code)]
