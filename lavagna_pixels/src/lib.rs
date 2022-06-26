@@ -9,7 +9,7 @@ use log::error;
 pub use pixels::Error;
 use pixels::{Pixels, SurfaceTexture};
 use std::cell::RefCell;
-use std::sync::Arc;
+use std::rc::Rc;
 use winit::dpi::PhysicalSize;
 use winit::event::{
     ElementState, Event, KeyboardInput, MouseButton, TouchPhase, VirtualKeyCode, WindowEvent,
@@ -44,7 +44,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
         .map(SupportedCollaborationChannel::new)
         .unwrap_or_default();
 
-    let collab = Arc::new(RefCell::new(collab));
+    let collab = Rc::new(RefCell::new(collab));
 
     let mut app = App::default();
 
