@@ -28,4 +28,4 @@ Just you and your chalk.
 cargo run --bin lavagna -- --collab-url wss://lavagna-server.herokuapp.com/YOUR_ROOM
 ```
 
-Change `YOUR_ROOM` whith anything you prefere.
+Change `YOUR_ROOM` to whatever you prefer.
