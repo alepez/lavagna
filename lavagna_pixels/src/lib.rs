@@ -1,7 +1,7 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
-use lavagna_collab::{CollaborationChannel, DummyCollaborationChannel, WebRtcCollaborationChannel};
+use lavagna_collab::{CollaborationChannel, SupportedCollaborationChannel};
 use lavagna_core::doc::MutSketch;
 use lavagna_core::doc::OwnedSketch;
 use lavagna_core::{App, Command, CommandSender};
@@ -10,7 +10,6 @@ pub use pixels::Error;
 use pixels::{Pixels, SurfaceTexture};
 use std::cell::RefCell;
 use std::sync::Arc;
-use tokio::sync::mpsc::Receiver;
 use winit::dpi::PhysicalSize;
 use winit::event::{
     ElementState, Event, KeyboardInput, MouseButton, TouchPhase, VirtualKeyCode, WindowEvent,
@@ -20,41 +19,6 @@ use winit::window::{CursorIcon, Window, WindowBuilder};
 
 pub struct Opt {
     pub collab_url: Option<String>,
-}
-
-enum SupportedCollaborationChannel {
-    WebRtc(WebRtcCollaborationChannel),
-    Dummy(DummyCollaborationChannel),
-}
-
-impl Default for SupportedCollaborationChannel {
-    fn default() -> Self {
-        Self::Dummy(Default::default())
-    }
-}
-
-impl SupportedCollaborationChannel {
-    pub fn new(collab_url: &str) -> Self {
-        Self::WebRtc(WebRtcCollaborationChannel::new(collab_url))
-    }
-}
-
-impl CommandSender for SupportedCollaborationChannel {
-    fn send_command(&mut self, cmd: Command) {
-        match self {
-            Self::WebRtc(chan) => chan.send_command(cmd),
-            Self::Dummy(chan) => chan.send_command(cmd),
-        }
-    }
-}
-
-impl CollaborationChannel for SupportedCollaborationChannel {
-    fn rx(&mut self) -> &mut Receiver<Command> {
-        match self {
-            Self::WebRtc(chan) => chan.rx(),
-            Self::Dummy(chan) => chan.rx(),
-        }
-    }
 }
 
 pub fn run(opt: Opt) -> Result<(), Error> {

@@ -128,3 +128,38 @@ impl CollaborationChannel for DummyCollaborationChannel {
         &mut self.0
     }
 }
+
+pub enum SupportedCollaborationChannel {
+    WebRtc(WebRtcCollaborationChannel),
+    Dummy(DummyCollaborationChannel),
+}
+
+impl Default for SupportedCollaborationChannel {
+    fn default() -> Self {
+        Self::Dummy(Default::default())
+    }
+}
+
+impl SupportedCollaborationChannel {
+    pub fn new(collab_url: &str) -> Self {
+        Self::WebRtc(WebRtcCollaborationChannel::new(collab_url))
+    }
+}
+
+impl CommandSender for SupportedCollaborationChannel {
+    fn send_command(&mut self, cmd: Command) {
+        match self {
+            Self::WebRtc(chan) => chan.send_command(cmd),
+            Self::Dummy(chan) => chan.send_command(cmd),
+        }
+    }
+}
+
+impl CollaborationChannel for SupportedCollaborationChannel {
+    fn rx(&mut self) -> &mut Receiver<Command> {
+        match self {
+            Self::WebRtc(chan) => chan.rx(),
+            Self::Dummy(chan) => chan.rx(),
+        }
+    }
+}
