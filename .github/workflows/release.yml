@@ -17,7 +17,7 @@ name: release
 on:
   push:
     branches:
-    - ci
+    - ci-test
     tags:
     - "[0-9]+.[0-9]+.[0-9]+"
 jobs:
@@ -98,15 +98,15 @@ jobs:
       with:
         fetch-depth: 1
 
-    - name: Install packages (Ubuntu)
-      if: matrix.os == 'ubuntu-20.04'
-      run: |
-        ci/ubuntu-install-packages
+    # - name: Install packages (Ubuntu)
+    #   if: matrix.os == 'ubuntu-20.04'
+    #   run: |
+    #     ci/ubuntu-install-packages
 
-    - name: Install packages (macOS)
-      if: matrix.os == 'macos-latest'
-      run: |
-        ci/macos-install-packages
+    # - name: Install packages (macOS)
+    #   if: matrix.os == 'macos-latest'
+    #   run: |
+    #     ci/macos-install-packages
 
     - name: Install Rust
       uses: actions-rs/toolchain@v1
