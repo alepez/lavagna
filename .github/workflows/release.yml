@@ -24,9 +24,9 @@ jobs:
   create-release:
     name: create-release
     runs-on: ubuntu-latest
-    # env:
+    env:
       # Set to force version number, e.g., when no tag exists.
-      # LAVAGNA_VERSION: TEST-0.0.0
+      LAVAGNA_VERSION: TEST-0.0.0
     outputs:
       upload_url: ${{ steps.release.outputs.upload_url }}
       lavagna_version: ${{ env.LAVAGNA_VERSION }}
