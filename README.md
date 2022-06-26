@@ -19,3 +19,13 @@ Just you and your chalk.
 | C      | Color    | Change the chalk color               |
 | Z      | Undo     | Resume the last snapshot             |
 | S      | Snapshot | Take a snapshot                      |
+
+## Instant collaboration
+
+*lavagna* can use WebRtc for instant collaboration. Try it:
+
+```shell
+cargo run --bin lavagna -- --collab-url wss://lavagna-server.herokuapp.com/YOUR_ROOM
+```
+
+Change `YOUR_ROOM` whith anything you prefere.
