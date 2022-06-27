@@ -3,7 +3,7 @@ on:
   pull_request:
   push:
     branches:
-    - ci-test
+    - main
   schedule:
   - cron: '00 01 * * *'
 jobs:
