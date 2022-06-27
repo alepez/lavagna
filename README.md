@@ -29,3 +29,6 @@ cargo run --bin lavagna -- --collab-url wss://lavagna-server.herokuapp.com/YOUR_
 ```
 
 Change `YOUR_ROOM` to whatever you prefer.
+
+You can setup your own server by using
+[lavagna_server](https://github.com/alepez/lavagna_server) crate.

@@ -1,0 +1,40 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches:
+    - ci-test
+  schedule:
+  - cron: '00 01 * * *'
+jobs:
+  test:
+    name: test
+    env:
+      # Emit backtraces on panics.
+      RUST_BACKTRACE: 1
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        build:
+        # We test lavagna on a pinned version of Rust, along with the moving
+        # targets of 'stable' for good measure.
+        - pinned
+        - stable
+        include:
+        - build: pinned
+          os: ubuntu-20.04
+          rust: 1.61.0
+        - build: stable
+          os: ubuntu-20.04
+          rust: stable
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ matrix.rust }}
+        profile: minimal
+        override: true
+    - name: Build lavagna and all crates
+      run: cargo build --verbose --workspace
