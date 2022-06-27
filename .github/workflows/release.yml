@@ -15,9 +15,14 @@
 
 name: release
 on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version"
+        required: true
+        default: "TEST-0.0.0"
+        type: string
   push:
-    branches:
-    - main
     tags:
     - "[0-9]+.[0-9]+.[0-9]+"
 jobs:
@@ -26,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Set to force version number, e.g., when no tag exists.
-      LAVAGNA_VERSION: TEST-0.0.0
+      LAVAGNA_VERSION: ${{ inputs.version }}
     outputs:
       upload_url: ${{ steps.release.outputs.upload_url }}
       lavagna_version: ${{ env.LAVAGNA_VERSION }}
