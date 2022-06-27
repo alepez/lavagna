@@ -130,6 +130,11 @@ jobs:
 #       echo "TARGET_FLAGS=--target ${{ matrix.target }}" >> $GITHUB_ENV
 #       echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
 
+    - name: Change target dir
+      shell: bash
+      run: |
+        echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
+
 #   - name: Show command used for Cargo
 #     run: |
 #       echo "cargo command is: ${{ env.CARGO }}"
