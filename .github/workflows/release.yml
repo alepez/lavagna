@@ -77,26 +77,26 @@ jobs:
           os: ubuntu-20.04
           rust: stable
           target: x86_64-unknown-linux-gnu
-        - build: linux-arm
-          os: ubuntu-20.04
-          rust: stable
-          target: arm-unknown-linux-gnueabihf
-        - build: macos
-          os: macos-latest
-          rust: stable
-          target: x86_64-apple-darwin
-        - build: win-msvc
-          os: windows-2019
-          rust: stable
-          target: x86_64-pc-windows-msvc
-        - build: win-gnu
-          os: windows-2019
-          rust: stable-x86_64-gnu
-          target: x86_64-pc-windows-gnu
-        - build: win32-msvc
-          os: windows-2019
-          rust: stable
-          target: i686-pc-windows-msvc
+#       - build: linux-arm
+#         os: ubuntu-20.04
+#         rust: stable
+#         target: arm-unknown-linux-gnueabihf
+#       - build: macos
+#         os: macos-latest
+#         rust: stable
+#         target: x86_64-apple-darwin
+#       - build: win-msvc
+#         os: windows-2019
+#         rust: stable
+#         target: x86_64-pc-windows-msvc
+#       - build: win-gnu
+#         os: windows-2019
+#         rust: stable-x86_64-gnu
+#         target: x86_64-pc-windows-gnu
+#       - build: win32-msvc
+#         os: windows-2019
+#         rust: stable
+#         target: i686-pc-windows-msvc
 
     steps:
     - name: Checkout repository
@@ -122,19 +122,19 @@ jobs:
         override: true
         target: ${{ matrix.target }}
 
-    - name: Use Cross
-      shell: bash
-      run: |
-        cargo install cross
-        echo "CARGO=cross" >> $GITHUB_ENV
-        echo "TARGET_FLAGS=--target ${{ matrix.target }}" >> $GITHUB_ENV
-        echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
+#   - name: Use Cross
+#     shell: bash
+#     run: |
+#       cargo install cross
+#       echo "CARGO=cross" >> $GITHUB_ENV
+#       echo "TARGET_FLAGS=--target ${{ matrix.target }}" >> $GITHUB_ENV
+#       echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
 
-    - name: Show command used for Cargo
-      run: |
-        echo "cargo command is: ${{ env.CARGO }}"
-        echo "target flag is: ${{ env.TARGET_FLAGS }}"
-        echo "target dir is: ${{ env.TARGET_DIR }}"
+#   - name: Show command used for Cargo
+#     run: |
+#       echo "cargo command is: ${{ env.CARGO }}"
+#       echo "target flag is: ${{ env.TARGET_FLAGS }}"
+#       echo "target dir is: ${{ env.TARGET_DIR }}"
 
     - name: Build release binary
       run: ${{ env.CARGO }} build --verbose --release ${{ env.TARGET_FLAGS }}
@@ -143,14 +143,14 @@ jobs:
       if: matrix.build == 'linux' || matrix.build == 'macos'
       run: strip "target/${{ matrix.target }}/release/lavagna"
 
-    - name: Strip release binary (arm)
-      if: matrix.build == 'linux-arm'
-      run: |
-        docker run --rm -v \
-          "$PWD/target:/target:Z" \
-          rustembedded/cross:arm-unknown-linux-gnueabihf \
-          arm-linux-gnueabihf-strip \
-          /target/arm-unknown-linux-gnueabihf/release/lavagna
+#   - name: Strip release binary (arm)
+#     if: matrix.build == 'linux-arm'
+#     run: |
+#       docker run --rm -v \
+#         "$PWD/target:/target:Z" \
+#         rustembedded/cross:arm-unknown-linux-gnueabihf \
+#         arm-linux-gnueabihf-strip \
+#         /target/arm-unknown-linux-gnueabihf/release/lavagna
 
     - name: Build archive
       shell: bash
