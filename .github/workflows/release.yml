@@ -17,7 +17,7 @@ name: release
 on:
   push:
     branches:
-    - ci-test
+    - main
     tags:
     - "[0-9]+.[0-9]+.[0-9]+"
 jobs:
