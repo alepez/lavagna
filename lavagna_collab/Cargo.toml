@@ -16,4 +16,4 @@ lavagna_core = { path = "../lavagna_core" }
 log = "0.4"
 matchbox_socket = { git = "https://github.com/johanhelsing/matchbox", rev = "50c1e69" }
 serde_json = "1.0"
-tokio = "1.12"
+tokio = { version = "1.12", features = ["sync", "rt", "rt-multi-thread"] }

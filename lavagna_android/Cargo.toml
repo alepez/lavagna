@@ -13,9 +13,8 @@ license = "MIT/Apache-2.0"
 lavagna_pixels = { path = "../lavagna_pixels" }
 
 [target.'cfg(target_os = "android")'.dependencies.ndk-glue]
+version = "0.5.2"
 features = ["logger"]
-rev = "7e33384"
-git = "https://github.com/rust-windowing/android-ndk-rs"
 
 [lib]
 crate-type = ["cdylib"]
