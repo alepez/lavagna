@@ -1,3 +1,6 @@
+#![deny(clippy::all)]
+#![forbid(unsafe_code)]
+
 use crate::color::*;
 use crate::CursorPos;
 use crate::MutSketch;
