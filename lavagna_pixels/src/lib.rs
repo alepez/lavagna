@@ -10,9 +10,9 @@ pub use pixels::Error;
 use pixels::{Pixels, SurfaceTexture};
 use std::cell::RefCell;
 use std::rc::Rc;
-use winit::dpi::PhysicalSize;
+use winit::dpi::{PhysicalPosition, PhysicalSize};
 use winit::event::{
-    ElementState, Event, KeyboardInput, MouseButton, TouchPhase, VirtualKeyCode, WindowEvent,
+    ElementState, Event, KeyboardInput, MouseButton, Touch, TouchPhase, VirtualKeyCode, WindowEvent,
 };
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorIcon, Window, WindowBuilder};
@@ -114,42 +114,34 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                     exit = true;
                 }
                 Event::WindowEvent {
-                    event: WindowEvent::CursorMoved { position, .. },
+                    event:
+                        WindowEvent::Touch(Touch {
+                            phase, location, ..
+                        }),
                     ..
                 } => {
-                    if let Ok((x, y)) = pixels.window_pos_to_pixel(position.into()) {
-                        app.move_cursor(x as isize, y as isize);
-                    }
-                }
-                Event::WindowEvent {
-                    event: WindowEvent::Touch(touch),
-                    ..
-                } => {
-                    match touch.phase {
-                        TouchPhase::Started => {
-                            app.press();
-                        }
-                        TouchPhase::Ended => {
-                            app.release();
-                        }
+                    match phase {
+                        TouchPhase::Started => app.press(),
+                        TouchPhase::Ended => app.release(),
                         _ => (),
                     }
-
-                    if let Ok((x, y)) = pixels.window_pos_to_pixel(touch.location.into()) {
-                        app.move_cursor(x as isize, y as isize);
-                    }
+                    move_cursor_to_position(location, pixels, &mut app);
                 }
                 Event::WindowEvent {
-                    event: WindowEvent::MouseInput { state, button, .. },
+                    event: WindowEvent::CursorMoved { position, .. },
                     ..
-                } => match (button, state) {
-                    (MouseButton::Left, ElementState::Pressed) => {
-                        app.press();
-                    }
-                    (MouseButton::Left, ElementState::Released) => {
-                        app.release();
-                    }
-                    _ => (),
+                } => move_cursor_to_position(position, pixels, &mut app),
+                Event::WindowEvent {
+                    event:
+                        WindowEvent::MouseInput {
+                            state,
+                            button: MouseButton::Left,
+                            ..
+                        },
+                    ..
+                } => match state {
+                    ElementState::Pressed => app.press(),
+                    ElementState::Released => app.release(),
                 },
                 Event::WindowEvent {
                     event:
@@ -243,4 +235,10 @@ fn redraw(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, app: &mut App) ->
     pixels
         .render()
         .map_err(|e| error!("pixels.render() failed: {}", e))
+}
+
+fn move_cursor_to_position(position: PhysicalPosition<f64>, pixels: &Pixels, app: &mut App) {
+    if let Ok((x, y)) = pixels.window_pos_to_pixel(position.into()) {
+        app.move_cursor(x as isize, y as isize);
+    }
 }
