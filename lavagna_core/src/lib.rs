@@ -120,13 +120,14 @@ impl App {
 
         let mut painter = Painter::new(sketch);
 
+        painter.set_color(self.pens.select(self.pen_id).color);
+        draw_current_color_icon(&mut painter);
+
         for (_, pen) in self.pens.0.iter_mut() {
             painter.set_color(pen.color);
 
             if pen.cursor.pressed && pen.prev_cursor.pressed {
                 painter.draw_line(pen.prev_cursor.pos, pen.cursor.pos);
-            } else {
-                draw_current_color_icon(&mut painter);
             }
 
             pen.prev_cursor = pen.cursor;
