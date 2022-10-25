@@ -152,44 +152,23 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                     _ => (),
                 },
                 Event::WindowEvent {
-                    event: WindowEvent::KeyboardInput { input, .. },
+                    event:
+                        WindowEvent::KeyboardInput {
+                            input:
+                                KeyboardInput {
+                                    state: ElementState::Released,
+                                    virtual_keycode: Some(key_released),
+                                    ..
+                                },
+                            ..
+                        },
                     ..
-                } => match input {
-                    KeyboardInput {
-                        state: ElementState::Released,
-                        virtual_keycode: Some(VirtualKeyCode::Escape),
-                        ..
-                    } => {
-                        exit = true;
-                    }
-                    KeyboardInput {
-                        state: ElementState::Released,
-                        virtual_keycode: Some(VirtualKeyCode::X),
-                        ..
-                    } => {
-                        app.clear_all();
-                    }
-                    KeyboardInput {
-                        state: ElementState::Released,
-                        virtual_keycode: Some(VirtualKeyCode::C),
-                        ..
-                    } => {
-                        app.change_color();
-                    }
-                    KeyboardInput {
-                        state: ElementState::Released,
-                        virtual_keycode: Some(VirtualKeyCode::Z),
-                        ..
-                    } => {
-                        app.resume_last_snapshot();
-                    }
-                    KeyboardInput {
-                        state: ElementState::Released,
-                        virtual_keycode: Some(VirtualKeyCode::S),
-                        ..
-                    } => {
-                        app.take_snapshot();
-                    }
+                } => match key_released {
+                    VirtualKeyCode::Escape => exit = true,
+                    VirtualKeyCode::X => app.clear_all(),
+                    VirtualKeyCode::C => app.change_color(),
+                    VirtualKeyCode::Z => app.resume_last_snapshot(),
+                    VirtualKeyCode::S => app.take_snapshot(),
                     _ => (),
                 },
                 _ => (),
