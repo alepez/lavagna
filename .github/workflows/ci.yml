@@ -35,6 +35,7 @@ jobs:
       OPTIONS: ${{ matrix.platform.options }}
       FEATURES: ${{ format(',{0}', matrix.platform.features ) }}
       CMD: ${{ matrix.platform.cmd }}
+      PACKAGE: ${{ matrix.platform.package }}
 
     runs-on: ${{ matrix.platform.os }}
     strategy:
@@ -48,11 +49,11 @@ jobs:
           - beta
           - nightly
         platform:
-          - { target: x86_64-pc-windows-msvc,   os: windows-2019,  }
-          - { target: x86_64-pc-windows-gnu,    os: windows-2019, host: -x86_64-pc-windows-gnu }
-          - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest }
-          - { target: x86_64-apple-darwin,      os: macos-latest,    }
-          - { target: aarch64-linux-android,    os: ubuntu-latest,  cmd: 'apk --package lavagna_android --' }
+          - { target: x86_64-pc-windows-msvc,   os: windows-2019, package: lavagna }
+          - { target: x86_64-pc-windows-gnu,    os: windows-2019, host: -x86_64-pc-windows-gnu, package: lavagna }
+          - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest, package: lavagna }
+          - { target: x86_64-apple-darwin,      os: macos-latest, package: lavagna    }
+          - { target: aarch64-linux-android,    os: ubuntu-latest,  cmd: 'apk --', package: lavagna_android }
 
     steps:
     - name: Checkout repository
@@ -79,7 +80,7 @@ jobs:
 
     - name: Build tests
       shell: bash
-      run: cargo $CMD test --no-run --verbose --target ${{ matrix.platform.target }} $OPTIONS --features $FEATURES
+      run: cargo $CMD test --no-run --verbose --target ${{ matrix.platform.target }} $OPTIONS --features $FEATURES --package $PACKAGE
 
     - name: Run tests
       shell: bash
@@ -87,10 +88,10 @@ jobs:
         !contains(matrix.platform.target, 'android') &&
         !contains(matrix.platform.target, 'ios') &&
         !contains(matrix.platform.target, 'wasm32'))
-      run: cargo $CMD test --verbose --target ${{ matrix.platform.target }} $OPTIONS --features $FEATURES
+      run: cargo $CMD test --verbose --target ${{ matrix.platform.target }} $OPTIONS --features $FEATURES --package $PACKAGE
 
     - name: Lint with clippy
       shell: bash
       if: (matrix.rust_version == '1.61.0') && !contains(matrix.platform.options, '--no-default-features')
-      run: cargo clippy --all-targets --target ${{ matrix.platform.target }} $OPTIONS --features $FEATURES -- -Dwarnings
+      run: cargo clippy --all-targets --target ${{ matrix.platform.target }} $OPTIONS --features $FEATURES --package $PACKAGE -- -Dwarnings
 
