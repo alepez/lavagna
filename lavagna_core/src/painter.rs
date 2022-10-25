@@ -3,7 +3,7 @@
 
 use crate::color::*;
 use crate::{CursorPos, MutSketch, PenSize};
-use line_drawing::Bresenham;
+use line_drawing::{Bresenham, BresenhamCircle};
 use std::ops::Range;
 
 pub struct Painter<'a> {
@@ -24,17 +24,23 @@ impl<'a> Painter<'a> {
     }
 
     pub fn draw_line(&mut self, from: CursorPos, to: CursorPos) {
-        for x_offset in calculate_size_range(self.size) {
-            for y_offset in calculate_size_range(self.size) {
-                Bresenham::new(
-                    (from.x + x_offset, from.y + y_offset),
-                    (to.x + x_offset, to.y + y_offset),
-                )
-                .for_each(|(x, y)| {
-                    self.draw_pixel(CursorPos { x, y });
-                });
-            }
+        for (x_offset, y_offset) in BresenhamCircle::new(0, 0, self.size as isize) {
+            let from = CursorPos {
+                x: from.x + x_offset,
+                y: from.y + y_offset,
+            };
+            let to = CursorPos {
+                x: to.x + x_offset,
+                y: to.y + y_offset,
+            };
+            self.draw_line_1px(from, to);
         }
+    }
+
+    fn draw_line_1px(&mut self, from: CursorPos, to: CursorPos) {
+        Bresenham::new((from.x, from.y), (to.x, to.y)).for_each(|(x, y)| {
+            self.draw_pixel(CursorPos { x, y });
+        });
     }
 
     pub fn draw_pixel(&mut self, pos: CursorPos) {
@@ -62,28 +68,5 @@ impl<'a> Painter<'a> {
 
     pub fn set_size(&mut self, size: PenSize) {
         self.size = size.0;
-    }
-}
-
-fn calculate_size_range(size: u32) -> Range<isize> {
-    if size == 1 {
-        return 0..1;
-    }
-    let size = size as isize;
-    let half_size = size / 2;
-    (-half_size)..(half_size)
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::painter::calculate_size_range;
-
-    #[test]
-    fn test_size_range() {
-        assert_eq!((0..1), calculate_size_range(1));
-        assert_eq!((-1..1), calculate_size_range(2));
-        assert_eq!((-1..1), calculate_size_range(3));
-        assert_eq!((-2..2), calculate_size_range(4));
-        assert_eq!((-2..2), calculate_size_range(5));
     }
 }
