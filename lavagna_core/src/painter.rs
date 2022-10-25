@@ -5,22 +5,37 @@ use crate::color::*;
 use crate::CursorPos;
 use crate::MutSketch;
 use line_drawing::Bresenham;
+use std::ops::Range;
 
 pub struct Painter<'a> {
     sketch: MutSketch<'a>,
     color: Color,
+    size: u32,
 }
 
 impl<'a> Painter<'a> {
     pub fn new(sketch: MutSketch<'a>) -> Self {
         let color = WHITE;
-        Painter { sketch, color }
+        let size = 1;
+        Painter {
+            sketch,
+            color,
+            size,
+        }
     }
 
     pub fn draw_line(&mut self, from: CursorPos, to: CursorPos) {
-        Bresenham::new((from.x, from.y), (to.x, to.y)).for_each(|(x, y)| {
-            self.draw_pixel(CursorPos { x, y });
-        });
+        for x_offset in calculate_size_range(self.size) {
+            for y_offset in calculate_size_range(self.size) {
+                Bresenham::new(
+                    (from.x + x_offset, from.y + y_offset),
+                    (to.x + x_offset, to.y + y_offset),
+                )
+                .for_each(|(x, y)| {
+                    self.draw_pixel(CursorPos { x, y });
+                });
+            }
+        }
     }
 
     pub fn draw_pixel(&mut self, pos: CursorPos) {
@@ -44,5 +59,28 @@ impl<'a> Painter<'a> {
 
     pub fn set_color(&mut self, color: Color) {
         self.color = color;
+    }
+}
+
+fn calculate_size_range(size: u32) -> Range<isize> {
+    if size == 1 {
+        return 0..1;
+    }
+    let size = size as isize;
+    let half_size = size / 2;
+    (-half_size)..(half_size)
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::painter::calculate_size_range;
+
+    #[test]
+    fn test_size_range() {
+        assert_eq!((0..1), calculate_size_range(1));
+        assert_eq!((-1..1), calculate_size_range(2));
+        assert_eq!((-1..1), calculate_size_range(3));
+        assert_eq!((-2..2), calculate_size_range(4));
+        assert_eq!((-2..2), calculate_size_range(5));
     }
 }
