@@ -32,12 +32,16 @@ pub trait CommandSender {
     fn send_command(&mut self, cmd: Command);
 }
 
-pub struct App {
+pub struct Pen {
     cursor: Cursor,
     prev_cursor: Cursor,
+    color: Color,
+}
+
+pub struct App {
+    pen: Pen,
     commands: VecDeque<Command>,
     palette: ColorSelector,
-    color: Color,
     snapshots: Vec<OwnedSketch>,
     chained_command_sender: Option<Box<dyn FnMut(Command)>>,
     collab_id: CollabId,
@@ -60,12 +64,16 @@ impl Default for App {
         let mut palette = ColorSelector::new(&PALETTE);
         let color = palette.next().unwrap();
 
-        App {
+        let pen = Pen {
+            color,
             cursor: Cursor::default(),
             prev_cursor: Cursor::default(),
+        };
+
+        App {
+            pen,
             commands: VecDeque::with_capacity(10),
             palette,
-            color,
             snapshots: Vec::new(),
             chained_command_sender: Default::default(),
             collab_id: CollabId::default(),
@@ -91,36 +99,36 @@ impl App {
                 }
                 Command::ChangeColor(collab_id, color) => {
                     if collab_id == self.collab_id {
-                        self.color = color;
+                        self.pen.color = color;
                     }
                 }
                 Command::MoveCursor(collab_id, pos) => {
                     if collab_id == self.collab_id {
-                        self.cursor.pos = pos;
+                        self.pen.cursor.pos = pos;
                     }
                 }
                 Command::Pressed(collab_id) => {
                     if collab_id == self.collab_id {
-                        self.cursor.pressed = true;
+                        self.pen.cursor.pressed = true;
                     }
                 }
                 Command::Released(collab_id) => {
                     if collab_id == self.collab_id {
-                        self.cursor.pressed = false;
+                        self.pen.cursor.pressed = false;
                     }
                 }
             }
         }
 
-        let mut painter = Painter::new(sketch, self.color);
+        let mut painter = Painter::new(sketch, self.pen.color);
 
-        if self.cursor.pressed && self.prev_cursor.pressed {
-            painter.draw_line(self.prev_cursor.pos, self.cursor.pos);
+        if self.pen.cursor.pressed && self.pen.prev_cursor.pressed {
+            painter.draw_line(self.pen.prev_cursor.pos, self.pen.cursor.pos);
         } else {
             draw_current_color_icon(&mut painter);
         }
 
-        self.prev_cursor = self.cursor;
+        self.pen.prev_cursor = self.pen.cursor;
     }
 
     pub fn clear_all(&mut self) {
