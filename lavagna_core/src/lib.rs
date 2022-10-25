@@ -8,7 +8,7 @@ use crate::painter::Painter;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize, Eq, PartialEq)]
 pub struct CollabId(u32);
 
 impl From<u32> for CollabId {
@@ -22,10 +22,10 @@ pub enum Command {
     ClearAll,
     Resume,
     TakeSnapshot,
-    ChangeColor(Color),
-    MoveCursor(CursorPos),
-    Pressed,
-    Released,
+    ChangeColor(CollabId, Color),
+    MoveCursor(CollabId, CursorPos),
+    Pressed(CollabId),
+    Released(CollabId),
 }
 
 pub trait CommandSender {
@@ -40,6 +40,7 @@ pub struct App {
     color: Color,
     snapshots: Vec<OwnedSketch>,
     chained_command_sender: Option<Box<dyn FnMut(Command)>>,
+    collab_id: CollabId,
 }
 
 #[derive(Default, Debug, Copy, Clone)]
@@ -67,6 +68,7 @@ impl Default for App {
             color,
             snapshots: Vec::new(),
             chained_command_sender: Default::default(),
+            collab_id: CollabId::default(),
         }
     }
 }
@@ -87,17 +89,25 @@ impl App {
                         sketch.copy_from(&backup.as_sketch());
                     }
                 }
-                Command::ChangeColor(color) => {
-                    self.color = color;
+                Command::ChangeColor(collab_id, color) => {
+                    if collab_id == self.collab_id {
+                        self.color = color;
+                    }
                 }
-                Command::MoveCursor(pos) => {
-                    self.cursor.pos = pos;
+                Command::MoveCursor(collab_id, pos) => {
+                    if collab_id == self.collab_id {
+                        self.cursor.pos = pos;
+                    }
                 }
-                Command::Pressed => {
-                    self.cursor.pressed = true;
+                Command::Pressed(collab_id) => {
+                    if collab_id == self.collab_id {
+                        self.cursor.pressed = true;
+                    }
                 }
-                Command::Released => {
-                    self.cursor.pressed = false;
+                Command::Released(collab_id) => {
+                    if collab_id == self.collab_id {
+                        self.cursor.pressed = false;
+                    }
                 }
             }
         }
@@ -126,20 +136,20 @@ impl App {
     }
 
     pub fn move_cursor(&mut self, x: isize, y: isize) {
-        self.send_command_chained(Command::MoveCursor(CursorPos { x, y }));
+        self.send_command_chained(Command::MoveCursor(self.collab_id, CursorPos { x, y }));
     }
 
     pub fn press(&mut self) {
-        self.send_command_chained(Command::Pressed);
+        self.send_command_chained(Command::Pressed(self.collab_id));
     }
 
     pub fn release(&mut self) {
-        self.send_command_chained(Command::Released);
+        self.send_command_chained(Command::Released(self.collab_id));
     }
 
     pub fn change_color(&mut self) {
         if let Some(color) = self.palette.next() {
-            self.send_command_chained(Command::ChangeColor(color));
+            self.send_command_chained(Command::ChangeColor(self.collab_id, color));
         }
     }
 
@@ -157,6 +167,10 @@ impl App {
         if let Some(chained) = self.chained_command_sender.as_mut() {
             chained(cmd);
         }
+    }
+
+    pub fn collab_id(&self) -> CollabId {
+        self.collab_id
     }
 }
 

@@ -67,7 +67,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                 pixels = resume(&window, canvas_size, frozen_sketch.take());
 
                 // Prevent drawing a line from the last location when resuming
-                app.send_command(Command::Released);
+                app.send_command(Command::Released(app.collab_id()));
             }
             // Suspended on Android
             Event::Suspended => {
