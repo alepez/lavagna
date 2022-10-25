@@ -169,7 +169,7 @@ jobs:
           7z a "$staging.zip" "$staging"
           echo "ASSET=$staging.zip" >> $GITHUB_ENV
         elif [ "${{ matrix.build }}" = "android" ]; then
-          cp "target/${{ matrix.target }}/release/apk/lavagna.apk" "$staging/"
+          cp "target/release/apk/lavagna.apk" "$staging/"
           tar czf "$staging.tar.gz" "$staging"
           echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
         else
