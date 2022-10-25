@@ -4,7 +4,7 @@
 use lavagna_collab::{CollabOpt, CollaborationChannel, SupportedCollaborationChannel};
 use lavagna_core::doc::MutSketch;
 use lavagna_core::doc::OwnedSketch;
-use lavagna_core::{App, Command, CommandSender};
+use lavagna_core::{App, CommandSender};
 use log::error;
 pub use pixels::Error;
 use pixels::{Pixels, SurfaceTexture};
@@ -69,7 +69,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                 pixels = resume(&window, canvas_size, frozen_sketch.take());
 
                 // Prevent drawing a line from the last location when resuming
-                app.send_command(Command::Released(app.pen_id()));
+                app.force_release();
             }
             // Suspended on Android
             Event::Suspended => {

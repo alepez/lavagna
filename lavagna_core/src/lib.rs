@@ -19,14 +19,19 @@ impl From<u32> for PenId {
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
+pub enum PenCommand {
+    ChangeColor(Color),
+    MoveCursor(CursorPos),
+    Pressed,
+    Released,
+}
+
+#[derive(Debug, Serialize, Deserialize, Copy, Clone)]
 pub enum Command {
     ClearAll,
     Resume,
     TakeSnapshot,
-    ChangeColor(PenId, Color),
-    MoveCursor(PenId, CursorPos),
-    Pressed(PenId),
-    Released(PenId),
+    PenCommand(PenId, PenCommand),
 }
 
 pub trait CommandSender {
@@ -103,17 +108,22 @@ impl App {
                         sketch.copy_from(&backup.as_sketch());
                     }
                 }
-                Command::ChangeColor(pen_id, color) => {
-                    self.pens.select(pen_id).color = color;
-                }
-                Command::MoveCursor(pen_id, pos) => {
-                    self.pens.select(pen_id).cursor.pos = pos;
-                }
-                Command::Pressed(pen_id) => {
-                    self.pens.select(pen_id).cursor.pressed = true;
-                }
-                Command::Released(pen_id) => {
-                    self.pens.select(pen_id).cursor.pressed = false;
+                Command::PenCommand(pen_id, cmd) => {
+                    let pen = self.pens.select(pen_id);
+                    match cmd {
+                        PenCommand::ChangeColor(color) => {
+                            pen.color = color;
+                        }
+                        PenCommand::MoveCursor(pos) => {
+                            pen.cursor.pos = pos;
+                        }
+                        PenCommand::Pressed => {
+                            pen.cursor.pressed = true;
+                        }
+                        PenCommand::Released => {
+                            pen.cursor.pressed = false;
+                        }
+                    }
                 }
             }
         }
@@ -147,20 +157,20 @@ impl App {
     }
 
     pub fn move_cursor(&mut self, x: isize, y: isize) {
-        self.send_command_chained(Command::MoveCursor(self.pen_id, CursorPos { x, y }));
+        self.send_pen_command(PenCommand::MoveCursor(CursorPos { x, y }));
     }
 
     pub fn press(&mut self) {
-        self.send_command_chained(Command::Pressed(self.pen_id));
+        self.send_pen_command(PenCommand::Pressed);
     }
 
     pub fn release(&mut self) {
-        self.send_command_chained(Command::Released(self.pen_id));
+        self.send_pen_command(PenCommand::Released);
     }
 
     pub fn change_color(&mut self) {
         if let Some(color) = self.palette.next() {
-            self.send_command_chained(Command::ChangeColor(self.pen_id, color));
+            self.send_pen_command(PenCommand::ChangeColor(color));
         }
     }
 
@@ -180,8 +190,13 @@ impl App {
         }
     }
 
-    pub fn pen_id(&self) -> PenId {
-        self.pen_id
+    fn send_pen_command(&mut self, cmd: PenCommand) {
+        let cmd = Command::PenCommand(self.pen_id, cmd);
+        self.send_command_chained(cmd);
+    }
+
+    pub fn force_release(&mut self) {
+        self.send_pen_command(PenCommand::Released);
     }
 }
 
