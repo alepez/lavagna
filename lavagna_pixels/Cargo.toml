@@ -19,4 +19,4 @@ pixels = "0.9"
 [dependencies.winit]
 version = "0.27"
 default-features = false
-features = ["x11", "wayland"]
+features = ["x11"]
