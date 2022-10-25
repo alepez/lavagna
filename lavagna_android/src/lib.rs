@@ -18,7 +18,7 @@ use lavagna_pixels::{run, Opt};
 )]
 fn main() {
     // Collaboration is not yet supported on Android
-    let opt = Opt { collab_url: None };
+    let opt = Opt { collab: None };
 
     run(opt).unwrap();
 }
