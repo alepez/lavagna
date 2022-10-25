@@ -52,7 +52,7 @@ jobs:
           - { target: x86_64-pc-windows-gnu,    os: windows-2019, host: -x86_64-pc-windows-gnu }
           - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest }
           - { target: x86_64-apple-darwin,      os: macos-latest,    }
-          - { target: aarch64-linux-android,    os: ubuntu-latest,  cmd: 'apk --' }
+          - { target: aarch64-linux-android,    os: ubuntu-latest,  cmd: 'apk --package lavagna_android --' }
 
     steps:
     - name: Checkout repository
