@@ -8,6 +8,15 @@ use crate::painter::Painter;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 
+#[derive(Copy, Clone, Debug)]
+pub struct CollabId(u32);
+
+impl From<u32> for CollabId {
+    fn from(x: u32) -> Self {
+        Self(x)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
 pub enum Command {
     ClearAll,
