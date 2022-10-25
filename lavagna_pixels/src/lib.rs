@@ -38,6 +38,8 @@ pub fn run(opt: Opt) -> Result<(), Error> {
 
     window.set_cursor_icon(CursorIcon::Crosshair);
 
+    let collab_id = opt.collab.as_ref().map(|x| x.id).unwrap_or_default();
+
     let collab = opt
         .collab
         .map(|x| x.url)
@@ -47,7 +49,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
 
     let collab = Rc::new(RefCell::new(collab));
 
-    let mut app = App::default();
+    let mut app = App::new(collab_id);
 
     {
         let collab = collab.clone();

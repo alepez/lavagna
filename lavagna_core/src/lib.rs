@@ -6,6 +6,7 @@ use crate::color::*;
 use crate::doc::{MutSketch, OwnedSketch};
 use crate::painter::Painter;
 use serde::{Deserialize, Serialize};
+use std::borrow::BorrowMut;
 use std::collections::{HashMap, VecDeque};
 
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize, Eq, PartialEq, Hash)]
@@ -32,6 +33,7 @@ pub trait CommandSender {
     fn send_command(&mut self, cmd: Command);
 }
 
+#[derive(Default)]
 struct Pen {
     cursor: Cursor,
     prev_cursor: Cursor,
@@ -42,8 +44,8 @@ struct Pen {
 struct Pens(HashMap<CollabId, Pen>);
 
 impl Pens {
-    fn select(&mut self, id: CollabId) -> Option<&mut Pen> {
-        self.0.get_mut(&id)
+    fn select(&mut self, id: CollabId) -> &mut Pen {
+        self.0.entry(id).or_insert_with(Pen::default).borrow_mut()
     }
 }
 
@@ -68,8 +70,8 @@ pub struct CursorPos {
     pub y: isize,
 }
 
-impl Default for App {
-    fn default() -> Self {
+impl App {
+    pub fn new(collab_id: CollabId) -> Self {
         let mut palette = ColorSelector::new(&PALETTE);
         let color = palette.next().unwrap();
 
@@ -78,8 +80,6 @@ impl Default for App {
             cursor: Cursor::default(),
             prev_cursor: Cursor::default(),
         };
-
-        let collab_id = CollabId::default(); // FIXME get from options
 
         let mut pens = Pens::default();
         pens.0.insert(collab_id, pen);
@@ -90,12 +90,10 @@ impl Default for App {
             palette,
             snapshots: Vec::new(),
             chained_command_sender: Default::default(),
-            collab_id: CollabId::default(),
+            collab_id,
         }
     }
-}
 
-impl App {
     pub fn update(&mut self, mut sketch: MutSketch) {
         while let Some(command) = self.commands.pop_front() {
             match command {
@@ -112,31 +110,24 @@ impl App {
                     }
                 }
                 Command::ChangeColor(collab_id, color) => {
-                    if let Some(pen) = self.pens.select(collab_id) {
-                        pen.color = color;
-                    }
+                    self.pens.select(collab_id).color = color;
                 }
                 Command::MoveCursor(collab_id, pos) => {
-                    if let Some(pen) = self.pens.select(collab_id) {
-                        pen.cursor.pos = pos;
-                    }
+                    self.pens.select(collab_id).cursor.pos = pos;
                 }
                 Command::Pressed(collab_id) => {
-                    if let Some(pen) = self.pens.select(collab_id) {
-                        pen.cursor.pressed = true;
-                    }
+                    self.pens.select(collab_id).cursor.pressed = true;
                 }
                 Command::Released(collab_id) => {
-                    if let Some(pen) = self.pens.select(collab_id) {
-                        pen.cursor.pressed = false;
-                    }
+                    self.pens.select(collab_id).cursor.pressed = false;
                 }
             }
         }
 
-        // FIXME Draw all pens
-        if let Some(pen) = self.pens.select(self.collab_id) {
-            let mut painter = Painter::new(sketch, pen.color);
+        let mut painter = Painter::new(sketch);
+
+        for (_, pen) in self.pens.0.iter_mut() {
+            painter.set_color(pen.color);
 
             if pen.cursor.pressed && pen.prev_cursor.pressed {
                 painter.draw_line(pen.prev_cursor.pos, pen.cursor.pos);
