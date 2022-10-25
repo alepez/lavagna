@@ -2778,9 +2778,9 @@ dependencies = [
 
 [[package]]
 name = "rtcp"
-version = "0.6.5"
+version = "0.6.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80d9625e47edb43aca711ec826ad12154d364ada9e60f4e6f8d40471b3e1e156"
+checksum = "06cf9d8d62cba8d295874bffd08c2dc01791b7fdfd8289a394380d0b70adf4d1"
 dependencies = [
  "bytes",
  "thiserror",
