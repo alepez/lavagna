@@ -112,21 +112,7 @@ impl App {
                     }
                 }
                 Command::PenCommand(pen_id, cmd) => {
-                    let pen = self.pens.select(pen_id);
-                    match cmd {
-                        PenCommand::ChangeColor(color) => {
-                            pen.color = color;
-                        }
-                        PenCommand::MoveCursor(pos) => {
-                            pen.cursor.pos = pos;
-                        }
-                        PenCommand::Pressed => {
-                            pen.cursor.pressed = true;
-                        }
-                        PenCommand::Released => {
-                            pen.cursor.pressed = false;
-                        }
-                    }
+                    self.handle_pen_command(pen_id, cmd);
                 }
             }
         }
@@ -200,6 +186,24 @@ impl App {
 
     pub fn force_release(&mut self) {
         self.send_pen_command(PenCommand::Released);
+    }
+
+    fn handle_pen_command(&mut self, pen_id: PenId, cmd: PenCommand) {
+        let pen = self.pens.select(pen_id);
+        match cmd {
+            PenCommand::ChangeColor(color) => {
+                pen.color = color;
+            }
+            PenCommand::MoveCursor(pos) => {
+                pen.cursor.pos = pos;
+            }
+            PenCommand::Pressed => {
+                pen.cursor.pressed = true;
+            }
+            PenCommand::Released => {
+                pen.cursor.pressed = false;
+            }
+        }
     }
 }
 
