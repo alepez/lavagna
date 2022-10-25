@@ -95,32 +95,23 @@ pub fn run(opt: Opt) -> Result<(), Error> {
             _ => (),
         }
 
+        let mut exit = false;
+
         if let Some(pixels) = pixels.as_mut() {
             match event {
                 Event::MainEventsCleared => {
-                    while let Ok(cmd) = collab.borrow_mut().rx().try_recv() {
-                        app.send_command(cmd);
-                    }
+                    // All events from winit have been received, now it's time
+                    // to handle events from collaborators.
+                    handle_commands_from_collaborators(&collab, &mut app);
                 }
                 Event::RedrawRequested(_) => {
-                    let sketch =
-                        MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height);
-                    app.update(sketch);
-
-                    if pixels
-                        .render()
-                        .map_err(|e| error!("pixels.render() failed: {}", e))
-                        .is_err()
-                    {
-                        *control_flow = ControlFlow::Exit;
-                        return;
-                    }
+                    exit = redraw(pixels, canvas_size, &mut app).is_err();
                 }
                 Event::WindowEvent {
                     event: WindowEvent::CloseRequested,
                     ..
                 } => {
-                    *control_flow = ControlFlow::Exit;
+                    exit = true;
                 }
                 Event::WindowEvent {
                     event: WindowEvent::CursorMoved { position, .. },
@@ -169,7 +160,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                         virtual_keycode: Some(VirtualKeyCode::Escape),
                         ..
                     } => {
-                        *control_flow = ControlFlow::Exit;
+                        exit = true;
                     }
                     KeyboardInput {
                         state: ElementState::Released,
@@ -203,6 +194,10 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                 },
                 _ => (),
             }
+        }
+
+        if exit {
+            *control_flow = ControlFlow::Exit;
         }
 
         if app.needs_update() {
@@ -251,4 +246,22 @@ fn resize_buffer(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, new_size: 
     let mut new_sketch = MutSketch::new(pixels.get_frame(), new_size.width, new_size.height);
 
     new_sketch.copy_from(&old_sketch.as_sketch());
+}
+
+fn handle_commands_from_collaborators(
+    collab: &Rc<RefCell<SupportedCollaborationChannel>>,
+    app: &mut App,
+) {
+    while let Ok(cmd) = collab.borrow_mut().rx().try_recv() {
+        app.send_command(cmd);
+    }
+}
+
+fn redraw(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, app: &mut App) -> Result<(), ()> {
+    let sketch = MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height);
+    app.update(sketch);
+
+    pixels
+        .render()
+        .map_err(|e| error!("pixels.render() failed: {}", e))
 }
