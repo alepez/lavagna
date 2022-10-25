@@ -36,9 +36,7 @@ jobs:
           # - { target: i686-pc-windows-msvc,     os: windows-latest,  }
           # - { target: x86_64-pc-windows-gnu,    os: windows-latest, host: -x86_64-pc-windows-gnu }
           # - { target: i686-pc-windows-gnu,      os: windows-latest, host: -i686-pc-windows-gnu }
-          # - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest,   }
-          - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest, options: --no-default-features, features: x11 }
-          # - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest, options: --no-default-features, features: "wayland,wayland-dlopen" }
+          - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest }
           # - { target: aarch64-linux-android,    os: ubuntu-latest,  cmd: 'apk --' }
           # - { target: x86_64-apple-darwin,      os: macos-latest,    }
           # - { target: x86_64-apple-ios,         os: macos-latest,    }
@@ -56,7 +54,8 @@ jobs:
     - name: Install Rust
       uses: actions-rs/toolchain@v1
       with:
-        toolchain: ${{ matrix.rust_version }}
+        toolchain: ${{ matrix.rust_version }}${{ matrix.platform.host }}
+        target: ${{ matrix.platform.target }}
         profile: minimal
         override: true
         components: clippy, rustfmt
@@ -72,9 +71,6 @@ jobs:
         !contains(matrix.platform.target, 'ios') &&
         !contains(matrix.platform.target, 'wasm32'))
       run: cargo $CMD test --verbose --target ${{ matrix.platform.target }} $OPTIONS --features $FEATURES
-
-    - name: Build lavagna and all crates
-      run: cargo build --verbose --workspace
 
     - name: Lint with clippy
       shell: bash
