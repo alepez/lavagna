@@ -15,4 +15,4 @@ lavagna_collab = { path = "../lavagna_collab" }
 lavagna_core = { path = "../lavagna_core" }
 log = "0.4"
 pixels = "0.9"
-winit = "0.26.1"
+winit = "0.27"
