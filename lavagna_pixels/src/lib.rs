@@ -190,7 +190,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                         virtual_keycode: Some(VirtualKeyCode::Z),
                         ..
                     } => {
-                        app.resume();
+                        app.resume_last_snapshot();
                     }
                     KeyboardInput {
                         state: ElementState::Released,

@@ -32,7 +32,7 @@ pub enum PenCommand {
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
 pub enum Command {
     ClearAll,
-    Resume,
+    ResumeLastSnapshot,
     TakeSnapshot,
     PenCommand(PenId, PenCommand),
 }
@@ -106,7 +106,7 @@ impl App {
                 Command::TakeSnapshot => {
                     self.snapshots.push(sketch.to_owned());
                 }
-                Command::Resume => {
+                Command::ResumeLastSnapshot => {
                     if let Some(backup) = &self.snapshots.pop() {
                         sketch.copy_from(&backup.as_sketch());
                     }
@@ -137,8 +137,8 @@ impl App {
         self.send_command_chained(Command::ClearAll);
     }
 
-    pub fn resume(&mut self) {
-        self.send_command_chained(Command::Resume);
+    pub fn resume_last_snapshot(&mut self) {
+        self.send_command_chained(Command::ResumeLastSnapshot);
     }
 
     pub fn take_snapshot(&mut self) {
