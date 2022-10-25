@@ -120,6 +120,7 @@ jobs:
       run: cargo install cargo-apk
 
     - name: Use Cross
+      if: matrix.build != 'android'
       shell: bash
       run: |
         cargo install cross --vers 0.2.1
@@ -128,6 +129,7 @@ jobs:
         echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
 
     - name: Show command used for Cargo
+      if: matrix.build != 'android'
       run: |
         echo "cargo command is: ${{ env.CARGO }}"
         echo "target flag is: ${{ env.TARGET_FLAGS }}"
