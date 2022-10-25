@@ -78,22 +78,10 @@ pub struct CursorPos {
 
 impl App {
     pub fn new(pen_id: PenId) -> Self {
-        let mut palette = ColorSelector::new(&PALETTE);
-        let color = palette.next().unwrap();
-
-        let pen = Pen {
-            color,
-            cursor: Cursor::default(),
-            prev_cursor: Cursor::default(),
-        };
-
-        let mut pens = Pens::default();
-        pens.0.insert(pen_id, pen);
-
         App {
-            pens: pens,
+            pens: Pens::default(),
             commands: VecDeque::with_capacity(10),
-            palette,
+            palette: ColorSelector::new(&PALETTE),
             snapshots: Vec::new(),
             chained_command_sender: Default::default(),
             pen_id,
