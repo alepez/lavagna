@@ -154,7 +154,6 @@ jobs:
     - name: Build archive
       shell: bash
       run: |
-        outdir="$(ci/cargo-out-dir "${{ env.TARGET_DIR }}")"
         staging="lavagna-${{ needs.create-release.outputs.lavagna_version }}-${{ matrix.target }}"
 
         mkdir -p "$staging"
