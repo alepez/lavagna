@@ -4,7 +4,6 @@
 use crate::color::*;
 use crate::{CursorPos, MutSketch, PenSize};
 use line_drawing::{Bresenham, BresenhamCircle};
-use std::ops::Range;
 
 pub struct Painter<'a> {
     sketch: MutSketch<'a>,
