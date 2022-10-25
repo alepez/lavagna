@@ -38,7 +38,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
 
     window.set_cursor_icon(CursorIcon::Crosshair);
 
-    let collab_id = opt.collab.as_ref().map(|x| x.id).unwrap_or_default();
+    let pen_id = opt.collab.as_ref().map(|x| x.pen_id).unwrap_or_default();
 
     let collab = opt
         .collab
@@ -49,7 +49,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
 
     let collab = Rc::new(RefCell::new(collab));
 
-    let mut app = App::new(collab_id);
+    let mut app = App::new(pen_id);
 
     {
         let collab = collab.clone();
@@ -69,7 +69,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                 pixels = resume(&window, canvas_size, frozen_sketch.take());
 
                 // Prevent drawing a line from the last location when resuming
-                app.send_command(Command::Released(app.collab_id()));
+                app.send_command(Command::Released(app.pen_id()));
             }
             // Suspended on Android
             Event::Suspended => {

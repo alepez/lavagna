@@ -12,7 +12,7 @@ struct Args {
     #[clap(short = 'u', long, value_parser)]
     collab_url: Option<String>,
     #[clap(short = 'i', long, value_parser)]
-    collab_id: Option<u32>,
+    pen_id: Option<u32>,
 }
 
 fn main() -> Result<(), Error> {
@@ -22,7 +22,7 @@ fn main() -> Result<(), Error> {
 
     let collab = args.collab_url.map(|url| CollabOpt {
         url,
-        id: args.collab_id.unwrap_or(0).into(),
+        pen_id: args.pen_id.unwrap_or(0).into(),
     });
 
     let opt = Opt { collab };

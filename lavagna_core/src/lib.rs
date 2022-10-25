@@ -10,9 +10,9 @@ use std::borrow::BorrowMut;
 use std::collections::{HashMap, VecDeque};
 
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize, Eq, PartialEq, Hash)]
-pub struct CollabId(u32);
+pub struct PenId(u32);
 
-impl From<u32> for CollabId {
+impl From<u32> for PenId {
     fn from(x: u32) -> Self {
         Self(x)
     }
@@ -23,10 +23,10 @@ pub enum Command {
     ClearAll,
     Resume,
     TakeSnapshot,
-    ChangeColor(CollabId, Color),
-    MoveCursor(CollabId, CursorPos),
-    Pressed(CollabId),
-    Released(CollabId),
+    ChangeColor(PenId, Color),
+    MoveCursor(PenId, CursorPos),
+    Pressed(PenId),
+    Released(PenId),
 }
 
 pub trait CommandSender {
@@ -41,10 +41,10 @@ struct Pen {
 }
 
 #[derive(Default)]
-struct Pens(HashMap<CollabId, Pen>);
+struct Pens(HashMap<PenId, Pen>);
 
 impl Pens {
-    fn select(&mut self, id: CollabId) -> &mut Pen {
+    fn select(&mut self, id: PenId) -> &mut Pen {
         self.0.entry(id).or_insert_with(Pen::default).borrow_mut()
     }
 }
@@ -55,7 +55,7 @@ pub struct App {
     palette: ColorSelector,
     snapshots: Vec<OwnedSketch>,
     chained_command_sender: Option<Box<dyn FnMut(Command)>>,
-    collab_id: CollabId,
+    pen_id: PenId,
 }
 
 #[derive(Default, Debug, Copy, Clone)]
@@ -71,7 +71,7 @@ pub struct CursorPos {
 }
 
 impl App {
-    pub fn new(collab_id: CollabId) -> Self {
+    pub fn new(pen_id: PenId) -> Self {
         let mut palette = ColorSelector::new(&PALETTE);
         let color = palette.next().unwrap();
 
@@ -82,15 +82,15 @@ impl App {
         };
 
         let mut pens = Pens::default();
-        pens.0.insert(collab_id, pen);
+        pens.0.insert(pen_id, pen);
 
         App {
-            pens,
+            pens: pens,
             commands: VecDeque::with_capacity(10),
             palette,
             snapshots: Vec::new(),
             chained_command_sender: Default::default(),
-            collab_id,
+            pen_id,
         }
     }
 
@@ -109,17 +109,17 @@ impl App {
                         sketch.copy_from(&backup.as_sketch());
                     }
                 }
-                Command::ChangeColor(collab_id, color) => {
-                    self.pens.select(collab_id).color = color;
+                Command::ChangeColor(pen_id, color) => {
+                    self.pens.select(pen_id).color = color;
                 }
-                Command::MoveCursor(collab_id, pos) => {
-                    self.pens.select(collab_id).cursor.pos = pos;
+                Command::MoveCursor(pen_id, pos) => {
+                    self.pens.select(pen_id).cursor.pos = pos;
                 }
-                Command::Pressed(collab_id) => {
-                    self.pens.select(collab_id).cursor.pressed = true;
+                Command::Pressed(pen_id) => {
+                    self.pens.select(pen_id).cursor.pressed = true;
                 }
-                Command::Released(collab_id) => {
-                    self.pens.select(collab_id).cursor.pressed = false;
+                Command::Released(pen_id) => {
+                    self.pens.select(pen_id).cursor.pressed = false;
                 }
             }
         }
@@ -152,20 +152,20 @@ impl App {
     }
 
     pub fn move_cursor(&mut self, x: isize, y: isize) {
-        self.send_command_chained(Command::MoveCursor(self.collab_id, CursorPos { x, y }));
+        self.send_command_chained(Command::MoveCursor(self.pen_id, CursorPos { x, y }));
     }
 
     pub fn press(&mut self) {
-        self.send_command_chained(Command::Pressed(self.collab_id));
+        self.send_command_chained(Command::Pressed(self.pen_id));
     }
 
     pub fn release(&mut self) {
-        self.send_command_chained(Command::Released(self.collab_id));
+        self.send_command_chained(Command::Released(self.pen_id));
     }
 
     pub fn change_color(&mut self) {
         if let Some(color) = self.palette.next() {
-            self.send_command_chained(Command::ChangeColor(self.collab_id, color));
+            self.send_command_chained(Command::ChangeColor(self.pen_id, color));
         }
     }
 
@@ -185,8 +185,8 @@ impl App {
         }
     }
 
-    pub fn collab_id(&self) -> CollabId {
-        self.collab_id
+    pub fn pen_id(&self) -> PenId {
+        self.pen_id
     }
 }
 
