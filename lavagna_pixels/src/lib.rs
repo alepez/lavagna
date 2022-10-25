@@ -1,10 +1,10 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
-use lavagna_collab::{CollaborationChannel, SupportedCollaborationChannel};
+use lavagna_collab::{CollabOpt, CollaborationChannel, SupportedCollaborationChannel};
 use lavagna_core::doc::MutSketch;
 use lavagna_core::doc::OwnedSketch;
-use lavagna_core::{App, Command, CommandSender};
+use lavagna_core::{App, CommandSender};
 use log::error;
 pub use pixels::Error;
 use pixels::{Pixels, SurfaceTexture};
@@ -18,7 +18,7 @@ use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorIcon, Window, WindowBuilder};
 
 pub struct Opt {
-    pub collab_url: Option<String>,
+    pub collab: Option<CollabOpt>,
 }
 
 pub fn run(opt: Opt) -> Result<(), Error> {
@@ -38,15 +38,18 @@ pub fn run(opt: Opt) -> Result<(), Error> {
 
     window.set_cursor_icon(CursorIcon::Crosshair);
 
+    let pen_id = opt.collab.as_ref().map(|x| x.pen_id).unwrap_or_default();
+
     let collab = opt
-        .collab_url
+        .collab
+        .map(|x| x.url)
         .as_deref()
         .map(SupportedCollaborationChannel::new)
         .unwrap_or_default();
 
     let collab = Rc::new(RefCell::new(collab));
 
-    let mut app = App::default();
+    let mut app = App::new(pen_id);
 
     {
         let collab = collab.clone();
@@ -66,7 +69,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                 pixels = resume(&window, canvas_size, frozen_sketch.take());
 
                 // Prevent drawing a line from the last location when resuming
-                app.send_command(Command::Released);
+                app.force_release();
             }
             // Suspended on Android
             Event::Suspended => {

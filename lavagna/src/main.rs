@@ -2,14 +2,17 @@
 #![forbid(unsafe_code)]
 
 use clap::Parser;
+use lavagna_collab::CollabOpt;
 use lavagna_pixels::{run, Error, Opt};
 
 /// The uncluttered blackboard
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
-    #[clap(short, long, value_parser)]
+    #[clap(short = 'u', long, value_parser)]
     collab_url: Option<String>,
+    #[clap(short = 'i', long, value_parser)]
+    pen_id: Option<u32>,
 }
 
 fn main() -> Result<(), Error> {
@@ -17,9 +20,12 @@ fn main() -> Result<(), Error> {
 
     let args = Args::parse();
 
-    let opt = Opt {
-        collab_url: args.collab_url,
-    };
+    let collab = args.collab_url.map(|url| CollabOpt {
+        url,
+        pen_id: args.pen_id.unwrap_or(0).into(),
+    });
+
+    let opt = Opt { collab };
 
     run(opt)
 }

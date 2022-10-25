@@ -1,3 +1,6 @@
+#![deny(clippy::all)]
+#![forbid(unsafe_code)]
+
 pub struct Sketch<'a> {
     pub size: Size,
     pub frame: &'a [u8],

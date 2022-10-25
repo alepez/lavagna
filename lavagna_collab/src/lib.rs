@@ -5,7 +5,7 @@ extern crate core;
 
 use futures::{select, FutureExt};
 use futures_timer::Delay;
-use lavagna_core::{Command, CommandSender};
+use lavagna_core::{Command, CommandSender, PenId};
 use matchbox_socket::WebRtcSocket;
 use std::time::Duration;
 use tokio::sync::mpsc::channel;
@@ -162,4 +162,9 @@ impl CollaborationChannel for SupportedCollaborationChannel {
             Self::Dummy(chan) => chan.rx(),
         }
     }
+}
+
+pub struct CollabOpt {
+    pub url: String,
+    pub pen_id: PenId,
 }

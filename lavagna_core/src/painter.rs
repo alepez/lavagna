@@ -1,3 +1,6 @@
+#![deny(clippy::all)]
+#![forbid(unsafe_code)]
+
 use crate::color::*;
 use crate::CursorPos;
 use crate::MutSketch;
@@ -9,7 +12,8 @@ pub struct Painter<'a> {
 }
 
 impl<'a> Painter<'a> {
-    pub fn new(sketch: MutSketch<'a>, color: Color) -> Self {
+    pub fn new(sketch: MutSketch<'a>) -> Self {
+        let color = WHITE;
         Painter { sketch, color }
     }
 
@@ -36,5 +40,9 @@ impl<'a> Painter<'a> {
         if let Some(pix) = self.sketch.frame.chunks_exact_mut(4).nth(pix_index) {
             pix.copy_from_slice(self.color.as_bytes());
         }
+    }
+
+    pub fn set_color(&mut self, color: Color) {
+        self.color = color;
     }
 }

@@ -1,7 +1,16 @@
+#![deny(clippy::all)]
+#![forbid(unsafe_code)]
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Color([u8; 4]);
+
+impl Default for Color {
+    fn default() -> Self {
+        WHITE
+    }
+}
 
 pub const WHITE: Color = Color([0xff, 0xff, 0xff, 0xff]);
 pub const BLUE: Color = Color([0x00, 0x6f, 0xff, 0xff]);
