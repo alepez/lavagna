@@ -14,3 +14,4 @@ env_logger = "0.9"
 lavagna_pixels = { path = "../lavagna_pixels" }
 lavagna_collab = { path = "../lavagna_collab" }
 clap = { version = "4", features = ["derive"] }
+rand = "0.8.5"

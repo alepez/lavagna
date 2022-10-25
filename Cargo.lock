@@ -1797,6 +1797,7 @@ dependencies = [
  "env_logger 0.9.1",
  "lavagna_collab",
  "lavagna_pixels",
+ "rand",
 ]
 
 [[package]]

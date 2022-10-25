@@ -4,6 +4,7 @@
 use clap::Parser;
 use lavagna_collab::CollabOpt;
 use lavagna_pixels::{run, Error, Opt};
+use rand::Rng;
 
 /// The uncluttered blackboard
 #[derive(Parser, Debug)]
@@ -16,13 +17,15 @@ struct Args {
 }
 
 fn main() -> Result<(), Error> {
+    let mut rng = rand::thread_rng();
+
     env_logger::init();
 
     let args = Args::parse();
 
     let collab = args.collab_url.map(|url| CollabOpt {
         url,
-        pen_id: args.pen_id.unwrap_or(0).into(),
+        pen_id: args.pen_id.unwrap_or_else(|| rng.gen::<u32>()).into(),
     });
 
     let opt = Opt { collab };
