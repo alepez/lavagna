@@ -1,7 +1,7 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
-use lavagna_collab::{CollaborationChannel, SupportedCollaborationChannel};
+use lavagna_collab::{CollabOpt, CollaborationChannel, SupportedCollaborationChannel};
 use lavagna_core::doc::MutSketch;
 use lavagna_core::doc::OwnedSketch;
 use lavagna_core::{App, Command, CommandSender};
@@ -18,7 +18,7 @@ use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorIcon, Window, WindowBuilder};
 
 pub struct Opt {
-    pub collab_url: Option<String>,
+    pub collab: Option<CollabOpt>,
 }
 
 pub fn run(opt: Opt) -> Result<(), Error> {
@@ -39,7 +39,8 @@ pub fn run(opt: Opt) -> Result<(), Error> {
     window.set_cursor_icon(CursorIcon::Crosshair);
 
     let collab = opt
-        .collab_url
+        .collab
+        .map(|x| x.url)
         .as_deref()
         .map(SupportedCollaborationChannel::new)
         .unwrap_or_default();

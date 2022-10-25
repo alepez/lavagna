@@ -1795,6 +1795,7 @@ version = "1.0.0"
 dependencies = [
  "clap",
  "env_logger 0.9.1",
+ "lavagna_collab",
  "lavagna_pixels",
 ]
 

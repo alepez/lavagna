@@ -2,6 +2,7 @@
 #![forbid(unsafe_code)]
 
 use clap::Parser;
+use lavagna_collab::CollabOpt;
 use lavagna_pixels::{run, Error, Opt};
 
 /// The uncluttered blackboard
@@ -19,9 +20,12 @@ fn main() -> Result<(), Error> {
 
     let args = Args::parse();
 
-    let opt = Opt {
-        collab_url: args.collab_url,
-    };
+    let collab = args.collab_url.map(|url| CollabOpt {
+        url,
+        id: args.collab_id.unwrap_or(0).into(),
+    });
+
+    let opt = Opt { collab };
 
     run(opt)
 }

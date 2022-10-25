@@ -163,3 +163,17 @@ impl CollaborationChannel for SupportedCollaborationChannel {
         }
     }
 }
+
+#[derive(Copy, Clone, Debug)]
+pub struct CollabId(u32);
+
+impl From<u32> for CollabId {
+    fn from(x: u32) -> Self {
+        Self(x)
+    }
+}
+
+pub struct CollabOpt {
+    pub url: String,
+    pub id: CollabId,
+}
