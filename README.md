@@ -17,7 +17,7 @@ Just you and your chalk.
 | Esc    | Quit     | Quit the application                 |
 | X      | Clear    | Take a snapshot and clear everything |
 | C      | Color    | Change the chalk color               |
-| Z      | Undo     | Resume the last snapshot             |
+| U      | Undo     | Resume the last snapshot             |
 | S      | Snapshot | Take a snapshot                      |
 
 ## Instant collaboration
