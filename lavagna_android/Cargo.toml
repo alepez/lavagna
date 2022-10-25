@@ -21,6 +21,7 @@ crate-type = ["cdylib"]
 
 [package.metadata.android]
 package = "net.pezzato.lavagna"
+# FIXME To enable other targets, CI must provides the correct toolchains
 build_targets = [
   # "armv7-linux-androideabi",
   "aarch64-linux-android",
