@@ -137,9 +137,10 @@ jobs:
       if: matrix.build != 'android'
       run: ${{ env.CARGO }} build --verbose --release ${{ env.TARGET_FLAGS }}
 
+    # FIXME Keystore password must be secret
     - name: Build release apk
       if: matrix.build == 'android'
-      run: ${{ env.CARGO }} apk build --package lavagna_android --verbose --release ${{ env.TARGET_FLAGS }}
+      run: echo this_is_the_keypass | ${{ env.CARGO }} apk build --package lavagna_android --verbose --release ${{ env.TARGET_FLAGS }}
 
     - name: Strip release binary (linux and macos)
       if: matrix.build == 'linux' || matrix.build == 'macos'

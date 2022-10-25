@@ -44,3 +44,8 @@ version = 1
 debuggable = false
 theme = "@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen"
 label = "lavagna"
+
+[package.metadata.android.signing.release]
+# FIXME keystore and password must be secret
+path = "release.keystore"
+keystore_password = "this_is_the_storepass"
