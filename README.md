@@ -19,6 +19,8 @@ Just you and your chalk.
 | C      | Color    | Change the chalk color               |
 | U      | Undo     | Resume the last snapshot             |
 | S      | Snapshot | Take a snapshot                      |
+| M      | Grow     | Grow pen size 2x                     |
+| N      | Shrink   | Shrink pen size 2x                   |
 
 ## Instant collaboration
 

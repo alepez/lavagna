@@ -24,6 +24,7 @@ impl From<u32> for PenId {
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
 pub enum PenCommand {
     ChangeColor(Color),
+    ChangeSize(PenSize),
     MoveCursor(CursorPos),
     Pressed,
     Released,
@@ -46,6 +47,7 @@ struct Pen {
     cursor: Cursor,
     prev_cursor: Cursor,
     color: Color,
+    size: PenSize,
 }
 
 #[derive(Default)]
@@ -124,6 +126,7 @@ impl App {
 
         for (_, pen) in self.pens.0.iter_mut() {
             painter.set_color(pen.color);
+            painter.set_size(pen.size);
 
             if pen.cursor.pressed && pen.prev_cursor.pressed {
                 painter.draw_line(pen.prev_cursor.pos, pen.cursor.pos);
@@ -163,6 +166,18 @@ impl App {
         }
     }
 
+    pub fn grow_pen(&mut self) {
+        let mut size = self.my_pen().size;
+        size.grow();
+        self.send_pen_command(PenCommand::ChangeSize(size));
+    }
+
+    pub fn shrink_pen(&mut self) {
+        let mut size = self.my_pen().size;
+        size.shrink();
+        self.send_pen_command(PenCommand::ChangeSize(size));
+    }
+
     pub fn needs_update(&self) -> bool {
         !self.commands.is_empty()
     }
@@ -194,6 +209,9 @@ impl App {
             PenCommand::ChangeColor(color) => {
                 pen.color = color;
             }
+            PenCommand::ChangeSize(size) => {
+                pen.size = size;
+            }
             PenCommand::MoveCursor(pos) => {
                 pen.cursor.pos = pos;
             }
@@ -204,6 +222,10 @@ impl App {
                 pen.cursor.pressed = false;
             }
         }
+    }
+
+    fn my_pen(&mut self) -> &mut Pen {
+        self.pens.select(self.pen_id)
     }
 }
 
@@ -220,5 +242,23 @@ fn draw_current_color_icon(painter: &mut Painter) {
         for y in 0..(SQUARE_SIZE - x) {
             painter.draw_pixel(CursorPos { x, y });
         }
+    }
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub struct PenSize(u32);
+
+impl Default for PenSize {
+    fn default() -> Self {
+        Self(1)
+    }
+}
+
+impl PenSize {
+    fn grow(&mut self) {
+        self.0 = (self.0 * 2).clamp(1, 32);
+    }
+    fn shrink(&mut self) {
+        self.0 = (self.0 / 2).clamp(1, 32);
     }
 }

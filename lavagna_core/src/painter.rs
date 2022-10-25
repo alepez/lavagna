@@ -2,8 +2,7 @@
 #![forbid(unsafe_code)]
 
 use crate::color::*;
-use crate::CursorPos;
-use crate::MutSketch;
+use crate::{CursorPos, MutSketch, PenSize};
 use line_drawing::Bresenham;
 use std::ops::Range;
 
@@ -59,6 +58,10 @@ impl<'a> Painter<'a> {
 
     pub fn set_color(&mut self, color: Color) {
         self.color = color;
+    }
+
+    pub fn set_size(&mut self, size: PenSize) {
+        self.size = size.0;
     }
 }
 

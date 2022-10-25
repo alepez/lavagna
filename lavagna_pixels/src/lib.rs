@@ -159,6 +159,8 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                     VirtualKeyCode::Escape => exit = true,
                     VirtualKeyCode::X => app.clear_all(),
                     VirtualKeyCode::C => app.change_color(),
+                    VirtualKeyCode::N => app.shrink_pen(),
+                    VirtualKeyCode::M => app.grow_pen(),
                     VirtualKeyCode::U => app.resume_last_snapshot(),
                     VirtualKeyCode::S => app.take_snapshot(),
                     _ => (),
