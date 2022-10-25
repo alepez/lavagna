@@ -13,7 +13,7 @@ license = "MIT/Apache-2.0"
 lavagna_pixels = { path = "../lavagna_pixels" }
 
 [target.'cfg(target_os = "android")'.dependencies.ndk-glue]
-version = "0.5.2"
+version = "0.7.0"
 features = ["logger"]
 
 [lib]
