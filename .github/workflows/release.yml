@@ -111,6 +111,10 @@ jobs:
         override: true
         target: ${{ matrix.target }}
 
+    - name: Install cargo-apk
+      if: contains(matrix.platform.target, 'android')
+      run: cargo install cargo-apk
+
     - name: Use Cross
       shell: bash
       run: |
