@@ -50,12 +50,18 @@ impl Pens {
 }
 
 pub struct App {
-    pens: Pens,
-    commands: VecDeque<Command>,
-    palette: ColorSelector,
-    snapshots: Vec<OwnedSketch>,
-    chained_command_sender: Option<Box<dyn FnMut(Command)>>,
+    /// This instance pen id
     pen_id: PenId,
+    /// All collaborative pens, included the owned one
+    pens: Pens,
+    /// A queue of commands to be performed
+    commands: VecDeque<Command>,
+    /// Palette of colors
+    palette: ColorSelector,
+    /// A history of snapshots
+    snapshots: Vec<OwnedSketch>,
+    /// A component in charge of sending commands to collaborators
+    chained_command_sender: Option<Box<dyn FnMut(Command)>>,
 }
 
 #[derive(Default, Debug, Copy, Clone)]
