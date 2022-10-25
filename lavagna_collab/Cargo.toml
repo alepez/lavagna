@@ -14,6 +14,6 @@ futures = "0.3"
 futures-timer = { version = "3" }
 lavagna_core = { path = "../lavagna_core" }
 log = "0.4"
-matchbox_socket = { git = "https://github.com/johanhelsing/matchbox", rev = "50c1e69" }
+matchbox_socket = { git = "https://github.com/alepez/matchbox", rev = "a6fbe22f1fd3ee745757e92ac024b8bc44b06a54" }
 serde_json = "1.0"
-tokio = { version = "1.12", features = ["sync", "rt", "rt-multi-thread"] }
+tokio = { version = "1.21", features = ["sync", "rt", "rt-multi-thread"] }
