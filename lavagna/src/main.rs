@@ -8,8 +8,10 @@ use lavagna_pixels::{run, Error, Opt};
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
-    #[clap(short, long, value_parser)]
+    #[clap(short = 'u', long, value_parser)]
     collab_url: Option<String>,
+    #[clap(short = 'i', long, value_parser)]
+    collab_id: Option<u32>,
 }
 
 fn main() -> Result<(), Error> {
