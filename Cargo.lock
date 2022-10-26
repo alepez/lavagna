@@ -1600,7 +1600,7 @@ dependencies = [
 
 [[package]]
 name = "lavagna"
-version = "1.1.1"
+version = "1.1.2"
 dependencies = [
  "clap",
  "env_logger",
@@ -1611,7 +1611,7 @@ dependencies = [
 
 [[package]]
 name = "lavagna_android"
-version = "1.1.1"
+version = "1.1.2"
 dependencies = [
  "lavagna_pixels",
  "ndk-glue",
@@ -1619,7 +1619,7 @@ dependencies = [
 
 [[package]]
 name = "lavagna_collab"
-version = "1.1.1"
+version = "1.1.2"
 dependencies = [
  "futures",
  "futures-timer",
@@ -1632,7 +1632,7 @@ dependencies = [
 
 [[package]]
 name = "lavagna_core"
-version = "1.1.1"
+version = "1.1.2"
 dependencies = [
  "line_drawing",
  "log",
@@ -1641,7 +1641,7 @@ dependencies = [
 
 [[package]]
 name = "lavagna_pixels"
-version = "1.1.1"
+version = "1.1.2"
 dependencies = [
  "env_logger",
  "lavagna_collab",
