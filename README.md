@@ -50,6 +50,10 @@ To install from [crates.io](https://crates.io):
 cargo install lavagna
 ```
 
+Note that the version available in *crates.io* may be older than the one you
+find on [latest release
+page](https://github.com/alepez/lavagna/releases/latest).
+
 ## Instant collaboration
 
 *lavagna* can use *WebRtc* for instant collaboration. Try it:
