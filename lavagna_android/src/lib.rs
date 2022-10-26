@@ -27,21 +27,20 @@ fn main() {
 }
 
 fn get_collab_uri_from_intent() -> Result<String, Box<dyn std::error::Error>> {
-    // lavagna+wss://lavagna-server.herokuapp.com/9db2ca48-6f12-4f57-8ae7-0c4bf83d0fb0
-
     let ctx = ndk_context::android_context();
     let vm = unsafe { jni::JavaVM::from_raw(ctx.vm().cast()) }?;
     let env = vm.attach_current_thread()?;
-    let class_ctx = env.find_class("android/content/Context")?;
 
-    let intent = env
-        .call_method(
-            ctx.context().cast(),
-            "getIntent",
-            "()Landroid/content/Intent;",
-            &[],
-        )?
-        .l()?;
+    let intent = dbg!(env.call_method(
+        ctx.context().cast(),
+        "getIntent",
+        "()Landroid/content/Intent;",
+        &[],
+    ))?;
 
-    Ok("smile!".to_string())
+    let uri = dbg!(env.call_method(dbg!(intent.l())?, "getData", "()Landroid/net/Uri;", &[]))?;
+    let uri = dbg!(env.call_method(dbg!(uri.l())?, "toString", "()Ljava/lang/String;", &[]))?;
+    let uri: String = env.get_string(uri.l()?.into())?.into();
+
+    Ok(uri)
 }
