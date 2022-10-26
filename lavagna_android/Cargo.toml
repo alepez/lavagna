@@ -75,10 +75,10 @@ resizeable_activity = false
 [[package.metadata.android.application.activity.intent_filter]]
 
 # See https://developer.android.com/guide/topics/manifest/action-element
-actions = ["android.intent.action.MAIN", "android.intent.action.VIEW"]
+actions = ["android.intent.action.VIEW"]
 
 # See https://developer.android.com/guide/topics/manifest/category-element
-categories = ["android.intent.category.LAUNCHER","android.intent.category.BROWSABLE","android.intent.category.DEFAULT"]
+categories = ["android.intent.category.BROWSABLE","android.intent.category.DEFAULT"]
 
 # See https://developer.android.com/guide/topics/manifest/data-element
 [[package.metadata.android.application.activity.intent_filter.data]]
