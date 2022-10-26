@@ -11,8 +11,8 @@ license = "MIT/Apache-2.0"
 
 [dependencies]
 env_logger = "0.9"
-lavagna_collab = { path = "../lavagna_collab" }
-lavagna_core = { path = "../lavagna_core" }
+lavagna_collab = { path = "../lavagna_collab", version = "1.1.2" }
+lavagna_core = { path = "../lavagna_core", version = "1.1.2" }
 log = "0.4"
 pixels = "0.9"
 

@@ -10,7 +10,7 @@ readme = "README.md"
 license = "MIT/Apache-2.0"
 
 [dependencies]
-lavagna_pixels = { path = "../lavagna_pixels" }
+lavagna_pixels = { path = "../lavagna_pixels", version = "1.1.2" }
 
 [target.'cfg(target_os = "android")'.dependencies.ndk-glue]
 version = "0.7.0"

@@ -11,7 +11,7 @@ license = "MIT/Apache-2.0"
 
 [dependencies]
 env_logger = "0.9"
-lavagna_pixels = { path = "../lavagna_pixels" }
-lavagna_collab = { path = "../lavagna_collab" }
+lavagna_pixels = { path = "../lavagna_pixels", version = "1.1.2" }
+lavagna_collab = { path = "../lavagna_collab", version = "1.1.2" }
 clap = { version = "4", features = ["derive"] }
 rand = "0.8.5"
