@@ -1,7 +1,9 @@
 #![deny(clippy::all)]
 
 // #[cfg(target_os = "android")]
+use lavagna_collab::CollabOpt;
 use lavagna_pixels::{run, Opt};
+use rand::Rng;
 
 // #[cfg(target_os = "android")]
 #[cfg_attr(
@@ -17,6 +19,7 @@ use lavagna_pixels::{run, Opt};
 )]
 #[allow(dead_code)]
 fn main() {
+    let mut rng = rand::thread_rng();
     let mut opt = Opt { collab: None };
 
     let uri = get_collab_uri_from_intent().ok();
@@ -25,10 +28,10 @@ fn main() {
         if let Some(("lavagna", collab_uri)) = uri.split_once('+') {
             log::info!("uri: {:?}", collab_uri);
             // TODO Collaboration is not yet supported on Android
-            // opt.collab = CollabOpt {
-            //     url,
-            //     pen_id: rng.gen::<u32>().into(),
-            // };
+            opt.collab = Some(CollabOpt {
+                url: collab_uri.to_string(),
+                pen_id: rng.gen::<u32>().into(),
+            });
         }
     }
 

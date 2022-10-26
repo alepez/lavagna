@@ -1644,10 +1644,12 @@ name = "lavagna_android"
 version = "1.1.2"
 dependencies = [
  "jni",
+ "lavagna_collab",
  "lavagna_pixels",
  "log",
  "ndk-context",
  "ndk-glue",
+ "rand",
 ]
 
 [[package]]
