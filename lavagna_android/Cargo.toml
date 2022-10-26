@@ -53,6 +53,9 @@ name = "android.hardware.vulkan.level"
 required = true
 version = 1
 
+[[package.metadata.android.uses_permission]]
+name = "android.permission.INTERNET"
+
 [package.metadata.android.signing.release]
 # FIXME keystore and password must be secret
 path = "release.keystore"
