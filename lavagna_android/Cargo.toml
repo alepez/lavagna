@@ -41,12 +41,45 @@ name = "android.hardware.vulkan.level"
 required = true
 version = 1
 
+[package.metadata.android.signing.release]
+# FIXME keystore and password must be secret
+path = "release.keystore"
+keystore_password = "this_is_the_storepass"
+
 [package.metadata.android.application]
 debuggable = false
 theme = "@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen"
 label = "lavagna"
 
-[package.metadata.android.signing.release]
-# FIXME keystore and password must be secret
-path = "release.keystore"
-keystore_password = "this_is_the_storepass"
+# See https://developer.android.com/guide/topics/manifest/activity-element
+[package.metadata.android.application.activity]
+
+# See https://developer.android.com/guide/topics/manifest/activity-element#config
+config_changes = "orientation|keyboardHidden|screenSize"
+
+# See https://developer.android.com/guide/topics/manifest/activity-element#label
+label = "lavagna"
+
+# See https://developer.android.com/guide/topics/manifest/activity-element#lmode
+launch_mode = "standard"
+
+# See https://developer.android.com/guide/topics/manifest/activity-element#screen
+orientation = "landscape"
+
+# See https://developer.android.com/guide/topics/manifest/activity-element#resizeableActivity
+resizeable_activity = false
+
+# See https://developer.android.com/guide/topics/manifest/intent-filter-element
+#
+# Note: there can be several .intent_filter entries.
+[[package.metadata.android.application.activity.intent_filter]]
+
+# See https://developer.android.com/guide/topics/manifest/action-element
+actions = ["android.intent.action.MAIN", "android.intent.action.VIEW"]
+
+# See https://developer.android.com/guide/topics/manifest/category-element
+categories = ["android.intent.category.LAUNCHER","android.intent.category.BROWSABLE","android.intent.category.DEFAULT"]
+
+# See https://developer.android.com/guide/topics/manifest/data-element
+[[package.metadata.android.application.activity.intent_filter.data]]
+scheme = "lavagna+wss"
