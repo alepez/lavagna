@@ -24,7 +24,7 @@ Just you and your chalk.
 
 ## Installation
 
-[Archives of precompiled binaries for ripgrep are available for Windows, macOS
+[Archives of precompiled binaries for *lavagna* are available for Windows, macOS
 and Linux.](https://github.com/alepez/lavagna/releases/latest).
 
 ### Install from source
