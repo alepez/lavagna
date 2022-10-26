@@ -17,11 +17,20 @@ use lavagna_pixels::{run, Opt};
 )]
 #[allow(dead_code)]
 fn main() {
-    let uri = get_collab_uri_from_intent().ok();
-    log::info!("uri: {:?}", uri);
+    let mut opt = Opt { collab: None };
 
-    // Collaboration is not yet supported on Android
-    let opt = Opt { collab: None };
+    let uri = get_collab_uri_from_intent().ok();
+
+    if let Some(uri) = uri {
+        if let Some(("lavagna", collab_uri)) = uri.split_once('+') {
+            log::info!("uri: {:?}", collab_uri);
+            // TODO Collaboration is not yet supported on Android
+            // opt.collab = CollabOpt {
+            //     url,
+            //     pen_id: rng.gen::<u32>().into(),
+            // };
+        }
+    }
 
     run(opt).unwrap();
 }
@@ -31,15 +40,15 @@ fn get_collab_uri_from_intent() -> Result<String, Box<dyn std::error::Error>> {
     let vm = unsafe { jni::JavaVM::from_raw(ctx.vm().cast()) }?;
     let env = vm.attach_current_thread()?;
 
-    let intent = dbg!(env.call_method(
+    let intent = env.call_method(
         ctx.context().cast(),
         "getIntent",
         "()Landroid/content/Intent;",
         &[],
-    ))?;
+    )?;
 
-    let uri = dbg!(env.call_method(dbg!(intent.l())?, "getData", "()Landroid/net/Uri;", &[]))?;
-    let uri = dbg!(env.call_method(dbg!(uri.l())?, "toString", "()Ljava/lang/String;", &[]))?;
+    let uri = env.call_method(intent.l()?, "getData", "()Landroid/net/Uri;", &[])?;
+    let uri = env.call_method(uri.l()?, "toString", "()Ljava/lang/String;", &[])?;
     let uri: String = env.get_string(uri.l()?.into())?.into();
 
     Ok(uri)
