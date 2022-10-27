@@ -1,11 +1,9 @@
 #![deny(clippy::all)]
 
-// #[cfg(target_os = "android")]
 use lavagna_collab::CollabOpt;
 use lavagna_pixels::{run, Opt};
 use rand::Rng;
 
-// #[cfg(target_os = "android")]
 #[cfg_attr(
     target_os = "android",
     ndk_glue::main(
