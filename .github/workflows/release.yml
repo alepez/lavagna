@@ -53,6 +53,7 @@ jobs:
         with:
           tag_name: ${{ env.LAVAGNA_VERSION }}
           release_name: ${{ env.LAVAGNA_VERSION }}
+          draft: true
 
   build-release:
     name: build-release
