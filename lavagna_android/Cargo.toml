@@ -21,15 +21,6 @@ rand = "0.8.5"
 [lib]
 crate-type = ["cdylib"]
 
-[profile.dev]
-opt-level = 0
-debug = false
-
-# All dependencies (but not this crate itself)
-[profile.dev.overrides."*"]
-opt-level = 2
-debug = false
-
 [package.metadata.android]
 package = "net.pezzato.lavagna"
 # FIXME To enable other targets, CI must provides the correct toolchains
