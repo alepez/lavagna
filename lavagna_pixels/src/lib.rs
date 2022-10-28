@@ -62,6 +62,8 @@ pub fn run(opt: Opt) -> Result<(), Error> {
         .unwrap_or_default();
 
     log::info!("uri: {}", &collab_uri);
+
+    #[allow(unused_mut)] // Only when target os is android this will be muted
     let mut collab = add_collab_channel(&mut app, &collab_uri);
 
     let mut frozen_sketch: Option<OwnedSketch> = None;
