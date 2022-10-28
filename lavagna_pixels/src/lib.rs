@@ -65,8 +65,17 @@ pub fn run(opt: Opt) -> Result<(), Error> {
         match event {
             // Resumed on Android
             Event::Resumed => {
+                log::info!("Resumed");
                 canvas_size = window.inner_size();
                 pixels = resume(&window, canvas_size, frozen_sketch.take());
+
+                #[cfg(target_os = "android")]
+                {
+                    use lavagna_collab::get_collab_uri_from_intent;
+                    if let Ok(uri) = get_collab_uri_from_intent() {
+                        log::info!("uri: {}", uri);
+                    }
+                }
 
                 // Prevent drawing a line from the last location when resuming
                 app.force_release();
