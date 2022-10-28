@@ -21,6 +21,19 @@ pub struct Opt {
     pub collab: Option<CollabOpt>,
 }
 
+fn connect_collab_channel(app: &mut App, collab: Rc<RefCell<SupportedCollaborationChannel>>) {
+    app.connect_command_sender(Box::new(move |cmd| {
+        collab.borrow_mut().send_command(cmd);
+    }));
+}
+
+fn add_collab_channel(app: &mut App, uri: &str) -> Rc<RefCell<SupportedCollaborationChannel>> {
+    let collab = SupportedCollaborationChannel::new(uri);
+    let collab = Rc::new(RefCell::new(collab));
+    connect_collab_channel(app, collab.clone());
+    collab
+}
+
 pub fn run(opt: Opt) -> Result<(), Error> {
     log::info!("lavagna start");
 
@@ -40,23 +53,16 @@ pub fn run(opt: Opt) -> Result<(), Error> {
 
     let pen_id = opt.collab.as_ref().map(|x| x.pen_id).unwrap_or_default();
 
-    let collab = opt
-        .collab
-        .map(|x| x.url)
-        .as_deref()
-        .map(SupportedCollaborationChannel::new)
-        .unwrap_or_default();
-
-    let collab = Rc::new(RefCell::new(collab));
-
     let mut app = App::new(pen_id);
 
-    {
-        let collab = collab.clone();
-        app.connect_command_sender(Box::new(move |cmd| {
-            collab.borrow_mut().send_command(cmd);
-        }));
-    }
+    let collab_uri = opt
+        .collab
+        .as_ref()
+        .map(|x| x.url.clone())
+        .unwrap_or_default();
+
+    log::info!("uri: {}", &collab_uri);
+    let mut collab = add_collab_channel(&mut app, &collab_uri);
 
     let mut frozen_sketch: Option<OwnedSketch> = None;
     let mut pixels: Option<Pixels> = None;
@@ -74,6 +80,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                     use lavagna_collab::get_collab_uri_from_intent;
                     if let Ok(uri) = get_collab_uri_from_intent() {
                         log::info!("uri: {}", uri);
+                        collab = add_collab_channel(&mut app, &uri);
                     }
                 }
 
