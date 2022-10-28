@@ -10,7 +10,7 @@ use rand::Rng;
         backtrace = "on",
         logger(
             level = "info",
-            filter = "debug,wgpu_hal::vulkan=error",
+            filter = "debug,wgpu_hal::vulkan=error,wgpu_core=error",
             tag = "lavagna"
         )
     )
