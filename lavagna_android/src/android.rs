@@ -1,6 +1,6 @@
 #![deny(clippy::all)]
 
-use lavagna_collab::{CollabOpt, get_collab_uri_from_intent};
+use lavagna_collab::{get_collab_uri_from_intent, CollabOpt};
 use lavagna_pixels::{run, Opt};
 use rand::Rng;
 
