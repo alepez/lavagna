@@ -134,15 +134,23 @@ pub enum SupportedCollaborationChannel {
     Dummy(DummyCollaborationChannel),
 }
 
-impl Default for SupportedCollaborationChannel {
-    fn default() -> Self {
-        Self::Dummy(Default::default())
-    }
-}
-
 impl SupportedCollaborationChannel {
-    pub fn new(collab_url: &str) -> Self {
-        Self::WebRtc(WebRtcCollaborationChannel::new(collab_url))
+    pub fn new(mut uri: &str) -> Self {
+        // Remove optional "lavagna+" prefix
+        if let Some(("lavagna", r)) = uri.split_once('+') {
+            uri = r;
+        }
+
+        log::info!("uri: {}", uri);
+
+        match uri {
+            "" => Self::Dummy(Default::default()),
+            uri if uri.starts_with("wss://") => Self::WebRtc(WebRtcCollaborationChannel::new(uri)),
+            _ => {
+                log::error!("Invalid collaboration uri");
+                Self::Dummy(Default::default())
+            }
+        }
     }
 }
 
