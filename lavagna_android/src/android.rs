@@ -25,7 +25,6 @@ fn main() {
     if let Some(uri) = uri {
         if let Some(("lavagna", collab_uri)) = uri.split_once('+') {
             log::info!("uri: {:?}", collab_uri);
-            // TODO Collaboration is not yet supported on Android
             opt.collab = Some(CollabOpt {
                 url: collab_uri.to_string(),
                 pen_id: rng.gen::<u32>().into(),
