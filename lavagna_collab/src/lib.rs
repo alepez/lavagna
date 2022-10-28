@@ -1,5 +1,5 @@
 #![deny(clippy::all)]
-#![forbid(unsafe_code)]
+#![deny(unsafe_code)]
 
 extern crate core;
 
@@ -167,4 +167,25 @@ impl CollaborationChannel for SupportedCollaborationChannel {
 pub struct CollabOpt {
     pub url: String,
     pub pen_id: PenId,
+}
+
+#[allow(unsafe_code)]
+#[cfg(target_os = "android")]
+pub fn get_collab_uri_from_intent() -> Result<String, Box<dyn std::error::Error>> {
+    let ctx = ndk_context::android_context();
+    let vm = unsafe { jni::JavaVM::from_raw(ctx.vm().cast()) }?;
+    let env = vm.attach_current_thread()?;
+
+    let intent = env.call_method(
+        ctx.context().cast(),
+        "getIntent",
+        "()Landroid/content/Intent;",
+        &[],
+    )?;
+
+    let uri = env.call_method(intent.l()?, "getData", "()Landroid/net/Uri;", &[])?;
+    let uri = env.call_method(uri.l()?, "toString", "()Ljava/lang/String;", &[])?;
+    let uri: String = env.get_string(uri.l()?.into())?.into();
+
+    Ok(uri)
 }

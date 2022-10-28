@@ -1658,9 +1658,11 @@ version = "1.1.2"
 dependencies = [
  "futures",
  "futures-timer",
+ "jni",
  "lavagna_core",
  "log",
  "matchbox_socket",
+ "ndk-context",
  "serde_json",
  "tokio",
 ]
