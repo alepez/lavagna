@@ -88,6 +88,10 @@ pub struct CursorPos {
     pub y: isize,
 }
 
+struct UiState {
+    color: Color,
+}
+
 impl App {
     pub fn new(pen_id: PenId) -> Self {
         App {
@@ -123,8 +127,11 @@ impl App {
 
         let mut painter = Painter::new(sketch);
 
-        painter.set_color(self.pens.select(self.pen_id).color);
-        draw_ui(&mut painter);
+        let ui_state = UiState {
+            color: self.pens.select(self.pen_id).color,
+        };
+
+        draw_ui(&mut painter, &ui_state);
 
         for (_, pen) in self.pens.0.iter_mut() {
             painter.set_color(pen.color);
@@ -237,22 +244,31 @@ impl CommandSender for App {
     }
 }
 
-fn draw_ui(painter: &mut Painter) {
-    draw_icon_current_color(painter);
+fn draw_ui(painter: &mut Painter, state: &UiState) {
+    draw_icon_current_color(painter, &state.color);
     draw_icon_clear_all(painter);
-    draw_icon_clear_change_color(painter);
+    draw_icon_clear_change_color(painter, &state.color);
     draw_icon_clear_shrink_pen(painter);
     draw_icon_clear_grow_pen(painter);
 }
 
-fn draw_icon_clear_change_color(painter: &mut Painter) {
+fn draw_icon_clear_change_color(painter: &mut Painter, color: &Color) {
     let rect = Rect {
         x1: 0,
         y1: 0,
         x2: 100,
         y2: 100,
     };
+
     draw_rect(painter, &rect);
+
+    painter.set_color(*color);
+
+    for x in rect.x1..rect.x2 {
+        for y in rect.y1..rect.y2 {
+            painter.draw_pixel(CursorPos { x, y });
+        }
+    }
 }
 
 fn draw_icon_clear_all(painter: &mut Painter) {
@@ -285,8 +301,10 @@ fn draw_icon_clear_grow_pen(painter: &mut Painter) {
     draw_rect(painter, &rect);
 }
 
-fn draw_icon_current_color(painter: &mut Painter) {
+fn draw_icon_current_color(painter: &mut Painter, color: &Color) {
     const SQUARE_SIZE: isize = 10;
+
+    painter.set_color(*color);
 
     for x in 0..SQUARE_SIZE {
         for y in 0..(SQUARE_SIZE - x) {
