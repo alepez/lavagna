@@ -5,11 +5,17 @@ use crate::{CursorPos, PenSize};
 pub struct Ui {
     state: State,
 
+    was_pressed: bool,
+
     change_color_btn: Button,
 }
 
 pub struct State {
     pub color: Color,
+}
+
+pub enum Event {
+    ChangeColor,
 }
 
 struct Button {
@@ -36,11 +42,25 @@ impl Ui {
 
         Self {
             state,
+            was_pressed: false,
             change_color_btn,
         }
     }
 
-    pub fn touch(&self, pos: CursorPos) {}
+    pub fn touch(&mut self, pos: &CursorPos, pressed: bool) -> Option<Event> {
+        let clicked = self.was_pressed && !pressed;
+        self.was_pressed = pressed;
+
+        if !clicked {
+            return None;
+        }
+
+        if is_cursor_inside_rect(pos, &self.change_color_btn.rect) {
+            return Some(Event::ChangeColor);
+        }
+
+        None
+    }
 
     pub fn update(&mut self, state: State) {
         self.state = state;
@@ -136,4 +156,8 @@ fn draw_rect(painter: &mut Painter, rect: &Rect) {
     painter.draw_line(b, c);
     painter.draw_line(c, d);
     painter.draw_line(d, a);
+}
+
+fn is_cursor_inside_rect(cursor: &CursorPos, rect: &Rect) -> bool {
+    (cursor.x > rect.x1) && (cursor.x < rect.x2) && (cursor.y > rect.y1) && (cursor.y < rect.y2)
 }

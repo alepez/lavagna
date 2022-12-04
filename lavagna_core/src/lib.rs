@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use crate::color::*;
 use crate::doc::{MutSketch, OwnedSketch};
 use crate::painter::Painter;
-use crate::ui::State;
+use crate::ui::{Event, State};
 
 mod color;
 pub mod doc;
@@ -144,9 +144,13 @@ impl App {
         }
 
         let local_pen = self.pens.select(self.pen_id);
-        if local_pen.cursor.pressed {
-            if let Some(ui) = &mut self.ui {
-                ui.touch(local_pen.cursor.pos);
+        if let Some(ui) = &mut self.ui {
+            if let Some(event) = ui.touch(&local_pen.cursor.pos, local_pen.cursor.pressed) {
+                match event {
+                    Event::ChangeColor => {
+                        self.change_color();
+                    }
+                }
             }
         }
 
