@@ -80,12 +80,12 @@ impl Ui {
 
         self.draw_icon_current_color(painter, &state.color);
         self.draw_icon_clear_all(painter);
-        self.draw_icon_clear_change_color(painter, &state.color);
-        self.draw_icon_clear_shrink_pen(painter);
-        self.draw_icon_clear_grow_pen(painter);
+        self.draw_icon_change_color(painter, &state.color);
+        self.draw_icon_shrink_pen(painter);
+        self.draw_icon_grow_pen(painter);
     }
 
-    fn draw_icon_clear_change_color(&self, painter: &mut Painter, color: &Color) {
+    fn draw_icon_change_color(&self, painter: &mut Painter, color: &Color) {
         let rect = &self.change_color_btn.rect;
         draw_rect(painter, rect);
         painter.set_color(*color);
@@ -107,7 +107,7 @@ impl Ui {
         draw_rect(painter, &rect);
     }
 
-    fn draw_icon_clear_shrink_pen(&self, painter: &mut Painter) {
+    fn draw_icon_shrink_pen(&self, painter: &mut Painter) {
         let rect = Rect {
             x1: 0,
             y1: 200,
@@ -117,7 +117,7 @@ impl Ui {
         draw_rect(painter, &rect);
     }
 
-    fn draw_icon_clear_grow_pen(&self, painter: &mut Painter) {
+    fn draw_icon_grow_pen(&self, painter: &mut Painter) {
         let rect = Rect {
             x1: 0,
             y1: 300,
