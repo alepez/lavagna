@@ -143,6 +143,13 @@ impl App {
             ui.draw(&mut painter);
         }
 
+        let local_pen = self.pens.select(self.pen_id);
+        if local_pen.cursor.pressed {
+            if let Some(ui) = &mut self.ui {
+                ui.touch(local_pen.cursor.pos);
+            }
+        }
+
         for (_, pen) in self.pens.0.iter_mut() {
             painter.set_color(pen.color);
             painter.set_size(pen.size);
