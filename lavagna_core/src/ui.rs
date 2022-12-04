@@ -29,16 +29,21 @@ struct Rect {
     y2: isize,
 }
 
+impl Button {
+    fn new(x: isize, y: isize, width: isize, height: isize) -> Self {
+        let rect = Rect {
+            x1: x,
+            y1: y,
+            x2: x + width,
+            y2: y + height,
+        };
+        Self { rect }
+    }
+}
+
 impl Ui {
     pub fn new(state: State) -> Self {
-        let change_color_btn = Button {
-            rect: Rect {
-                x1: 0,
-                y1: 0,
-                x2: 100,
-                y2: 100,
-            },
-        };
+        let change_color_btn = Button::new(0, 0, 100, 100);
 
         Self {
             state,
