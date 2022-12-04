@@ -154,9 +154,10 @@ impl App {
         if let Some(ui) = &mut self.ui {
             if let Some(event) = ui.touch(&local_pen.cursor) {
                 match event {
-                    Event::ChangeColor => {
-                        self.change_color();
-                    }
+                    Event::ChangeColor => self.change_color(),
+                    Event::ClearAll => self.clear_all(),
+                    Event::ShrinkPen => self.shrink_pen(),
+                    Event::GrowPen => self.grow_pen(),
                 }
             }
         }

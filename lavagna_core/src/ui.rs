@@ -8,6 +8,9 @@ pub struct Ui {
     was_pressed: bool,
 
     change_color_btn: Button,
+    clear_all_btn: Button,
+    shrink_pen_btn: Button,
+    grow_pen_btn: Button,
 }
 
 #[derive(Copy, Clone)]
@@ -18,6 +21,9 @@ pub struct State {
 
 pub enum Event {
     ChangeColor,
+    ClearAll,
+    ShrinkPen,
+    GrowPen,
 }
 
 struct Button {
@@ -50,11 +56,17 @@ impl Button {
 impl Ui {
     pub fn new(state: State) -> Self {
         let change_color_btn = Button::new(0, 0, 100, 100);
+        let clear_all_btn = Button::new(0, 100, 100, 100);
+        let shrink_pen_btn = Button::new(0, 200, 100, 100);
+        let grow_pen_btn = Button::new(0, 300, 100, 100);
 
         Self {
             state,
             was_pressed: false,
             change_color_btn,
+            clear_all_btn,
+            shrink_pen_btn,
+            grow_pen_btn,
         }
     }
 
@@ -70,6 +82,18 @@ impl Ui {
             return Some(Event::ChangeColor);
         }
 
+        if self.clear_all_btn.clicked(&cursor.pos) {
+            return Some(Event::ClearAll);
+        }
+
+        if self.shrink_pen_btn.clicked(&cursor.pos) {
+            return Some(Event::ShrinkPen);
+        }
+
+        if self.grow_pen_btn.clicked(&cursor.pos) {
+            return Some(Event::GrowPen);
+        }
+
         None
     }
 
@@ -81,16 +105,16 @@ impl Ui {
         let state = &self.state;
 
         if state.full {
-            self.draw_icon_clear_all(painter);
-            self.draw_icon_change_color(painter, &state.color);
-            self.draw_icon_shrink_pen(painter);
-            self.draw_icon_grow_pen(painter);
+            self.draw_clear_all_button(painter);
+            self.draw_change_color_button(painter, &state.color);
+            self.draw_shrink_pen_button(painter);
+            self.draw_grow_pen_button(painter);
         } else {
             self.draw_icon_current_color(painter, &state.color);
         }
     }
 
-    fn draw_icon_change_color(&self, painter: &mut Painter, color: &Color) {
+    fn draw_change_color_button(&self, painter: &mut Painter, color: &Color) {
         let rect = &self.change_color_btn.rect;
         draw_rect(painter, rect);
         painter.set_color(*color);
@@ -102,34 +126,22 @@ impl Ui {
         }
     }
 
-    fn draw_icon_clear_all(&self, painter: &mut Painter) {
-        let rect = Rect {
-            x1: 0,
-            y1: 100,
-            x2: 100,
-            y2: 200,
-        };
-        draw_rect(painter, &rect);
+    fn draw_clear_all_button(&self, painter: &mut Painter) {
+        let rect = &self.clear_all_btn.rect;
+        painter.set_color(WHITE);
+        draw_rect(painter, rect);
     }
 
-    fn draw_icon_shrink_pen(&self, painter: &mut Painter) {
-        let rect = Rect {
-            x1: 0,
-            y1: 200,
-            x2: 100,
-            y2: 300,
-        };
-        draw_rect(painter, &rect);
+    fn draw_shrink_pen_button(&self, painter: &mut Painter) {
+        let rect = &self.shrink_pen_btn.rect;
+        painter.set_color(WHITE);
+        draw_rect(painter, rect);
     }
 
-    fn draw_icon_grow_pen(&self, painter: &mut Painter) {
-        let rect = Rect {
-            x1: 0,
-            y1: 300,
-            x2: 100,
-            y2: 400,
-        };
-        draw_rect(painter, &rect);
+    fn draw_grow_pen_button(&self, painter: &mut Painter) {
+        let rect = &self.grow_pen_btn.rect;
+        painter.set_color(WHITE);
+        draw_rect(painter, rect);
     }
 
     fn draw_icon_current_color(&self, painter: &mut Painter, color: &Color) {
