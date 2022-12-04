@@ -29,9 +29,7 @@ impl From<u32> for PenId {
 pub enum PenCommand {
     ChangeColor(Color),
     ChangeSize(PenSize),
-    MoveCursor(CursorPos),
-    Pressed,
-    Released,
+    MoveCursor(Cursor),
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
@@ -80,8 +78,8 @@ pub struct App {
     ui: Option<ui::Ui>,
 }
 
-#[derive(Default, Debug, Copy, Clone)]
-struct Cursor {
+#[derive(Default, Debug, Copy, Clone, Serialize, Deserialize)]
+pub struct Cursor {
     pressed: bool,
     pos: CursorPos,
 }
@@ -145,7 +143,7 @@ impl App {
 
         let local_pen = self.pens.select(self.pen_id);
         if let Some(ui) = &mut self.ui {
-            if let Some(event) = ui.touch(&local_pen.cursor.pos, local_pen.cursor.pressed) {
+            if let Some(event) = ui.touch(&local_pen.cursor) {
                 match event {
                     Event::ChangeColor => {
                         self.change_color();
@@ -158,7 +156,7 @@ impl App {
             painter.set_color(pen.color);
             painter.set_size(pen.size);
 
-            if pen.cursor.pressed && pen.prev_cursor.pressed {
+            if pen.prev_cursor.pressed {
                 painter.draw_line(pen.prev_cursor.pos, pen.cursor.pos);
             }
 
@@ -178,16 +176,10 @@ impl App {
         self.send_command_chained(Command::TakeSnapshot);
     }
 
-    pub fn move_cursor(&mut self, x: isize, y: isize) {
-        self.send_pen_command(PenCommand::MoveCursor(CursorPos { x, y }));
-    }
-
-    pub fn press(&mut self) {
-        self.send_pen_command(PenCommand::Pressed);
-    }
-
-    pub fn release(&mut self) {
-        self.send_pen_command(PenCommand::Released);
+    pub fn move_cursor(&mut self, x: isize, y: isize, pressed: bool) {
+        let pos = CursorPos { x, y };
+        let cursor = Cursor { pos, pressed };
+        self.send_pen_command(PenCommand::MoveCursor(cursor));
     }
 
     pub fn change_color(&mut self) {
@@ -229,10 +221,6 @@ impl App {
         self.send_command_chained(cmd);
     }
 
-    pub fn force_release(&mut self) {
-        self.send_pen_command(PenCommand::Released);
-    }
-
     fn handle_pen_command(&mut self, pen_id: PenId, cmd: PenCommand) {
         let pen = self.pens.select(pen_id);
         match cmd {
@@ -242,14 +230,8 @@ impl App {
             PenCommand::ChangeSize(size) => {
                 pen.size = size;
             }
-            PenCommand::MoveCursor(pos) => {
-                pen.cursor.pos = pos;
-            }
-            PenCommand::Pressed => {
-                pen.cursor.pressed = true;
-            }
-            PenCommand::Released => {
-                pen.cursor.pressed = false;
+            PenCommand::MoveCursor(cursor) => {
+                pen.cursor = cursor;
             }
         }
     }

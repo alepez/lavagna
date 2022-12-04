@@ -1,21 +1,23 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
-use lavagna_collab::{CollabOpt, CollaborationChannel, SupportedCollaborationChannel};
-use lavagna_core::doc::MutSketch;
-use lavagna_core::doc::OwnedSketch;
-use lavagna_core::{App, CommandSender};
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use log::error;
 pub use pixels::Error;
 use pixels::{Pixels, SurfaceTexture};
-use std::cell::RefCell;
-use std::rc::Rc;
 use winit::dpi::{PhysicalPosition, PhysicalSize};
 use winit::event::{
     ElementState, Event, KeyboardInput, MouseButton, Touch, TouchPhase, VirtualKeyCode, WindowEvent,
 };
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorIcon, Window, WindowBuilder};
+
+use lavagna_collab::{CollabOpt, CollaborationChannel, SupportedCollaborationChannel};
+use lavagna_core::doc::MutSketch;
+use lavagna_core::doc::OwnedSketch;
+use lavagna_core::{App, CommandSender};
 
 pub struct Opt {
     pub collab: Option<CollabOpt>,
@@ -69,6 +71,8 @@ pub fn run(opt: Opt) -> Result<(), Error> {
     let mut frozen_sketch: Option<OwnedSketch> = None;
     let mut pixels: Option<Pixels> = None;
 
+    let mut pressed = false;
+
     event_loop.run(move |event, _, control_flow| {
         match event {
             // Resumed on Android
@@ -87,11 +91,12 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                 }
 
                 // Prevent drawing a line from the last location when resuming
-                app.force_release();
+                pressed = false;
             }
             // Suspended on Android
             Event::Suspended => {
                 frozen_sketch = sketch_from_pixels(pixels.take(), canvas_size);
+                pressed = false;
             }
             // Window resized on Desktop (Linux/Windows/iOS)
             Event::WindowEvent {
@@ -139,16 +144,16 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                     ..
                 } => {
                     match phase {
-                        TouchPhase::Started => app.press(),
-                        TouchPhase::Ended => app.release(),
+                        TouchPhase::Started => pressed = true,
+                        TouchPhase::Ended => pressed = false,
                         _ => (),
                     }
-                    move_cursor_to_position(location, pixels, &mut app);
+                    move_cursor_to_position(location, pressed, pixels, &mut app);
                 }
                 Event::WindowEvent {
                     event: WindowEvent::CursorMoved { position, .. },
                     ..
-                } => move_cursor_to_position(position, pixels, &mut app),
+                } => move_cursor_to_position(position, pressed, pixels, &mut app),
                 Event::WindowEvent {
                     event:
                         WindowEvent::MouseInput {
@@ -158,8 +163,8 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                         },
                     ..
                 } => match state {
-                    ElementState::Pressed => app.press(),
-                    ElementState::Released => app.release(),
+                    ElementState::Pressed => pressed = true,
+                    ElementState::Released => pressed = false,
                 },
                 Event::WindowEvent {
                     event:
@@ -257,8 +262,13 @@ fn redraw(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, app: &mut App) ->
         .map_err(|e| error!("pixels.render() failed: {}", e))
 }
 
-fn move_cursor_to_position(position: PhysicalPosition<f64>, pixels: &Pixels, app: &mut App) {
+fn move_cursor_to_position(
+    position: PhysicalPosition<f64>,
+    pressed: bool,
+    pixels: &Pixels,
+    app: &mut App,
+) {
     if let Ok((x, y)) = pixels.window_pos_to_pixel(position.into()) {
-        app.move_cursor(x as isize, y as isize);
+        app.move_cursor(x as isize, y as isize, pressed);
     }
 }

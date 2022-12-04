@@ -1,6 +1,6 @@
 use crate::color::{Color, WHITE};
 use crate::painter::Painter;
-use crate::{CursorPos, PenSize};
+use crate::{Cursor, CursorPos, PenSize};
 
 pub struct Ui {
     state: State,
@@ -47,7 +47,9 @@ impl Ui {
         }
     }
 
-    pub fn touch(&mut self, pos: &CursorPos, pressed: bool) -> Option<Event> {
+    pub fn touch(&mut self, cursor: &Cursor) -> Option<Event> {
+        let Cursor { pos, pressed } = *cursor;
+
         let clicked = self.was_pressed && !pressed;
         self.was_pressed = pressed;
 
@@ -55,7 +57,7 @@ impl Ui {
             return None;
         }
 
-        if is_cursor_inside_rect(pos, &self.change_color_btn.rect) {
+        if is_cursor_inside_rect(&pos, &self.change_color_btn.rect) {
             return Some(Event::ChangeColor);
         }
 
