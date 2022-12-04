@@ -39,6 +39,10 @@ impl Button {
         };
         Self { rect }
     }
+
+    fn clicked(&self, cursor: &CursorPos) -> bool {
+        is_cursor_inside_rect(cursor, &self.rect)
+    }
 }
 
 impl Ui {
@@ -53,16 +57,14 @@ impl Ui {
     }
 
     pub fn touch(&mut self, cursor: &Cursor) -> Option<Event> {
-        let Cursor { pos, pressed } = *cursor;
-
-        let clicked = self.was_pressed && !pressed;
-        self.was_pressed = pressed;
+        let clicked = self.was_pressed && !cursor.pressed;
+        self.was_pressed = cursor.pressed;
 
         if !clicked {
             return None;
         }
 
-        if is_cursor_inside_rect(&pos, &self.change_color_btn.rect) {
+        if self.change_color_btn.clicked(&cursor.pos) {
             return Some(Event::ChangeColor);
         }
 

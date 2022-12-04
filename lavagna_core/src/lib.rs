@@ -80,8 +80,17 @@ pub struct App {
 
 #[derive(Default, Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct Cursor {
-    pressed: bool,
-    pos: CursorPos,
+    pub pressed: bool,
+    pub pos: CursorPos,
+}
+
+impl Cursor {
+    pub fn new() -> Self {
+        Self {
+            pressed: false,
+            pos: CursorPos { x: 0, y: 0 },
+        }
+    }
 }
 
 #[derive(Default, Debug, Copy, Clone, Serialize, Deserialize)]
@@ -176,9 +185,7 @@ impl App {
         self.send_command_chained(Command::TakeSnapshot);
     }
 
-    pub fn move_cursor(&mut self, x: isize, y: isize, pressed: bool) {
-        let pos = CursorPos { x, y };
-        let cursor = Cursor { pos, pressed };
+    pub fn move_cursor(&mut self, cursor: Cursor) {
         self.send_pen_command(PenCommand::MoveCursor(cursor));
     }
 

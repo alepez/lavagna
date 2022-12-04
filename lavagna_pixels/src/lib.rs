@@ -17,7 +17,7 @@ use winit::window::{CursorIcon, Window, WindowBuilder};
 use lavagna_collab::{CollabOpt, CollaborationChannel, SupportedCollaborationChannel};
 use lavagna_core::doc::MutSketch;
 use lavagna_core::doc::OwnedSketch;
-use lavagna_core::{App, CommandSender};
+use lavagna_core::{App, CommandSender, Cursor, CursorPos};
 
 pub struct Opt {
     pub collab: Option<CollabOpt>,
@@ -71,7 +71,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
     let mut frozen_sketch: Option<OwnedSketch> = None;
     let mut pixels: Option<Pixels> = None;
 
-    let mut pressed = false;
+    let mut cursor = Cursor::new();
 
     event_loop.run(move |event, _, control_flow| {
         match event {
@@ -91,12 +91,12 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                 }
 
                 // Prevent drawing a line from the last location when resuming
-                pressed = false;
+                cursor.pressed = false;
             }
             // Suspended on Android
             Event::Suspended => {
                 frozen_sketch = sketch_from_pixels(pixels.take(), canvas_size);
-                pressed = false;
+                cursor.pressed = false;
             }
             // Window resized on Desktop (Linux/Windows/iOS)
             Event::WindowEvent {
@@ -144,16 +144,21 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                     ..
                 } => {
                     match phase {
-                        TouchPhase::Started => pressed = true,
-                        TouchPhase::Ended => pressed = false,
+                        TouchPhase::Started => cursor.pressed = true,
+                        TouchPhase::Ended => cursor.pressed = false,
                         _ => (),
                     }
-                    move_cursor_to_position(location, pressed, pixels, &mut app);
+
+                    cursor.pos = window_pos_to_cursor(location, pixels);
+                    app.move_cursor(cursor);
                 }
                 Event::WindowEvent {
                     event: WindowEvent::CursorMoved { position, .. },
                     ..
-                } => move_cursor_to_position(position, pressed, pixels, &mut app),
+                } => {
+                    cursor.pos = window_pos_to_cursor(position, pixels);
+                    app.move_cursor(cursor);
+                }
                 Event::WindowEvent {
                     event:
                         WindowEvent::MouseInput {
@@ -163,8 +168,14 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                         },
                     ..
                 } => match state {
-                    ElementState::Pressed => pressed = true,
-                    ElementState::Released => pressed = false,
+                    ElementState::Pressed => {
+                        cursor.pressed = true;
+                        app.move_cursor(cursor)
+                    }
+                    ElementState::Released => {
+                        cursor.pressed = false;
+                        app.move_cursor(cursor)
+                    }
                 },
                 Event::WindowEvent {
                     event:
@@ -262,13 +273,11 @@ fn redraw(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, app: &mut App) ->
         .map_err(|e| error!("pixels.render() failed: {}", e))
 }
 
-fn move_cursor_to_position(
-    position: PhysicalPosition<f64>,
-    pressed: bool,
-    pixels: &Pixels,
-    app: &mut App,
-) {
-    if let Ok((x, y)) = pixels.window_pos_to_pixel(position.into()) {
-        app.move_cursor(x as isize, y as isize, pressed);
+fn window_pos_to_cursor(position: PhysicalPosition<f64>, pixels: &Pixels) -> CursorPos {
+    let pos = pixels.window_pos_to_pixel(position.into());
+    let (x, y) = pos.unwrap_or_default();
+    CursorPos {
+        x: x as isize,
+        y: y as isize,
     }
 }
