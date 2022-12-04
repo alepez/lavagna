@@ -1,16 +1,18 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
-mod color;
-pub mod doc;
-mod painter;
+use std::borrow::BorrowMut;
+use std::collections::{HashMap, VecDeque};
+
+use serde::{Deserialize, Serialize};
 
 use crate::color::*;
 use crate::doc::{MutSketch, OwnedSketch};
 use crate::painter::Painter;
-use serde::{Deserialize, Serialize};
-use std::borrow::BorrowMut;
-use std::collections::{HashMap, VecDeque};
+
+mod color;
+pub mod doc;
+mod painter;
 
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct PenId(u32);
@@ -122,7 +124,7 @@ impl App {
         let mut painter = Painter::new(sketch);
 
         painter.set_color(self.pens.select(self.pen_id).color);
-        draw_current_color_icon(&mut painter);
+        draw_ui(&mut painter);
 
         for (_, pen) in self.pens.0.iter_mut() {
             painter.set_color(pen.color);
@@ -235,7 +237,55 @@ impl CommandSender for App {
     }
 }
 
-fn draw_current_color_icon(painter: &mut Painter) {
+fn draw_ui(painter: &mut Painter) {
+    draw_icon_current_color(painter);
+    draw_icon_clear_all(painter);
+    draw_icon_clear_change_color(painter);
+    draw_icon_clear_shrink_pen(painter);
+    draw_icon_clear_grow_pen(painter);
+}
+
+fn draw_icon_clear_change_color(painter: &mut Painter) {
+    let rect = Rect {
+        x1: 0,
+        y1: 0,
+        x2: 100,
+        y2: 100,
+    };
+    draw_rect(painter, &rect);
+}
+
+fn draw_icon_clear_all(painter: &mut Painter) {
+    let rect = Rect {
+        x1: 0,
+        y1: 100,
+        x2: 100,
+        y2: 200,
+    };
+    draw_rect(painter, &rect);
+}
+
+fn draw_icon_clear_shrink_pen(painter: &mut Painter) {
+    let rect = Rect {
+        x1: 0,
+        y1: 200,
+        x2: 100,
+        y2: 300,
+    };
+    draw_rect(painter, &rect);
+}
+
+fn draw_icon_clear_grow_pen(painter: &mut Painter) {
+    let rect = Rect {
+        x1: 0,
+        y1: 300,
+        x2: 100,
+        y2: 400,
+    };
+    draw_rect(painter, &rect);
+}
+
+fn draw_icon_current_color(painter: &mut Painter) {
     const SQUARE_SIZE: isize = 10;
 
     for x in 0..SQUARE_SIZE {
@@ -243,6 +293,40 @@ fn draw_current_color_icon(painter: &mut Painter) {
             painter.draw_pixel(CursorPos { x, y });
         }
     }
+}
+
+struct Rect {
+    x1: isize,
+    y1: isize,
+    x2: isize,
+    y2: isize,
+}
+
+fn draw_rect(painter: &mut Painter, rect: &Rect) {
+    painter.set_color(WHITE);
+    painter.set_size(PenSize(1));
+
+    let a = CursorPos {
+        x: rect.x1,
+        y: rect.y1,
+    };
+    let b = CursorPos {
+        x: rect.x2,
+        y: rect.y1,
+    };
+    let c = CursorPos {
+        x: rect.x2,
+        y: rect.y2,
+    };
+    let d = CursorPos {
+        x: rect.x1,
+        y: rect.y2,
+    };
+
+    painter.draw_line(a, b);
+    painter.draw_line(b, c);
+    painter.draw_line(c, d);
+    painter.draw_line(d, a);
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
