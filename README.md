@@ -59,14 +59,16 @@ page](https://github.com/alepez/lavagna/releases/latest).
 *lavagna* can use *WebRtc* for instant collaboration. Try it:
 
 ```shell
-lavagna --collab-url wss://lavagna-server.herokuapp.com/YOUR_ROOM
+lavagna --collab-url ws://ganymede.3mwd.net:9000/YOUR_ROOM
+cargo run --package lavagna -- --collab-url ws://ganymede.3mwd.net:9000/YOUR_ROOM
 ```
 
 Change `YOUR_ROOM` to whatever you prefer. If you do the same from a different
 computer, whatever you draw is visible on the other side (and vice versa).
 
 You can setup your own server by using
-[lavagna_server](https://github.com/alepez/lavagna_server) crate.
+[lavagna_server crate](https://github.com/alepez/lavagna_server) or [docker
+image](https://hub.docker.com/r/alepez/lavagna_server)
 
 ## Desktop app development
 
