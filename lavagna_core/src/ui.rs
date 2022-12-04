@@ -1,5 +1,6 @@
 use crate::color::{Color, WHITE};
 use crate::painter::Painter;
+use crate::ui::Event::Handled;
 use crate::{Cursor, CursorPos, PenSize};
 
 pub struct Ui {
@@ -24,6 +25,7 @@ pub enum Event {
     ClearAll,
     ShrinkPen,
     GrowPen,
+    Handled,
 }
 
 struct Button {
@@ -48,7 +50,7 @@ impl Button {
         Self { rect }
     }
 
-    fn clicked(&self, cursor: &CursorPos) -> bool {
+    fn pressed(&self, cursor: &CursorPos) -> bool {
         is_cursor_inside_rect(cursor, &self.rect)
     }
 }
@@ -71,27 +73,40 @@ impl Ui {
     }
 
     pub fn touch(&mut self, cursor: &Cursor) -> Option<Event> {
-        let clicked = self.was_pressed && !cursor.pressed;
-        self.was_pressed = cursor.pressed;
+        let pressed = cursor.pressed;
+        let clicked = self.was_pressed && !pressed;
+        self.was_pressed = pressed;
 
-        if !clicked {
-            return None;
+        if self.change_color_btn.pressed(&cursor.pos) {
+            return if clicked {
+                Some(Event::ChangeColor)
+            } else {
+                Some(Handled)
+            };
         }
 
-        if self.change_color_btn.clicked(&cursor.pos) {
-            return Some(Event::ChangeColor);
+        if self.clear_all_btn.pressed(&cursor.pos) {
+            return if clicked {
+                Some(Event::ClearAll)
+            } else {
+                Some(Handled)
+            };
         }
 
-        if self.clear_all_btn.clicked(&cursor.pos) {
-            return Some(Event::ClearAll);
+        if self.shrink_pen_btn.pressed(&cursor.pos) {
+            return if clicked {
+                Some(Event::ShrinkPen)
+            } else {
+                Some(Handled)
+            };
         }
 
-        if self.shrink_pen_btn.clicked(&cursor.pos) {
-            return Some(Event::ShrinkPen);
-        }
-
-        if self.grow_pen_btn.clicked(&cursor.pos) {
-            return Some(Event::GrowPen);
+        if self.grow_pen_btn.pressed(&cursor.pos) {
+            return if clicked {
+                Some(Event::GrowPen)
+            } else {
+                Some(Handled)
+            };
         }
 
         None
