@@ -14,7 +14,7 @@ use winit::event::{
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorIcon, Window, WindowBuilder};
 
-use lavagna_collab::{CollabOpt, CollaborationChannel, SupportedCollaborationChannel};
+use lavagna_collab::{CollabOpt, CollabUri, CollaborationChannel, SupportedCollaborationChannel};
 use lavagna_core::doc::MutSketch;
 use lavagna_core::doc::OwnedSketch;
 use lavagna_core::{App, CommandSender, Cursor, CursorPos};
@@ -29,11 +29,27 @@ fn connect_collab_channel(app: &mut App, collab: Rc<RefCell<SupportedCollaborati
     }));
 }
 
-fn add_collab_channel(app: &mut App, uri: &str) -> Rc<RefCell<SupportedCollaborationChannel>> {
+fn add_collab_channel(
+    app: &mut App,
+    uri: &CollabUri,
+) -> Rc<RefCell<SupportedCollaborationChannel>> {
     let collab = SupportedCollaborationChannel::new(uri);
     let collab = Rc::new(RefCell::new(collab));
     connect_collab_channel(app, collab.clone());
     collab
+}
+
+fn get_collab_uri(opt: &Opt) -> CollabUri {
+    let collab_uri = opt
+        .collab
+        .as_ref()
+        .and_then(|x| x.uri_provider.as_ref())
+        .and_then(|x| x.uri())
+        .unwrap_or_default();
+
+    log::info!("uri: {:?}", &collab_uri);
+
+    collab_uri
 }
 
 pub fn run(opt: Opt) -> Result<(), Error> {
@@ -57,13 +73,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
 
     let mut app = App::new(pen_id);
 
-    let collab_uri = opt
-        .collab
-        .as_ref()
-        .map(|x| x.url.clone())
-        .unwrap_or_default();
-
-    log::info!("uri: {}", &collab_uri);
+    let collab_uri = get_collab_uri(&opt);
 
     #[allow(unused_mut)] // Only when target os is android this will be muted
     let mut collab = add_collab_channel(&mut app, &collab_uri);
@@ -80,15 +90,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                 log::info!("Resumed");
                 canvas_size = window.inner_size();
                 pixels = resume(&window, canvas_size, frozen_sketch.take());
-
-                #[cfg(target_os = "android")]
-                {
-                    use lavagna_collab::get_collab_uri_from_intent;
-                    if let Ok(uri) = get_collab_uri_from_intent() {
-                        log::info!("uri: {}", uri);
-                        collab = add_collab_channel(&mut app, &uri);
-                    }
-                }
+                collab = add_collab_channel(&mut app, &collab_uri);
 
                 // Prevent drawing a line from the last location when resuming
                 cursor.pressed = false;

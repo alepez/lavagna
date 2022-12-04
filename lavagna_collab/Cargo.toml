@@ -17,7 +17,3 @@ log = "0.4"
 matchbox_socket = { git = "https://github.com/alepez/matchbox", rev = "a6fbe22f1fd3ee745757e92ac024b8bc44b06a54" }
 serde_json = "1.0"
 tokio = { version = "1.21", features = ["sync", "rt", "rt-multi-thread"] }
-
-[target.'cfg(target_os = "android")'.dependencies]
-ndk-context = { version = "0.1.1" }
-jni = "0.19"

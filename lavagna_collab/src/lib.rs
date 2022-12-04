@@ -3,13 +3,15 @@
 
 extern crate core;
 
+use std::time::Duration;
+
 use futures::{select, FutureExt};
 use futures_timer::Delay;
-use lavagna_core::{Command, CommandSender, PenId};
 use matchbox_socket::WebRtcSocket;
-use std::time::Duration;
 use tokio::sync::mpsc::channel;
 use tokio::sync::mpsc::{Receiver, Sender};
+
+use lavagna_core::{Command, CommandSender, PenId};
 
 /// If this timeout is too long, the reactivity degrades
 const TIMEOUT: Duration = Duration::from_millis(10);
@@ -135,7 +137,9 @@ pub enum SupportedCollaborationChannel {
 }
 
 impl SupportedCollaborationChannel {
-    pub fn new(mut uri: &str) -> Self {
+    pub fn new(uri: &CollabUri) -> Self {
+        let mut uri = uri.0.as_str();
+
         // Remove optional "lavagna+" prefix
         if let Some(("lavagna", r)) = uri.split_once('+') {
             uri = r;
@@ -175,27 +179,19 @@ impl CollaborationChannel for SupportedCollaborationChannel {
 }
 
 pub struct CollabOpt {
-    pub url: String,
     pub pen_id: PenId,
+    pub uri_provider: Option<Box<dyn CollabUriProvider>>,
 }
 
-#[allow(unsafe_code)]
-#[cfg(target_os = "android")]
-pub fn get_collab_uri_from_intent() -> Result<String, Box<dyn std::error::Error>> {
-    let ctx = ndk_context::android_context();
-    let vm = unsafe { jni::JavaVM::from_raw(ctx.vm().cast()) }?;
-    let env = vm.attach_current_thread()?;
+#[derive(Debug, Default)]
+pub struct CollabUri(String);
 
-    let intent = env.call_method(
-        ctx.context().cast(),
-        "getIntent",
-        "()Landroid/content/Intent;",
-        &[],
-    )?;
+impl CollabUri {
+    pub fn new(uri: String) -> Self {
+        Self(uri)
+    }
+}
 
-    let uri = env.call_method(intent.l()?, "getData", "()Landroid/net/Uri;", &[])?;
-    let uri = env.call_method(uri.l()?, "toString", "()Ljava/lang/String;", &[])?;
-    let uri: String = env.get_string(uri.l()?.into())?.into();
-
-    Ok(uri)
+pub trait CollabUriProvider {
+    fn uri(&self) -> Option<CollabUri>;
 }
