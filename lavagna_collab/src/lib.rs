@@ -145,7 +145,9 @@ impl SupportedCollaborationChannel {
 
         match uri {
             "" => Self::Dummy(Default::default()),
-            uri if uri.starts_with("wss://") => Self::WebRtc(WebRtcCollaborationChannel::new(uri)),
+            uri if uri.starts_with("ws://") || uri.starts_with("wss://") => {
+                Self::WebRtc(WebRtcCollaborationChannel::new(uri))
+            }
             _ => {
                 log::error!("Invalid collaboration uri");
                 Self::Dummy(Default::default())
