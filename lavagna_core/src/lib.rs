@@ -104,6 +104,7 @@ impl App {
         let palette = ColorSelector::new(&PALETTE);
 
         let ui = ui::Ui::new(State {
+            full: true,
             color: palette.current_color(),
         });
 
@@ -142,9 +143,8 @@ impl App {
         let mut painter = Painter::new(sketch);
 
         if let Some(ui) = &mut self.ui {
-            let ui_state = ui::State {
-                color: self.pens.select(self.pen_id).color,
-            };
+            let mut ui_state = ui.state;
+            ui_state.color = self.pens.select(self.pen_id).color;
 
             ui.update(ui_state);
             ui.draw(&mut painter);

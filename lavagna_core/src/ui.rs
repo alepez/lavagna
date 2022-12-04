@@ -3,14 +3,16 @@ use crate::painter::Painter;
 use crate::{Cursor, CursorPos, PenSize};
 
 pub struct Ui {
-    state: State,
+    pub state: State,
 
     was_pressed: bool,
 
     change_color_btn: Button,
 }
 
+#[derive(Copy, Clone)]
 pub struct State {
+    pub full: bool,
     pub color: Color,
 }
 
@@ -78,11 +80,14 @@ impl Ui {
     pub fn draw(&self, painter: &mut Painter) {
         let state = &self.state;
 
-        self.draw_icon_current_color(painter, &state.color);
-        self.draw_icon_clear_all(painter);
-        self.draw_icon_change_color(painter, &state.color);
-        self.draw_icon_shrink_pen(painter);
-        self.draw_icon_grow_pen(painter);
+        if state.full {
+            self.draw_icon_clear_all(painter);
+            self.draw_icon_change_color(painter, &state.color);
+            self.draw_icon_shrink_pen(painter);
+            self.draw_icon_grow_pen(painter);
+        } else {
+            self.draw_icon_current_color(painter, &state.color);
+        }
     }
 
     fn draw_icon_change_color(&self, painter: &mut Painter, color: &Color) {
