@@ -9,10 +9,12 @@ use serde::{Deserialize, Serialize};
 use crate::color::*;
 use crate::doc::{MutSketch, OwnedSketch};
 use crate::painter::Painter;
+use crate::ui::State;
 
 mod color;
 pub mod doc;
 mod painter;
+mod ui;
 
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct PenId(u32);
@@ -74,6 +76,8 @@ pub struct App {
     snapshots: Vec<OwnedSketch>,
     /// A component in charge of sending commands to collaborators
     chained_command_sender: Option<Box<dyn FnMut(Command)>>,
+    /// The (optional) user interface
+    ui: Option<ui::Ui>,
 }
 
 #[derive(Default, Debug, Copy, Clone)]
@@ -88,19 +92,22 @@ pub struct CursorPos {
     pub y: isize,
 }
 
-struct UiState {
-    color: Color,
-}
-
 impl App {
     pub fn new(pen_id: PenId) -> Self {
+        let palette = ColorSelector::new(&PALETTE);
+
+        let ui = ui::Ui::new(State {
+            color: palette.current_color(),
+        });
+
         App {
             pens: Pens::default(),
             commands: VecDeque::with_capacity(10),
-            palette: ColorSelector::new(&PALETTE),
+            palette,
             snapshots: Vec::new(),
             chained_command_sender: Default::default(),
             pen_id,
+            ui: Some(ui),
         }
     }
 
@@ -127,11 +134,14 @@ impl App {
 
         let mut painter = Painter::new(sketch);
 
-        let ui_state = UiState {
-            color: self.pens.select(self.pen_id).color,
-        };
+        if let Some(ui) = &mut self.ui {
+            let ui_state = ui::State {
+                color: self.pens.select(self.pen_id).color,
+            };
 
-        draw_ui(&mut painter, &ui_state);
+            ui.update(ui_state);
+            ui.draw(&mut painter);
+        }
 
         for (_, pen) in self.pens.0.iter_mut() {
             painter.set_color(pen.color);
@@ -242,109 +252,6 @@ impl CommandSender for App {
     fn send_command(&mut self, cmd: Command) {
         self.commands.push_back(cmd);
     }
-}
-
-fn draw_ui(painter: &mut Painter, state: &UiState) {
-    draw_icon_current_color(painter, &state.color);
-    draw_icon_clear_all(painter);
-    draw_icon_clear_change_color(painter, &state.color);
-    draw_icon_clear_shrink_pen(painter);
-    draw_icon_clear_grow_pen(painter);
-}
-
-fn draw_icon_clear_change_color(painter: &mut Painter, color: &Color) {
-    let rect = Rect {
-        x1: 0,
-        y1: 0,
-        x2: 100,
-        y2: 100,
-    };
-
-    draw_rect(painter, &rect);
-
-    painter.set_color(*color);
-
-    for x in rect.x1..rect.x2 {
-        for y in rect.y1..rect.y2 {
-            painter.draw_pixel(CursorPos { x, y });
-        }
-    }
-}
-
-fn draw_icon_clear_all(painter: &mut Painter) {
-    let rect = Rect {
-        x1: 0,
-        y1: 100,
-        x2: 100,
-        y2: 200,
-    };
-    draw_rect(painter, &rect);
-}
-
-fn draw_icon_clear_shrink_pen(painter: &mut Painter) {
-    let rect = Rect {
-        x1: 0,
-        y1: 200,
-        x2: 100,
-        y2: 300,
-    };
-    draw_rect(painter, &rect);
-}
-
-fn draw_icon_clear_grow_pen(painter: &mut Painter) {
-    let rect = Rect {
-        x1: 0,
-        y1: 300,
-        x2: 100,
-        y2: 400,
-    };
-    draw_rect(painter, &rect);
-}
-
-fn draw_icon_current_color(painter: &mut Painter, color: &Color) {
-    const SQUARE_SIZE: isize = 10;
-
-    painter.set_color(*color);
-
-    for x in 0..SQUARE_SIZE {
-        for y in 0..(SQUARE_SIZE - x) {
-            painter.draw_pixel(CursorPos { x, y });
-        }
-    }
-}
-
-struct Rect {
-    x1: isize,
-    y1: isize,
-    x2: isize,
-    y2: isize,
-}
-
-fn draw_rect(painter: &mut Painter, rect: &Rect) {
-    painter.set_color(WHITE);
-    painter.set_size(PenSize(1));
-
-    let a = CursorPos {
-        x: rect.x1,
-        y: rect.y1,
-    };
-    let b = CursorPos {
-        x: rect.x2,
-        y: rect.y1,
-    };
-    let c = CursorPos {
-        x: rect.x2,
-        y: rect.y2,
-    };
-    let d = CursorPos {
-        x: rect.x1,
-        y: rect.y2,
-    };
-
-    painter.draw_line(a, b);
-    painter.draw_line(b, c);
-    painter.draw_line(c, d);
-    painter.draw_line(d, a);
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]

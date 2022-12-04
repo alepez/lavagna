@@ -37,6 +37,10 @@ impl ColorSelector {
     pub fn new(palette: &'static [Color]) -> Self {
         Self { index: 0, palette }
     }
+
+    pub fn current_color(&self) -> Color {
+        Color(self.palette[self.index].0)
+    }
 }
 
 impl Iterator for ColorSelector {
