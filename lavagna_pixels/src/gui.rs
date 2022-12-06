@@ -11,7 +11,7 @@ pub(crate) struct Framework {
     egui_ctx: Context,
     egui_state: egui_winit::State,
     screen_descriptor: ScreenDescriptor,
-    rpass: RenderPass,
+    rpass: Option<RenderPass>,
     paint_jobs: Vec<ClippedPrimitive>,
     textures: TexturesDelta,
 
@@ -37,19 +37,14 @@ impl Framework {
         width: u32,
         height: u32,
         scale_factor: f32,
-        pixels: &Pixels,
     ) -> Self {
-        let max_texture_size = pixels.device().limits().max_texture_dimension_2d as usize;
-
         let egui_ctx = Context::default();
         let mut egui_state = egui_winit::State::new(event_loop);
-        egui_state.set_max_texture_side(max_texture_size);
         egui_state.set_pixels_per_point(scale_factor);
         let screen_descriptor = ScreenDescriptor {
             size_in_pixels: [width, height],
             pixels_per_point: scale_factor,
         };
-        let rpass = RenderPass::new(pixels.device(), pixels.render_texture_format(), 1);
         let textures = TexturesDelta::default();
         let gui = Gui::new();
 
@@ -57,7 +52,7 @@ impl Framework {
             egui_ctx,
             egui_state,
             screen_descriptor,
-            rpass,
+            rpass: None,
             paint_jobs: Vec::new(),
             textures,
             gui,
@@ -67,7 +62,11 @@ impl Framework {
     pub(crate) fn set_pixels(&mut self, pixels: &Pixels) {
         let max_texture_size = pixels.device().limits().max_texture_dimension_2d as usize;
         self.egui_state.set_max_texture_side(max_texture_size);
-        self.rpass = RenderPass::new(pixels.device(), pixels.render_texture_format(), 1);
+        self.rpass = Some(RenderPass::new(
+            pixels.device(),
+            pixels.render_texture_format(),
+            1,
+        ));
     }
 
     /// Handle input events from the window manager.
@@ -104,12 +103,17 @@ impl Framework {
         render_target: &wgpu::TextureView,
         context: &PixelsContext,
     ) {
+        if self.rpass.is_none() {
+            return;
+        }
+
+        let rpass = self.rpass.as_mut().unwrap();
+
         // Upload all resources to the GPU.
         for (id, image_delta) in &self.textures.set {
-            self.rpass
-                .update_texture(&context.device, &context.queue, *id, image_delta);
+            rpass.update_texture(&context.device, &context.queue, *id, image_delta);
         }
-        self.rpass.update_buffers(
+        rpass.update_buffers(
             &context.device,
             &context.queue,
             &self.paint_jobs,
@@ -117,7 +121,7 @@ impl Framework {
         );
 
         // Record all render passes.
-        self.rpass.execute(
+        rpass.execute(
             encoder,
             render_target,
             &self.paint_jobs,
@@ -128,7 +132,7 @@ impl Framework {
         // Cleanup
         let textures = std::mem::take(&mut self.textures);
         for id in &textures.free {
-            self.rpass.free_texture(id);
+            rpass.free_texture(id);
         }
     }
 

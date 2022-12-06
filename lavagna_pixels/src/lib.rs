@@ -83,15 +83,9 @@ pub fn run(opt: Opt) -> Result<(), Error> {
     let mut collab = add_collab_channel(&mut app, &collab_uri);
 
     let mut frozen_sketch: Option<OwnedSketch> = None;
-    let mut pixels: Option<Pixels> = resume(&window, canvas_size, frozen_sketch.take());
+    let mut pixels: Option<Pixels> = None;
 
-    let mut framework = Framework::new(
-        &event_loop,
-        canvas_size.width,
-        canvas_size.height,
-        1.,
-        pixels.as_ref().unwrap(),
-    );
+    let mut framework = Framework::new(&event_loop, canvas_size.width, canvas_size.height, 1.);
 
     let mut cursor = Cursor::new();
 
