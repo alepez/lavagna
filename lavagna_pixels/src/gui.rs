@@ -7,7 +7,7 @@ use egui::{ClippedPrimitive, Context, TexturesDelta};
 use egui_wgpu::renderer::{RenderPass, ScreenDescriptor};
 
 /// Manages all state required for rendering egui over `Pixels`.
-pub(crate) struct Framework {
+pub(crate) struct Gui {
     // State for egui.
     egui_ctx: Context,
     egui_state: egui_winit::State,
@@ -17,10 +17,10 @@ pub(crate) struct Framework {
     textures: TexturesDelta,
 
     // State for the GUI
-    gui: Gui,
+    gui: State,
 }
 
-struct Gui {
+struct State {
     emitted_event: Option<Event>,
 }
 
@@ -31,7 +31,7 @@ pub enum Event {
     GrowPen,
 }
 
-impl Framework {
+impl Gui {
     /// Create egui.
     pub(crate) fn new<T>(event_loop: &EventLoopWindowTarget<T>, width: u32, height: u32) -> Self {
         let scale_factor = 3.0;
@@ -43,7 +43,7 @@ impl Framework {
             pixels_per_point: scale_factor,
         };
         let textures = TexturesDelta::default();
-        let gui = Gui::new();
+        let gui = State::new();
 
         Self {
             egui_ctx,
@@ -138,7 +138,7 @@ impl Framework {
     }
 }
 
-impl Gui {
+impl State {
     fn new() -> Self {
         Self {
             emitted_event: None,
@@ -146,7 +146,7 @@ impl Gui {
     }
 
     fn ui(&mut self, ctx: &Context) {
-        egui::Window::new("lavagna").show(ctx, |ui| {
+        egui::Window::new("options").show(ctx, |ui| {
             if ui.button("color").clicked() {
                 log::debug!("color");
                 self.emit(Event::ChangeColor);

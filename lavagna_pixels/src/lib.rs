@@ -19,7 +19,7 @@ use lavagna_core::doc::MutSketch;
 use lavagna_core::doc::OwnedSketch;
 use lavagna_core::{App, CommandSender, Cursor, CursorPos};
 
-use crate::gui::Framework;
+use crate::gui::Gui;
 
 mod gui;
 
@@ -84,14 +84,14 @@ pub fn run(opt: Opt) -> Result<(), Error> {
     let mut frozen_sketch: Option<OwnedSketch> = None;
     let mut pixels: Option<Pixels> = None;
 
-    let mut framework = Framework::new(&event_loop, canvas_size.width, canvas_size.height);
+    let mut gui = Gui::new(&event_loop, canvas_size.width, canvas_size.height);
 
     let mut cursor = Cursor::new();
 
     event_loop.run(move |event, _, control_flow| {
         #[cfg(feature = "gui")]
         if let Event::WindowEvent { event, .. } = &event {
-            framework.handle_event(event);
+            gui.handle_event(event);
         }
 
         match event {
@@ -100,7 +100,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                 log::info!("Resumed");
                 canvas_size = window.inner_size();
                 pixels = resume(&window, canvas_size, frozen_sketch.take());
-                framework.set_pixels(pixels.as_ref().unwrap());
+                gui.set_pixels(pixels.as_ref().unwrap());
                 collab = add_collab_channel(&mut app, &collab_uri);
 
                 // Prevent drawing a line from the last location when resuming
@@ -119,12 +119,12 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                 if let Some(pixels) = pixels.as_mut() {
                     if canvas_size != new_size {
                         resize_buffer(pixels, canvas_size, new_size);
-                        framework.resize(canvas_size.width, canvas_size.height);
+                        gui.resize(canvas_size.width, canvas_size.height);
                     }
                 } else {
                     frozen_sketch = sketch_from_pixels(pixels.take(), canvas_size);
                     pixels = resume(&window, new_size, frozen_sketch.take());
-                    framework.set_pixels(pixels.as_ref().unwrap());
+                    gui.set_pixels(pixels.as_ref().unwrap());
                     window.request_redraw();
                 }
 
@@ -144,8 +144,8 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                 }
                 Event::RedrawRequested(_) => {
                     #[cfg(feature = "gui")]
-                    framework.prepare(&window);
-                    exit = redraw(pixels, canvas_size, &mut app, &mut framework).is_err();
+                    gui.prepare(&window);
+                    exit = redraw(pixels, canvas_size, &mut app, &mut gui).is_err();
                 }
                 Event::WindowEvent {
                     event: WindowEvent::CloseRequested,
@@ -228,7 +228,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
             window.request_redraw();
         }
 
-        if let Some(event) = framework.take_event() {
+        if let Some(event) = gui.take_event() {
             match event {
                 gui::Event::ChangeColor => app.change_color(),
                 gui::Event::ClearAll => app.clear_all(),
@@ -298,7 +298,7 @@ fn redraw(
     pixels: &mut Pixels,
     canvas_size: PhysicalSize<u32>,
     app: &mut App,
-    #[allow(unused)] framework: &mut Framework,
+    #[allow(unused)] framework: &mut Gui,
 ) -> Result<(), ()> {
     let sketch = MutSketch::new(
         pixels.get_frame_mut(),
