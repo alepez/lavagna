@@ -9,12 +9,10 @@ use serde::{Deserialize, Serialize};
 use crate::color::*;
 use crate::doc::{MutSketch, OwnedSketch};
 use crate::painter::Painter;
-// use crate::ui::{Event, State};
 
 mod color;
 pub mod doc;
 mod painter;
-// mod ui;
 
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct PenId(u32);
@@ -103,11 +101,6 @@ impl App {
     pub fn new(pen_id: PenId) -> Self {
         let palette = ColorSelector::new(&PALETTE);
 
-        // let ui = ui::Ui::new(State {
-        //     full: true,
-        //     color: palette.current_color(),
-        // });
-
         App {
             pens: Pens::default(),
             commands: VecDeque::with_capacity(10),
@@ -115,7 +108,6 @@ impl App {
             snapshots: Vec::new(),
             chained_command_sender: Default::default(),
             pen_id,
-            // ui: Some(ui),
         }
     }
 
@@ -142,34 +134,7 @@ impl App {
 
         let mut painter = Painter::new(sketch);
 
-        // if let Some(ui) = &mut self.ui {
-        //     let mut ui_state = ui.state;
-        //     ui_state.color = self.pens.select(self.pen_id).color;
-        //
-        //     ui.update(ui_state);
-        //     ui.draw(&mut painter);
-        // }
-
-        // let local_pen = self.pens.select(self.pen_id);
-        // let mut handled_by_ui = false;
-        // if let Some(ui) = &mut self.ui {
-        //     if let Some(event) = ui.touch(&local_pen.cursor) {
-        //         handled_by_ui = true;
-        //         match event {
-        //             Event::ChangeColor => self.change_color(),
-        //             Event::ClearAll => self.clear_all(),
-        //             Event::ShrinkPen => self.shrink_pen(),
-        //             Event::GrowPen => self.grow_pen(),
-        //             Event::Handled => {}
-        //         }
-        //     }
-        // }
-
-        for (&id, pen) in self.pens.0.iter_mut() {
-            // if id == self.pen_id && handled_by_ui {
-            //     continue;
-            // }
-
+        for (_, pen) in self.pens.0.iter_mut() {
             painter.set_color(pen.color);
             painter.set_size(pen.size);
 
