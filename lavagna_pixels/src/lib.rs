@@ -223,9 +223,9 @@ fn resume(
     let surface_texture = SurfaceTexture::new(new_size.width, new_size.height, &window);
     let mut pixels = Pixels::new(new_size.width, new_size.height, surface_texture).ok()?;
 
-    pixels.get_frame().fill(0x00);
+    pixels.get_frame_mut().fill(0x00);
 
-    let mut new_sketch = MutSketch::new(pixels.get_frame(), new_size.width, new_size.height);
+    let mut new_sketch = MutSketch::new(pixels.get_frame_mut(), new_size.width, new_size.height);
 
     if let Some(old_sketch) = &frozen_sketch {
         new_sketch.copy_from(&old_sketch.as_sketch());
@@ -239,20 +239,24 @@ fn sketch_from_pixels(
     canvas_size: PhysicalSize<u32>,
 ) -> Option<OwnedSketch> {
     let mut pixels = pixels?;
-    let frame = pixels.get_frame();
+    let frame = pixels.get_frame_mut();
     let sketch = MutSketch::new(frame, canvas_size.width, canvas_size.height);
     Some(sketch.to_owned())
 }
 
 fn resize_buffer(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, new_size: PhysicalSize<u32>) {
-    let old_sketch =
-        MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height).to_owned();
+    let old_sketch = MutSketch::new(
+        pixels.get_frame_mut(),
+        canvas_size.width,
+        canvas_size.height,
+    )
+    .to_owned();
 
-    pixels.get_frame().fill(0x00);
+    pixels.get_frame_mut().fill(0x00);
     pixels.resize_surface(new_size.width, new_size.height);
     pixels.resize_buffer(new_size.width, new_size.height);
 
-    let mut new_sketch = MutSketch::new(pixels.get_frame(), new_size.width, new_size.height);
+    let mut new_sketch = MutSketch::new(pixels.get_frame_mut(), new_size.width, new_size.height);
 
     new_sketch.copy_from(&old_sketch.as_sketch());
 }
@@ -267,7 +271,11 @@ fn handle_commands_from_collaborators(
 }
 
 fn redraw(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, app: &mut App) -> Result<(), ()> {
-    let sketch = MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height);
+    let sketch = MutSketch::new(
+        pixels.get_frame_mut(),
+        canvas_size.width,
+        canvas_size.height,
+    );
     app.update(sketch);
 
     pixels
