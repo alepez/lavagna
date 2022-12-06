@@ -36,14 +36,13 @@ impl Framework {
         event_loop: &EventLoopWindowTarget<T>,
         width: u32,
         height: u32,
-        scale_factor: f32,
     ) -> Self {
         let egui_ctx = Context::default();
         let mut egui_state = egui_winit::State::new(event_loop);
-        egui_state.set_pixels_per_point(scale_factor);
+        egui_state.set_pixels_per_point(1.0);
         let screen_descriptor = ScreenDescriptor {
             size_in_pixels: [width, height],
-            pixels_per_point: scale_factor,
+            pixels_per_point: 1.0,
         };
         let textures = TexturesDelta::default();
         let gui = Gui::new();

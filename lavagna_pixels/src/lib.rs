@@ -85,7 +85,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
     let mut frozen_sketch: Option<OwnedSketch> = None;
     let mut pixels: Option<Pixels> = None;
 
-    let mut framework = Framework::new(&event_loop, canvas_size.width, canvas_size.height, 1.);
+    let mut framework = Framework::new(&event_loop, canvas_size.width, canvas_size.height);
 
     let mut cursor = Cursor::new();
 
