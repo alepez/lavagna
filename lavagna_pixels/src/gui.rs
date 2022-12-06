@@ -77,11 +77,6 @@ impl Framework {
         }
     }
 
-    /// Update scaling factor.
-    pub(crate) fn scale_factor(&mut self, scale_factor: f64) {
-        self.screen_descriptor.pixels_per_point = scale_factor as f32;
-    }
-
     /// Prepare egui.
     pub(crate) fn prepare(&mut self, window: &Window) {
         // Run the egui frame and create all paint jobs to prepare for rendering.
