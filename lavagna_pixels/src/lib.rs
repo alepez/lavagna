@@ -232,6 +232,15 @@ pub fn run(opt: Opt) -> Result<(), Error> {
         if app.needs_update() {
             window.request_redraw();
         }
+
+        if let Some(event) = framework.take_event() {
+            match event {
+                gui::Event::ChangeColor => app.change_color(),
+                gui::Event::ClearAll => app.clear_all(),
+                gui::Event::ShrinkPen => app.shrink_pen(),
+                gui::Event::GrowPen => app.grow_pen(),
+            }
+        }
     });
 }
 

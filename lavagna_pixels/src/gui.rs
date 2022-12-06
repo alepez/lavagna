@@ -19,10 +19,15 @@ pub(crate) struct Framework {
     gui: Gui,
 }
 
-/// Example application state. A real application will need a lot more state than this.
 struct Gui {
-    /// Only show the egui window when true.
-    window_open: bool,
+    emitted_event: Option<Event>,
+}
+
+pub enum Event {
+    ChangeColor,
+    ClearAll,
+    ShrinkPen,
+    GrowPen,
 }
 
 impl Framework {
@@ -126,40 +131,41 @@ impl Framework {
             self.rpass.free_texture(id);
         }
     }
+
+    pub fn take_event(&mut self) -> Option<Event> {
+        self.gui.emitted_event.take()
+    }
 }
 
 impl Gui {
-    /// Create a `Gui`.
     fn new() -> Self {
-        Self { window_open: true }
+        Self {
+            emitted_event: None,
+        }
     }
 
-    /// Create the UI using egui.
     fn ui(&mut self, ctx: &Context) {
-        egui::TopBottomPanel::top("menubar_container").show(ctx, |ui| {
-            egui::menu::bar(ui, |ui| {
-                ui.menu_button("File", |ui| {
-                    if ui.button("About...").clicked() {
-                        self.window_open = true;
-                        ui.close_menu();
-                    }
-                })
-            });
+        egui::Window::new("lavagna").show(ctx, |ui| {
+            if ui.button("color").clicked() {
+                log::debug!("color");
+                self.emit(Event::ChangeColor);
+            }
+            if ui.button("clear").clicked() {
+                log::debug!("clear");
+                self.emit(Event::ClearAll);
+            }
+            if ui.button("shrink").clicked() {
+                log::debug!("shrink");
+                self.emit(Event::ShrinkPen);
+            }
+            if ui.button("grow").clicked() {
+                log::debug!("grow");
+                self.emit(Event::GrowPen);
+            }
         });
+    }
 
-        egui::Window::new("Hello, egui!")
-            .open(&mut self.window_open)
-            .show(ctx, |ui| {
-                ui.label("This example demonstrates using egui with pixels.");
-                ui.label("Made with 💖 in San Francisco!");
-
-                ui.separator();
-
-                ui.horizontal(|ui| {
-                    ui.spacing_mut().item_spacing.x /= 2.0;
-                    ui.label("Learn more about egui at");
-                    ui.hyperlink("https://docs.rs/egui");
-                });
-            });
+    fn emit(&mut self, event: Event) {
+        self.emitted_event = Some(event);
     }
 }
