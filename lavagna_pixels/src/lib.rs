@@ -101,6 +101,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                 canvas_size = window.inner_size();
                 pixels = resume(&window, canvas_size, frozen_sketch.take());
                 gui.set_pixels(pixels.as_ref().unwrap());
+                gui.resize(canvas_size.width, canvas_size.height);
                 collab = add_collab_channel(&mut app, &collab_uri);
 
                 // Prevent drawing a line from the last location when resuming
