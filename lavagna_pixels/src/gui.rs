@@ -34,12 +34,13 @@ pub enum Event {
 impl Framework {
     /// Create egui.
     pub(crate) fn new<T>(event_loop: &EventLoopWindowTarget<T>, width: u32, height: u32) -> Self {
+        let scale_factor = 3.0;
         let egui_ctx = Context::default();
         let mut egui_state = egui_winit::State::new(event_loop);
-        egui_state.set_pixels_per_point(1.0);
+        egui_state.set_pixels_per_point(scale_factor);
         let screen_descriptor = ScreenDescriptor {
             size_in_pixels: [width, height],
-            pixels_per_point: 1.0,
+            pixels_per_point: scale_factor,
         };
         let textures = TexturesDelta::default();
         let gui = Gui::new();
