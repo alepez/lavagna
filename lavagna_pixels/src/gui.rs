@@ -1,3 +1,4 @@
+#![allow(unused)] // When feature gui is disabled, most of this module is unused
 use pixels::{wgpu, Pixels, PixelsContext};
 use winit::event_loop::EventLoopWindowTarget;
 use winit::window::Window;
@@ -32,11 +33,7 @@ pub enum Event {
 
 impl Framework {
     /// Create egui.
-    pub(crate) fn new<T>(
-        event_loop: &EventLoopWindowTarget<T>,
-        width: u32,
-        height: u32,
-    ) -> Self {
+    pub(crate) fn new<T>(event_loop: &EventLoopWindowTarget<T>, width: u32, height: u32) -> Self {
         let egui_ctx = Context::default();
         let mut egui_state = egui_winit::State::new(event_loop);
         egui_state.set_pixels_per_point(1.0);

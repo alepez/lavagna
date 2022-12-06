@@ -89,6 +89,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
     let mut cursor = Cursor::new();
 
     event_loop.run(move |event, _, control_flow| {
+        #[cfg(feature = "gui")]
         if let Event::WindowEvent { event, .. } = &event {
             framework.handle_event(event);
         }
@@ -142,6 +143,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                     handle_commands_from_collaborators(&collab, &mut app);
                 }
                 Event::RedrawRequested(_) => {
+                    #[cfg(feature = "gui")]
                     framework.prepare(&window);
                     exit = redraw(pixels, canvas_size, &mut app, &mut framework).is_err();
                 }
@@ -296,7 +298,7 @@ fn redraw(
     pixels: &mut Pixels,
     canvas_size: PhysicalSize<u32>,
     app: &mut App,
-    framework: &mut Framework,
+    #[allow(unused)] framework: &mut Framework,
 ) -> Result<(), ()> {
     let sketch = MutSketch::new(
         pixels.get_frame_mut(),
@@ -308,6 +310,7 @@ fn redraw(
     pixels
         .render_with(|encoder, render_target, context| {
             context.scaling_renderer.render(encoder, render_target);
+            #[cfg(feature = "gui")]
             framework.render(encoder, render_target, context);
             Ok(())
         })

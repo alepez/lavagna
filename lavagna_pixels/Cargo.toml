@@ -23,3 +23,7 @@ egui-winit = { version = "0.19", default-features = false, features = ["links"] 
 version = "0.27"
 default-features = false
 features = ["x11"]
+
+[features]
+default = []
+gui = []
