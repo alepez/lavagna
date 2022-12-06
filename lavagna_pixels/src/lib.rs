@@ -96,6 +96,10 @@ pub fn run(opt: Opt) -> Result<(), Error> {
     let mut cursor = Cursor::new();
 
     event_loop.run(move |event, _, control_flow| {
+        if let Event::WindowEvent { event, .. } = &event {
+            framework.handle_event(event);
+        }
+
         match event {
             // Resumed on Android
             Event::Resumed => {
