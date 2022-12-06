@@ -19,6 +19,10 @@ use lavagna_core::doc::MutSketch;
 use lavagna_core::doc::OwnedSketch;
 use lavagna_core::{App, CommandSender, Cursor, CursorPos};
 
+use crate::gui::Framework;
+
+mod gui;
+
 pub struct Opt {
     pub collab: Option<CollabOpt>,
 }
@@ -79,7 +83,15 @@ pub fn run(opt: Opt) -> Result<(), Error> {
     let mut collab = add_collab_channel(&mut app, &collab_uri);
 
     let mut frozen_sketch: Option<OwnedSketch> = None;
-    let mut pixels: Option<Pixels> = None;
+    let mut pixels: Option<Pixels> = resume(&window, canvas_size, frozen_sketch.take());
+
+    let mut framework = Framework::new(
+        &event_loop,
+        canvas_size.width,
+        canvas_size.height,
+        1.,
+        pixels.as_ref().unwrap(),
+    );
 
     let mut cursor = Cursor::new();
 
@@ -90,6 +102,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                 log::info!("Resumed");
                 canvas_size = window.inner_size();
                 pixels = resume(&window, canvas_size, frozen_sketch.take());
+                framework.set_pixels(pixels.as_ref().unwrap());
                 collab = add_collab_channel(&mut app, &collab_uri);
 
                 // Prevent drawing a line from the last location when resuming
@@ -108,10 +121,12 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                 if let Some(pixels) = pixels.as_mut() {
                     if canvas_size != new_size {
                         resize_buffer(pixels, canvas_size, new_size);
+                        framework.resize(canvas_size.width, canvas_size.height);
                     }
                 } else {
                     frozen_sketch = sketch_from_pixels(pixels.take(), canvas_size);
                     pixels = resume(&window, new_size, frozen_sketch.take());
+                    framework.set_pixels(pixels.as_ref().unwrap());
                     window.request_redraw();
                 }
 
@@ -130,7 +145,8 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                     handle_commands_from_collaborators(&collab, &mut app);
                 }
                 Event::RedrawRequested(_) => {
-                    exit = redraw(pixels, canvas_size, &mut app).is_err();
+                    framework.prepare(&window);
+                    exit = redraw(pixels, canvas_size, &mut app, &mut framework).is_err();
                 }
                 Event::WindowEvent {
                     event: WindowEvent::CloseRequested,
@@ -270,7 +286,12 @@ fn handle_commands_from_collaborators(
     }
 }
 
-fn redraw(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, app: &mut App) -> Result<(), ()> {
+fn redraw(
+    pixels: &mut Pixels,
+    canvas_size: PhysicalSize<u32>,
+    app: &mut App,
+    framework: &mut Framework,
+) -> Result<(), ()> {
     let sketch = MutSketch::new(
         pixels.get_frame_mut(),
         canvas_size.width,
@@ -279,7 +300,11 @@ fn redraw(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, app: &mut App) ->
     app.update(sketch);
 
     pixels
-        .render()
+        .render_with(|encoder, render_target, context| {
+            context.scaling_renderer.render(encoder, render_target);
+            framework.render(encoder, render_target, context);
+            Ok(())
+        })
         .map_err(|e| error!("pixels.render() failed: {}", e))
 }
 

@@ -15,6 +15,9 @@ lavagna_collab = { path = "../lavagna_collab", version = "1.1.2" }
 lavagna_core = { path = "../lavagna_core", version = "1.1.2" }
 log = "0.4"
 pixels = "0.10.0"
+egui = "0.19"
+egui-wgpu = "0.19"
+egui-winit = { version = "0.19", default-features = false, features = ["links"] }
 
 [dependencies.winit]
 version = "0.27"
