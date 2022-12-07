@@ -116,7 +116,7 @@ impl PixelsApp {
     }
 
     fn handle_event(&mut self, event: &winit::event::Event<()>) {
-        match *event {
+        match event {
             // Resumed on Android
             Event::Resumed => self.resume(),
             // Suspended on Android
@@ -132,7 +132,12 @@ impl PixelsApp {
                     self.resume();
                 }
             }
-            _ => (),
+            Event::NewEvents(_) => (),
+            Event::MainEventsCleared => (),
+            Event::RedrawEventsCleared => (),
+            event => {
+                log::info!("Event: {:?}", event);
+            }
         }
     }
 
@@ -253,30 +258,28 @@ impl PixelsApp {
     }
 
     fn suspend(&mut self) {
-        log::debug!("Suspend");
+        log::info!("Suspend");
         if let Some(visible) = self.visible.take() {
             self.frozen_sketch = Some(sketch_from_pixels(visible.pixels, self.canvas_size));
         }
     }
 
     fn resize(&mut self) {
-        log::debug!("Resize");
+        log::info!("Resize");
 
+        let visible = self.visible.as_mut().unwrap();
         let new_size = self.window.inner_size();
 
         if self.canvas_size != new_size {
-            resize_buffer(
-                &mut self.visible.as_mut().unwrap().pixels,
-                self.canvas_size,
-                new_size,
-            );
+            resize_buffer(&mut visible.pixels, self.canvas_size, new_size);
             self.canvas_size = new_size;
+            self.gui.set_pixels(&visible.pixels);
             self.gui.resize(self.canvas_size);
         }
     }
 
     fn resume(&mut self) {
-        log::debug!("Resume");
+        log::info!("Resume");
         let new_size = self.window.inner_size();
         self.canvas_size = new_size;
 
