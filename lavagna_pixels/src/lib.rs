@@ -28,21 +28,15 @@ pub struct Opt {
 }
 
 pub struct PixelsApp {
-    window: Window,
-    app: App,
-    collab: Rc<RefCell<SupportedCollaborationChannel>>,
-    frozen_sketch: Option<OwnedSketch>,
-    pixels: Option<Pixels>,
-    gui: Gui,
-    cursor: Cursor,
-    event_loop: Option<EventLoop<()>>,
-    canvas_size: PhysicalSize<u32>,
-    collab_uri: CollabUri,
-    exit: bool,
+    opt: Opt,
 }
 
 impl PixelsApp {
     pub fn new(opt: Opt) -> Self {
+        Self { opt }
+    }
+
+    pub fn run(self) -> Result<(), Error> {
         log::info!("lavagna start");
 
         let event_loop = EventLoop::new();
@@ -59,16 +53,21 @@ impl PixelsApp {
 
         window.set_cursor_icon(CursorIcon::Crosshair);
 
-        let pen_id = opt.collab.as_ref().map(|x| x.pen_id).unwrap_or_default();
+        let pen_id = self
+            .opt
+            .collab
+            .as_ref()
+            .map(|x| x.pen_id)
+            .unwrap_or_default();
         let mut app = App::new(pen_id);
-        let collab_uri = get_collab_uri(&opt);
+        let collab_uri = get_collab_uri(&self.opt);
         let collab = add_collab_channel(&mut app, &collab_uri);
         let frozen_sketch: Option<OwnedSketch> = None;
         let pixels: Option<Pixels> = None;
         let gui = Gui::new(&event_loop, canvas_size.width, canvas_size.height);
         let cursor = Cursor::new();
 
-        Self {
+        let mut running = RunningPixelsApp {
             app,
             collab,
             collab_uri,
@@ -77,46 +76,56 @@ impl PixelsApp {
             gui,
             cursor,
             window,
-            event_loop: Some(event_loop),
             canvas_size,
             exit: false,
-        }
-    }
-
-    pub fn run(mut self) -> Result<(), Error> {
-        let event_loop = self.event_loop.take().expect("Can only run once");
+        };
 
         event_loop.run(move |event, _, control_flow| {
             #[cfg(feature = "gui")]
             if let Event::WindowEvent { event, .. } = &event {
-                self.gui.handle_event(event);
+                running.gui.handle_event(event);
             }
 
-            self.handle_event_without_pixels(&event);
+            running.handle_event_without_pixels(&event);
 
-            if self.pixels.is_some() {
-                self.handle_event_with_pixels(&event);
+            if running.pixels.is_some() {
+                running.handle_event_with_pixels(&event);
             }
 
-            if self.exit {
+            if running.exit {
                 *control_flow = ControlFlow::Exit;
             }
 
-            if self.app.needs_update() {
-                self.window.request_redraw();
+            if running.app.needs_update() {
+                running.window.request_redraw();
             }
 
-            if let Some(event) = self.gui.take_event() {
+            if let Some(event) = running.gui.take_event() {
                 match event {
-                    gui::Event::ChangeColor => self.app.change_color(),
-                    gui::Event::ClearAll => self.app.clear_all(),
-                    gui::Event::ShrinkPen => self.app.shrink_pen(),
-                    gui::Event::GrowPen => self.app.grow_pen(),
+                    gui::Event::ChangeColor => running.app.change_color(),
+                    gui::Event::ClearAll => running.app.clear_all(),
+                    gui::Event::ShrinkPen => running.app.shrink_pen(),
+                    gui::Event::GrowPen => running.app.grow_pen(),
                 }
             }
         });
     }
+}
 
+pub struct RunningPixelsApp {
+    window: Window,
+    app: App,
+    collab: Rc<RefCell<SupportedCollaborationChannel>>,
+    frozen_sketch: Option<OwnedSketch>,
+    pixels: Option<Pixels>,
+    gui: Gui,
+    cursor: Cursor,
+    canvas_size: PhysicalSize<u32>,
+    collab_uri: CollabUri,
+    exit: bool,
+}
+
+impl RunningPixelsApp {
     fn handle_event_without_pixels<T>(&mut self, event: &winit::event::Event<T>) {
         match *event {
             // Resumed on Android

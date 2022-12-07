@@ -25,5 +25,5 @@ default-features = false
 features = ["x11"]
 
 [features]
-default = []
+default = ["gui"]
 gui = []
