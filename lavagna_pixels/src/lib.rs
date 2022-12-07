@@ -28,16 +28,223 @@ pub struct Opt {
 }
 
 pub struct PixelsApp {
-    opt: Opt,
+    window: Window,
+    app: App,
+    collab: Rc<RefCell<SupportedCollaborationChannel>>,
+    frozen_sketch: Option<OwnedSketch>,
+    pixels: Option<Pixels>,
+    gui: Gui,
+    cursor: Cursor,
+    event_loop: Option<EventLoop<()>>,
+    canvas_size: PhysicalSize<u32>,
+    collab_uri: CollabUri,
+    exit: bool,
 }
 
 impl PixelsApp {
     pub fn new(opt: Opt) -> Self {
-        Self { opt }
+        log::info!("lavagna start");
+
+        let event_loop = EventLoop::new();
+        let canvas_size = PhysicalSize::new(640, 480);
+
+        let window = {
+            WindowBuilder::new()
+                .with_title("lavagna")
+                .with_inner_size(canvas_size)
+                .with_min_inner_size(canvas_size)
+                .build(&event_loop)
+                .unwrap()
+        };
+
+        window.set_cursor_icon(CursorIcon::Crosshair);
+
+        let pen_id = opt.collab.as_ref().map(|x| x.pen_id).unwrap_or_default();
+        let mut app = App::new(pen_id);
+        let collab_uri = get_collab_uri(&opt);
+        let collab = add_collab_channel(&mut app, &collab_uri);
+        let frozen_sketch: Option<OwnedSketch> = None;
+        let pixels: Option<Pixels> = None;
+        let gui = Gui::new(&event_loop, canvas_size.width, canvas_size.height);
+        let cursor = Cursor::new();
+
+        Self {
+            app,
+            collab,
+            collab_uri,
+            frozen_sketch,
+            pixels,
+            gui,
+            cursor,
+            window,
+            event_loop: Some(event_loop),
+            canvas_size,
+            exit: false,
+        }
     }
 
-    pub fn run(&self) -> Result<(), Error> {
-        run(&self.opt)
+    pub fn run(mut self) -> Result<(), Error> {
+        let event_loop = self.event_loop.take().expect("Can only run once");
+
+        event_loop.run(move |event, _, control_flow| {
+            #[cfg(feature = "gui")]
+            if let Event::WindowEvent { event, .. } = &event {
+                self.gui.handle_event(event);
+            }
+
+            self.handle_event_without_pixels(&event);
+
+            if self.pixels.is_some() {
+                self.handle_event_with_pixels(&event);
+            }
+
+            if self.exit {
+                *control_flow = ControlFlow::Exit;
+            }
+
+            if self.app.needs_update() {
+                self.window.request_redraw();
+            }
+
+            if let Some(event) = self.gui.take_event() {
+                match event {
+                    gui::Event::ChangeColor => self.app.change_color(),
+                    gui::Event::ClearAll => self.app.clear_all(),
+                    gui::Event::ShrinkPen => self.app.shrink_pen(),
+                    gui::Event::GrowPen => self.app.grow_pen(),
+                }
+            }
+        });
+    }
+
+    fn handle_event_without_pixels<T>(&mut self, event: &winit::event::Event<T>) {
+        match *event {
+            // Resumed on Android
+            Event::Resumed => {
+                log::info!("Resumed");
+                self.canvas_size = self.window.inner_size();
+                self.pixels = resume(&self.window, self.canvas_size, self.frozen_sketch.take());
+                self.gui.set_pixels(self.pixels.as_ref().unwrap());
+                self.gui
+                    .resize(self.canvas_size.width, self.canvas_size.height);
+                self.collab = add_collab_channel(&mut self.app, &self.collab_uri);
+
+                // Prevent drawing a line from the last location when resuming
+                self.cursor.pressed = false;
+            }
+            // Suspended on Android
+            Event::Suspended => {
+                self.frozen_sketch = sketch_from_pixels(self.pixels.take(), self.canvas_size);
+                self.cursor.pressed = false;
+            }
+            // Window resized on Desktop (Linux/Windows/iOS)
+            Event::WindowEvent {
+                event: WindowEvent::Resized(new_size),
+                ..
+            } => {
+                if let Some(pixels) = self.pixels.as_mut() {
+                    if self.canvas_size != new_size {
+                        resize_buffer(pixels, self.canvas_size, new_size);
+                        self.gui
+                            .resize(self.canvas_size.width, self.canvas_size.height);
+                    }
+                } else {
+                    self.frozen_sketch = sketch_from_pixels(self.pixels.take(), self.canvas_size);
+                    self.pixels = resume(&self.window, new_size, self.frozen_sketch.take());
+                    self.gui.set_pixels(self.pixels.as_ref().unwrap());
+                    self.window.request_redraw();
+                }
+
+                self.canvas_size = new_size;
+            }
+            _ => (),
+        }
+    }
+
+    fn handle_event_with_pixels<T>(&mut self, event: &winit::event::Event<T>) {
+        let pixels = self.pixels.as_mut().unwrap();
+        match *event {
+            Event::MainEventsCleared => {
+                // All events from winit have been received, now it's time
+                // to handle events from collaborators.
+                handle_commands_from_collaborators(&self.collab, &mut self.app);
+            }
+            Event::RedrawRequested(_) => {
+                #[cfg(feature = "gui")]
+                self.gui.prepare(&self.window);
+                self.exit = redraw(pixels, self.canvas_size, &mut self.app, &mut self.gui).is_err();
+            }
+            Event::WindowEvent {
+                event: WindowEvent::CloseRequested,
+                ..
+            } => {
+                self.exit = true;
+            }
+            Event::WindowEvent {
+                event:
+                    WindowEvent::Touch(Touch {
+                        phase, location, ..
+                    }),
+                ..
+            } => {
+                match phase {
+                    TouchPhase::Started => self.cursor.pressed = true,
+                    TouchPhase::Ended => self.cursor.pressed = false,
+                    _ => (),
+                }
+
+                self.cursor.pos = window_pos_to_cursor(location, pixels);
+                self.app.move_cursor(self.cursor);
+            }
+            Event::WindowEvent {
+                event: WindowEvent::CursorMoved { position, .. },
+                ..
+            } => {
+                self.cursor.pos = window_pos_to_cursor(position, pixels);
+                self.app.move_cursor(self.cursor);
+            }
+            Event::WindowEvent {
+                event:
+                    WindowEvent::MouseInput {
+                        state,
+                        button: MouseButton::Left,
+                        ..
+                    },
+                ..
+            } => match state {
+                ElementState::Pressed => {
+                    self.cursor.pressed = true;
+                    self.app.move_cursor(self.cursor)
+                }
+                ElementState::Released => {
+                    self.cursor.pressed = false;
+                    self.app.move_cursor(self.cursor)
+                }
+            },
+            Event::WindowEvent {
+                event:
+                    WindowEvent::KeyboardInput {
+                        input:
+                            KeyboardInput {
+                                state: ElementState::Released,
+                                virtual_keycode: Some(key_released),
+                                ..
+                            },
+                        ..
+                    },
+                ..
+            } => match key_released {
+                VirtualKeyCode::Escape => self.exit = true,
+                VirtualKeyCode::X => self.app.clear_all(),
+                VirtualKeyCode::C => self.app.change_color(),
+                VirtualKeyCode::N => self.app.shrink_pen(),
+                VirtualKeyCode::M => self.app.grow_pen(),
+                VirtualKeyCode::U => self.app.resume_last_snapshot(),
+                VirtualKeyCode::S => self.app.take_snapshot(),
+                _ => (),
+            },
+            _ => (),
+        }
     }
 }
 
@@ -68,190 +275,6 @@ fn get_collab_uri(opt: &Opt) -> CollabUri {
     log::info!("uri: {:?}", &collab_uri);
 
     collab_uri
-}
-
-pub fn run(opt: &Opt) -> Result<(), Error> {
-    log::info!("lavagna start");
-
-    let event_loop = EventLoop::new();
-    let mut canvas_size = PhysicalSize::new(640, 480);
-
-    let window = {
-        WindowBuilder::new()
-            .with_title("lavagna")
-            .with_inner_size(canvas_size)
-            .with_min_inner_size(canvas_size)
-            .build(&event_loop)
-            .unwrap()
-    };
-
-    window.set_cursor_icon(CursorIcon::Crosshair);
-
-    let pen_id = opt.collab.as_ref().map(|x| x.pen_id).unwrap_or_default();
-
-    let mut app = App::new(pen_id);
-
-    let collab_uri = get_collab_uri(opt);
-
-    let mut collab = add_collab_channel(&mut app, &collab_uri);
-
-    let mut frozen_sketch: Option<OwnedSketch> = None;
-    let mut pixels: Option<Pixels> = None;
-
-    let mut gui = Gui::new(&event_loop, canvas_size.width, canvas_size.height);
-
-    let mut cursor = Cursor::new();
-
-    event_loop.run(move |event, _, control_flow| {
-        #[cfg(feature = "gui")]
-        if let Event::WindowEvent { event, .. } = &event {
-            gui.handle_event(event);
-        }
-
-        match event {
-            // Resumed on Android
-            Event::Resumed => {
-                log::info!("Resumed");
-                canvas_size = window.inner_size();
-                pixels = resume(&window, canvas_size, frozen_sketch.take());
-                gui.set_pixels(pixels.as_ref().unwrap());
-                gui.resize(canvas_size.width, canvas_size.height);
-                collab = add_collab_channel(&mut app, &collab_uri);
-
-                // Prevent drawing a line from the last location when resuming
-                cursor.pressed = false;
-            }
-            // Suspended on Android
-            Event::Suspended => {
-                frozen_sketch = sketch_from_pixels(pixels.take(), canvas_size);
-                cursor.pressed = false;
-            }
-            // Window resized on Desktop (Linux/Windows/iOS)
-            Event::WindowEvent {
-                event: WindowEvent::Resized(new_size),
-                ..
-            } => {
-                if let Some(pixels) = pixels.as_mut() {
-                    if canvas_size != new_size {
-                        resize_buffer(pixels, canvas_size, new_size);
-                        gui.resize(canvas_size.width, canvas_size.height);
-                    }
-                } else {
-                    frozen_sketch = sketch_from_pixels(pixels.take(), canvas_size);
-                    pixels = resume(&window, new_size, frozen_sketch.take());
-                    gui.set_pixels(pixels.as_ref().unwrap());
-                    window.request_redraw();
-                }
-
-                canvas_size = new_size;
-            }
-            _ => (),
-        }
-
-        let mut exit = false;
-
-        if let Some(pixels) = pixels.as_mut() {
-            match event {
-                Event::MainEventsCleared => {
-                    // All events from winit have been received, now it's time
-                    // to handle events from collaborators.
-                    handle_commands_from_collaborators(&collab, &mut app);
-                }
-                Event::RedrawRequested(_) => {
-                    #[cfg(feature = "gui")]
-                    gui.prepare(&window);
-                    exit = redraw(pixels, canvas_size, &mut app, &mut gui).is_err();
-                }
-                Event::WindowEvent {
-                    event: WindowEvent::CloseRequested,
-                    ..
-                } => {
-                    exit = true;
-                }
-                Event::WindowEvent {
-                    event:
-                        WindowEvent::Touch(Touch {
-                            phase, location, ..
-                        }),
-                    ..
-                } => {
-                    match phase {
-                        TouchPhase::Started => cursor.pressed = true,
-                        TouchPhase::Ended => cursor.pressed = false,
-                        _ => (),
-                    }
-
-                    cursor.pos = window_pos_to_cursor(location, pixels);
-                    app.move_cursor(cursor);
-                }
-                Event::WindowEvent {
-                    event: WindowEvent::CursorMoved { position, .. },
-                    ..
-                } => {
-                    cursor.pos = window_pos_to_cursor(position, pixels);
-                    app.move_cursor(cursor);
-                }
-                Event::WindowEvent {
-                    event:
-                        WindowEvent::MouseInput {
-                            state,
-                            button: MouseButton::Left,
-                            ..
-                        },
-                    ..
-                } => match state {
-                    ElementState::Pressed => {
-                        cursor.pressed = true;
-                        app.move_cursor(cursor)
-                    }
-                    ElementState::Released => {
-                        cursor.pressed = false;
-                        app.move_cursor(cursor)
-                    }
-                },
-                Event::WindowEvent {
-                    event:
-                        WindowEvent::KeyboardInput {
-                            input:
-                                KeyboardInput {
-                                    state: ElementState::Released,
-                                    virtual_keycode: Some(key_released),
-                                    ..
-                                },
-                            ..
-                        },
-                    ..
-                } => match key_released {
-                    VirtualKeyCode::Escape => exit = true,
-                    VirtualKeyCode::X => app.clear_all(),
-                    VirtualKeyCode::C => app.change_color(),
-                    VirtualKeyCode::N => app.shrink_pen(),
-                    VirtualKeyCode::M => app.grow_pen(),
-                    VirtualKeyCode::U => app.resume_last_snapshot(),
-                    VirtualKeyCode::S => app.take_snapshot(),
-                    _ => (),
-                },
-                _ => (),
-            }
-        }
-
-        if exit {
-            *control_flow = ControlFlow::Exit;
-        }
-
-        if app.needs_update() {
-            window.request_redraw();
-        }
-
-        if let Some(event) = gui.take_event() {
-            match event {
-                gui::Event::ChangeColor => app.change_color(),
-                gui::Event::ClearAll => app.clear_all(),
-                gui::Event::ShrinkPen => app.shrink_pen(),
-                gui::Event::GrowPen => app.grow_pen(),
-            }
-        }
-    });
 }
 
 fn resume(
