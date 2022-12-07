@@ -132,7 +132,7 @@ impl RunningPixelsApp {
             Event::Resumed => {
                 log::info!("Resumed");
                 self.canvas_size = self.window.inner_size();
-                self.pixels = resume(&self.window, self.canvas_size, self.frozen_sketch.take());
+                self.pixels = self.resume(self.canvas_size);
                 self.gui.set_pixels(self.pixels.as_ref().unwrap());
                 self.gui.resize(self.canvas_size);
                 self.collab = add_collab_channel(&mut self.app, &self.collab_uri);
@@ -157,7 +157,7 @@ impl RunningPixelsApp {
                     }
                 } else {
                     self.frozen_sketch = sketch_from_pixels(self.pixels.take(), self.canvas_size);
-                    self.pixels = resume(&self.window, new_size, self.frozen_sketch.take());
+                    self.pixels = self.resume(new_size);
                     self.gui.set_pixels(self.pixels.as_ref().unwrap());
                     self.window.request_redraw();
                 }
@@ -253,6 +253,22 @@ impl RunningPixelsApp {
             _ => (),
         }
     }
+
+    fn resume(&mut self, new_size: PhysicalSize<u32>) -> Option<Pixels> {
+        let surface_texture = SurfaceTexture::new(new_size.width, new_size.height, &self.window);
+        let mut pixels = Pixels::new(new_size.width, new_size.height, surface_texture).ok()?;
+
+        pixels.get_frame_mut().fill(0x00);
+
+        let mut new_sketch =
+            MutSketch::new(pixels.get_frame_mut(), new_size.width, new_size.height);
+
+        if let Some(old_sketch) = self.frozen_sketch.take() {
+            new_sketch.copy_from(&old_sketch.as_sketch());
+        }
+
+        Some(pixels)
+    }
 }
 
 fn connect_collab_channel(app: &mut App, collab: Rc<RefCell<SupportedCollaborationChannel>>) {
@@ -282,25 +298,6 @@ fn get_collab_uri(opt: &Opt) -> CollabUri {
     log::info!("uri: {:?}", &collab_uri);
 
     collab_uri
-}
-
-fn resume(
-    window: &Window,
-    new_size: PhysicalSize<u32>,
-    frozen_sketch: Option<OwnedSketch>,
-) -> Option<Pixels> {
-    let surface_texture = SurfaceTexture::new(new_size.width, new_size.height, &window);
-    let mut pixels = Pixels::new(new_size.width, new_size.height, surface_texture).ok()?;
-
-    pixels.get_frame_mut().fill(0x00);
-
-    let mut new_sketch = MutSketch::new(pixels.get_frame_mut(), new_size.width, new_size.height);
-
-    if let Some(old_sketch) = &frozen_sketch {
-        new_sketch.copy_from(&old_sketch.as_sketch());
-    }
-
-    Some(pixels)
 }
 
 fn sketch_from_pixels(
