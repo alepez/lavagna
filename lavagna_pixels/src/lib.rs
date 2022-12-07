@@ -27,11 +27,27 @@ pub struct Opt {
     pub collab: Option<CollabOpt>,
 }
 
-pub struct PixelsApp {
-    opt: Opt,
+pub enum PixelsApp {
+    New(NewPixelsApp),
 }
 
 impl PixelsApp {
+    pub fn new(opt: Opt) -> Self {
+        PixelsApp::New(NewPixelsApp { opt })
+    }
+
+    pub fn run(self) -> Result<(), Error> {
+        match self {
+            PixelsApp::New(x) => x.run(),
+        }
+    }
+}
+
+pub struct NewPixelsApp {
+    opt: Opt,
+}
+
+impl NewPixelsApp {
     pub fn new(opt: Opt) -> Self {
         Self { opt }
     }
@@ -90,7 +106,7 @@ impl PixelsApp {
     }
 }
 
-pub struct RunningPixelsApp {
+struct RunningPixelsApp {
     window: Window,
     app: App,
     collab: Rc<RefCell<SupportedCollaborationChannel>>,
