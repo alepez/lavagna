@@ -89,7 +89,7 @@ struct RunningPixelsApp {
 }
 
 impl RunningPixelsApp {
-    fn update<T>(&mut self, event: winit::event::Event<T>) {
+    fn update(&mut self, event: winit::event::Event<()>) {
         #[cfg(feature = "gui")]
         if let Event::WindowEvent { event, .. } = &event {
             self.gui.handle_event(event);
@@ -115,7 +115,7 @@ impl RunningPixelsApp {
         }
     }
 
-    fn handle_event_without_pixels<T>(&mut self, event: &winit::event::Event<T>) {
+    fn handle_event_without_pixels(&mut self, event: &winit::event::Event<()>) {
         match *event {
             // Resumed on Android
             Event::Resumed => {
@@ -157,7 +157,7 @@ impl RunningPixelsApp {
         }
     }
 
-    fn handle_event_with_pixels<T>(&mut self, event: &winit::event::Event<T>) {
+    fn handle_event_with_pixels(&mut self, event: &winit::event::Event<()>) {
         let pixels = self.pixels.as_mut().unwrap();
         match *event {
             Event::MainEventsCleared => {
