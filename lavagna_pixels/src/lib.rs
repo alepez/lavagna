@@ -27,83 +27,52 @@ pub struct Opt {
     pub collab: Option<CollabOpt>,
 }
 
-pub enum PixelsApp {
-    New(NewPixelsApp),
-}
+pub fn run(opt: Opt) -> Result<(), Error> {
+    log::info!("lavagna start");
 
-impl PixelsApp {
-    pub fn new(opt: Opt) -> Self {
-        PixelsApp::New(NewPixelsApp { opt })
-    }
+    let event_loop = EventLoop::new();
+    let canvas_size = PhysicalSize::new(640, 480);
 
-    pub fn run(self) -> Result<(), Error> {
-        match self {
-            PixelsApp::New(x) => x.run(),
+    let window = {
+        WindowBuilder::new()
+            .with_title("lavagna")
+            .with_inner_size(canvas_size)
+            .with_min_inner_size(canvas_size)
+            .build(&event_loop)
+            .unwrap()
+    };
+
+    window.set_cursor_icon(CursorIcon::Crosshair);
+
+    let pen_id = opt.collab.as_ref().map(|x| x.pen_id).unwrap_or_default();
+    let mut app = App::new(pen_id);
+    let collab_uri = get_collab_uri(&opt);
+    let collab = add_collab_channel(&mut app, &collab_uri);
+    let frozen_sketch: Option<OwnedSketch> = None;
+    let pixels: Option<Pixels> = None;
+    let gui = Gui::new(&event_loop, canvas_size.width, canvas_size.height);
+    let cursor = Cursor::new();
+
+    let mut running = RunningPixelsApp {
+        app,
+        collab,
+        collab_uri,
+        frozen_sketch,
+        pixels,
+        gui,
+        cursor,
+        window,
+        canvas_size,
+        exit: false,
+    };
+
+    event_loop.run(move |event, _, control_flow| {
+        running.update(event);
+
+        if running.exit {
+            *control_flow = ControlFlow::Exit;
         }
-    }
-}
-
-pub struct NewPixelsApp {
-    opt: Opt,
-}
-
-impl NewPixelsApp {
-    pub fn new(opt: Opt) -> Self {
-        Self { opt }
-    }
-
-    pub fn run(self) -> Result<(), Error> {
-        log::info!("lavagna start");
-
-        let event_loop = EventLoop::new();
-        let canvas_size = PhysicalSize::new(640, 480);
-
-        let window = {
-            WindowBuilder::new()
-                .with_title("lavagna")
-                .with_inner_size(canvas_size)
-                .with_min_inner_size(canvas_size)
-                .build(&event_loop)
-                .unwrap()
-        };
-
-        window.set_cursor_icon(CursorIcon::Crosshair);
-
-        let pen_id = self
-            .opt
-            .collab
-            .as_ref()
-            .map(|x| x.pen_id)
-            .unwrap_or_default();
-        let mut app = App::new(pen_id);
-        let collab_uri = get_collab_uri(&self.opt);
-        let collab = add_collab_channel(&mut app, &collab_uri);
-        let frozen_sketch: Option<OwnedSketch> = None;
-        let pixels: Option<Pixels> = None;
-        let gui = Gui::new(&event_loop, canvas_size.width, canvas_size.height);
-        let cursor = Cursor::new();
-
-        let mut running = RunningPixelsApp {
-            app,
-            collab,
-            collab_uri,
-            frozen_sketch,
-            pixels,
-            gui,
-            cursor,
-            window,
-            canvas_size,
-            exit: false,
-        };
-
-        event_loop.run(move |event, _, control_flow| {
-            running.update(event);
-
-            if running.exit {
-                *control_flow = ControlFlow::Exit;
-            }
-        });
-    }
+    });
 }
 
 struct RunningPixelsApp {

@@ -5,7 +5,7 @@ use clap::Parser;
 use rand::Rng;
 
 use lavagna_collab::{CollabOpt, CollabUri, CollabUriProvider};
-use lavagna_pixels::{Error, Opt, PixelsApp};
+use lavagna_pixels::{run, Error, Opt};
 
 /// The uncluttered blackboard
 #[derive(Parser, Debug)]
@@ -31,9 +31,7 @@ fn main() -> Result<(), Error> {
 
     let opt = Opt { collab };
 
-    let app = PixelsApp::new(opt);
-
-    app.run()
+    run(opt)
 }
 
 struct StringUriProvider(String);
