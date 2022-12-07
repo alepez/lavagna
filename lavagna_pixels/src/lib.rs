@@ -47,7 +47,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
     let mut app = App::new(pen_id);
     let collab_uri = get_collab_uri(&opt);
     let collab = add_collab_channel(&mut app, &collab_uri);
-    let gui = Gui::new(&event_loop, canvas_size);
+    let gui = Gui::new(&event_loop);
 
     let mut running = PixelsApp {
         app,
@@ -56,7 +56,6 @@ pub fn run(opt: Opt) -> Result<(), Error> {
         visible: None,
         gui,
         window,
-        canvas_size,
         exit: false,
     };
 
@@ -75,7 +74,6 @@ struct PixelsApp {
     collab: Rc<RefCell<SupportedCollaborationChannel>>,
     frozen_sketch: Option<OwnedSketch>,
     gui: Gui,
-    canvas_size: PhysicalSize<u32>,
     exit: bool,
     visible: Option<Visible>,
 }
@@ -83,6 +81,7 @@ struct PixelsApp {
 struct Visible {
     pixels: Pixels,
     cursor: Cursor,
+    canvas_size: PhysicalSize<u32>,
 }
 
 impl PixelsApp {
@@ -234,7 +233,7 @@ impl PixelsApp {
 
         let visible = self.visible.as_mut().unwrap();
         let pixels = &mut visible.pixels;
-        let canvas_size = self.canvas_size;
+        let canvas_size = visible.canvas_size;
 
         let sketch = MutSketch::new(
             pixels.get_frame_mut(),
@@ -260,7 +259,7 @@ impl PixelsApp {
     fn suspend(&mut self) {
         log::info!("Suspend");
         if let Some(visible) = self.visible.take() {
-            self.frozen_sketch = Some(sketch_from_pixels(visible.pixels, self.canvas_size));
+            self.frozen_sketch = Some(sketch_from_pixels(visible.pixels, visible.canvas_size));
         }
     }
 
@@ -270,18 +269,16 @@ impl PixelsApp {
         let visible = self.visible.as_mut().unwrap();
         let new_size = self.window.inner_size();
 
-        if self.canvas_size != new_size {
-            resize_buffer(&mut visible.pixels, self.canvas_size, new_size);
-            self.canvas_size = new_size;
-            self.gui.set_pixels(&visible.pixels);
-            self.gui.resize(self.canvas_size);
+        if visible.canvas_size != new_size {
+            resize_buffer(&mut visible.pixels, visible.canvas_size, new_size);
+            visible.canvas_size = new_size;
+            self.gui.show(&visible.pixels, visible.canvas_size);
         }
     }
 
     fn resume(&mut self) {
         log::info!("Resume");
         let new_size = self.window.inner_size();
-        self.canvas_size = new_size;
 
         let surface_texture = SurfaceTexture::new(new_size.width, new_size.height, &self.window);
         let mut pixels = Pixels::new(new_size.width, new_size.height, surface_texture)
@@ -296,12 +293,12 @@ impl PixelsApp {
             new_sketch.copy_from(&old_sketch.as_sketch());
         }
 
-        self.gui.set_pixels(&pixels);
-        self.gui.resize(new_size);
+        self.gui.show(&pixels, new_size);
 
         self.visible = Some(Visible {
             pixels,
             cursor: Cursor::new(),
+            canvas_size: new_size,
         })
     }
 }
