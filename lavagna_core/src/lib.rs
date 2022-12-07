@@ -1,16 +1,18 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
-mod color;
-pub mod doc;
-mod painter;
+use std::borrow::BorrowMut;
+use std::collections::{HashMap, VecDeque};
+
+use serde::{Deserialize, Serialize};
 
 use crate::color::*;
 use crate::doc::{MutSketch, OwnedSketch};
 use crate::painter::Painter;
-use serde::{Deserialize, Serialize};
-use std::borrow::BorrowMut;
-use std::collections::{HashMap, VecDeque};
+
+mod color;
+pub mod doc;
+mod painter;
 
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct PenId(u32);
@@ -25,9 +27,7 @@ impl From<u32> for PenId {
 pub enum PenCommand {
     ChangeColor(Color),
     ChangeSize(PenSize),
-    MoveCursor(CursorPos),
-    Pressed,
-    Released,
+    MoveCursor(Cursor),
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
@@ -72,12 +72,23 @@ pub struct App {
     snapshots: Vec<OwnedSketch>,
     /// A component in charge of sending commands to collaborators
     chained_command_sender: Option<Box<dyn FnMut(Command)>>,
+    // The (optional) user interface
+    // ui: Option<ui::Ui>,
 }
 
-#[derive(Default, Debug, Copy, Clone)]
-struct Cursor {
-    pressed: bool,
-    pos: CursorPos,
+#[derive(Default, Debug, Copy, Clone, Serialize, Deserialize)]
+pub struct Cursor {
+    pub pressed: bool,
+    pub pos: CursorPos,
+}
+
+impl Cursor {
+    pub fn new() -> Self {
+        Self {
+            pressed: false,
+            pos: CursorPos { x: 0, y: 0 },
+        }
+    }
 }
 
 #[derive(Default, Debug, Copy, Clone, Serialize, Deserialize)]
@@ -88,10 +99,12 @@ pub struct CursorPos {
 
 impl App {
     pub fn new(pen_id: PenId) -> Self {
+        let palette = ColorSelector::new(&PALETTE);
+
         App {
             pens: Pens::default(),
             commands: VecDeque::with_capacity(10),
-            palette: ColorSelector::new(&PALETTE),
+            palette,
             snapshots: Vec::new(),
             chained_command_sender: Default::default(),
             pen_id,
@@ -120,7 +133,6 @@ impl App {
         }
 
         let mut painter = Painter::new(sketch);
-
         painter.set_color(self.pens.select(self.pen_id).color);
         draw_current_color_icon(&mut painter);
 
@@ -128,7 +140,7 @@ impl App {
             painter.set_color(pen.color);
             painter.set_size(pen.size);
 
-            if pen.cursor.pressed && pen.prev_cursor.pressed {
+            if pen.prev_cursor.pressed {
                 painter.draw_line(pen.prev_cursor.pos, pen.cursor.pos);
             }
 
@@ -148,16 +160,8 @@ impl App {
         self.send_command_chained(Command::TakeSnapshot);
     }
 
-    pub fn move_cursor(&mut self, x: isize, y: isize) {
-        self.send_pen_command(PenCommand::MoveCursor(CursorPos { x, y }));
-    }
-
-    pub fn press(&mut self) {
-        self.send_pen_command(PenCommand::Pressed);
-    }
-
-    pub fn release(&mut self) {
-        self.send_pen_command(PenCommand::Released);
+    pub fn move_cursor(&mut self, cursor: Cursor) {
+        self.send_pen_command(PenCommand::MoveCursor(cursor));
     }
 
     pub fn change_color(&mut self) {
@@ -199,10 +203,6 @@ impl App {
         self.send_command_chained(cmd);
     }
 
-    pub fn force_release(&mut self) {
-        self.send_pen_command(PenCommand::Released);
-    }
-
     fn handle_pen_command(&mut self, pen_id: PenId, cmd: PenCommand) {
         let pen = self.pens.select(pen_id);
         match cmd {
@@ -212,14 +212,8 @@ impl App {
             PenCommand::ChangeSize(size) => {
                 pen.size = size;
             }
-            PenCommand::MoveCursor(pos) => {
-                pen.cursor.pos = pos;
-            }
-            PenCommand::Pressed => {
-                pen.cursor.pressed = true;
-            }
-            PenCommand::Released => {
-                pen.cursor.pressed = false;
+            PenCommand::MoveCursor(cursor) => {
+                pen.cursor = cursor;
             }
         }
     }

@@ -1,21 +1,27 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
-use lavagna_collab::{CollabOpt, CollaborationChannel, SupportedCollaborationChannel};
-use lavagna_core::doc::MutSketch;
-use lavagna_core::doc::OwnedSketch;
-use lavagna_core::{App, CommandSender};
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use log::error;
 pub use pixels::Error;
 use pixels::{Pixels, SurfaceTexture};
-use std::cell::RefCell;
-use std::rc::Rc;
 use winit::dpi::{PhysicalPosition, PhysicalSize};
 use winit::event::{
     ElementState, Event, KeyboardInput, MouseButton, Touch, TouchPhase, VirtualKeyCode, WindowEvent,
 };
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorIcon, Window, WindowBuilder};
+
+use lavagna_collab::{CollabOpt, CollabUri, CollaborationChannel, SupportedCollaborationChannel};
+use lavagna_core::doc::MutSketch;
+use lavagna_core::doc::OwnedSketch;
+use lavagna_core::{App, CommandSender, Cursor, CursorPos};
+
+use crate::gui::Gui;
+
+mod gui;
 
 pub struct Opt {
     pub collab: Option<CollabOpt>,
@@ -27,11 +33,27 @@ fn connect_collab_channel(app: &mut App, collab: Rc<RefCell<SupportedCollaborati
     }));
 }
 
-fn add_collab_channel(app: &mut App, uri: &str) -> Rc<RefCell<SupportedCollaborationChannel>> {
+fn add_collab_channel(
+    app: &mut App,
+    uri: &CollabUri,
+) -> Rc<RefCell<SupportedCollaborationChannel>> {
     let collab = SupportedCollaborationChannel::new(uri);
     let collab = Rc::new(RefCell::new(collab));
     connect_collab_channel(app, collab.clone());
     collab
+}
+
+fn get_collab_uri(opt: &Opt) -> CollabUri {
+    let collab_uri = opt
+        .collab
+        .as_ref()
+        .and_then(|x| x.uri_provider.as_ref())
+        .and_then(|x| x.uri())
+        .unwrap_or_default();
+
+    log::info!("uri: {:?}", &collab_uri);
+
+    collab_uri
 }
 
 pub fn run(opt: Opt) -> Result<(), Error> {
@@ -55,43 +77,40 @@ pub fn run(opt: Opt) -> Result<(), Error> {
 
     let mut app = App::new(pen_id);
 
-    let collab_uri = opt
-        .collab
-        .as_ref()
-        .map(|x| x.url.clone())
-        .unwrap_or_default();
+    let collab_uri = get_collab_uri(&opt);
 
-    log::info!("uri: {}", &collab_uri);
-
-    #[allow(unused_mut)] // Only when target os is android this will be muted
     let mut collab = add_collab_channel(&mut app, &collab_uri);
 
     let mut frozen_sketch: Option<OwnedSketch> = None;
     let mut pixels: Option<Pixels> = None;
 
+    let mut gui = Gui::new(&event_loop, canvas_size.width, canvas_size.height);
+
+    let mut cursor = Cursor::new();
+
     event_loop.run(move |event, _, control_flow| {
+        #[cfg(feature = "gui")]
+        if let Event::WindowEvent { event, .. } = &event {
+            gui.handle_event(event);
+        }
+
         match event {
             // Resumed on Android
             Event::Resumed => {
                 log::info!("Resumed");
                 canvas_size = window.inner_size();
                 pixels = resume(&window, canvas_size, frozen_sketch.take());
-
-                #[cfg(target_os = "android")]
-                {
-                    use lavagna_collab::get_collab_uri_from_intent;
-                    if let Ok(uri) = get_collab_uri_from_intent() {
-                        log::info!("uri: {}", uri);
-                        collab = add_collab_channel(&mut app, &uri);
-                    }
-                }
+                gui.set_pixels(pixels.as_ref().unwrap());
+                gui.resize(canvas_size.width, canvas_size.height);
+                collab = add_collab_channel(&mut app, &collab_uri);
 
                 // Prevent drawing a line from the last location when resuming
-                app.force_release();
+                cursor.pressed = false;
             }
             // Suspended on Android
             Event::Suspended => {
                 frozen_sketch = sketch_from_pixels(pixels.take(), canvas_size);
+                cursor.pressed = false;
             }
             // Window resized on Desktop (Linux/Windows/iOS)
             Event::WindowEvent {
@@ -101,10 +120,12 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                 if let Some(pixels) = pixels.as_mut() {
                     if canvas_size != new_size {
                         resize_buffer(pixels, canvas_size, new_size);
+                        gui.resize(canvas_size.width, canvas_size.height);
                     }
                 } else {
                     frozen_sketch = sketch_from_pixels(pixels.take(), canvas_size);
                     pixels = resume(&window, new_size, frozen_sketch.take());
+                    gui.set_pixels(pixels.as_ref().unwrap());
                     window.request_redraw();
                 }
 
@@ -123,7 +144,9 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                     handle_commands_from_collaborators(&collab, &mut app);
                 }
                 Event::RedrawRequested(_) => {
-                    exit = redraw(pixels, canvas_size, &mut app).is_err();
+                    #[cfg(feature = "gui")]
+                    gui.prepare(&window);
+                    exit = redraw(pixels, canvas_size, &mut app, &mut gui).is_err();
                 }
                 Event::WindowEvent {
                     event: WindowEvent::CloseRequested,
@@ -139,16 +162,21 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                     ..
                 } => {
                     match phase {
-                        TouchPhase::Started => app.press(),
-                        TouchPhase::Ended => app.release(),
+                        TouchPhase::Started => cursor.pressed = true,
+                        TouchPhase::Ended => cursor.pressed = false,
                         _ => (),
                     }
-                    move_cursor_to_position(location, pixels, &mut app);
+
+                    cursor.pos = window_pos_to_cursor(location, pixels);
+                    app.move_cursor(cursor);
                 }
                 Event::WindowEvent {
                     event: WindowEvent::CursorMoved { position, .. },
                     ..
-                } => move_cursor_to_position(position, pixels, &mut app),
+                } => {
+                    cursor.pos = window_pos_to_cursor(position, pixels);
+                    app.move_cursor(cursor);
+                }
                 Event::WindowEvent {
                     event:
                         WindowEvent::MouseInput {
@@ -158,8 +186,14 @@ pub fn run(opt: Opt) -> Result<(), Error> {
                         },
                     ..
                 } => match state {
-                    ElementState::Pressed => app.press(),
-                    ElementState::Released => app.release(),
+                    ElementState::Pressed => {
+                        cursor.pressed = true;
+                        app.move_cursor(cursor)
+                    }
+                    ElementState::Released => {
+                        cursor.pressed = false;
+                        app.move_cursor(cursor)
+                    }
                 },
                 Event::WindowEvent {
                     event:
@@ -194,6 +228,15 @@ pub fn run(opt: Opt) -> Result<(), Error> {
         if app.needs_update() {
             window.request_redraw();
         }
+
+        if let Some(event) = gui.take_event() {
+            match event {
+                gui::Event::ChangeColor => app.change_color(),
+                gui::Event::ClearAll => app.clear_all(),
+                gui::Event::ShrinkPen => app.shrink_pen(),
+                gui::Event::GrowPen => app.grow_pen(),
+            }
+        }
     });
 }
 
@@ -205,9 +248,9 @@ fn resume(
     let surface_texture = SurfaceTexture::new(new_size.width, new_size.height, &window);
     let mut pixels = Pixels::new(new_size.width, new_size.height, surface_texture).ok()?;
 
-    pixels.get_frame().fill(0x00);
+    pixels.get_frame_mut().fill(0x00);
 
-    let mut new_sketch = MutSketch::new(pixels.get_frame(), new_size.width, new_size.height);
+    let mut new_sketch = MutSketch::new(pixels.get_frame_mut(), new_size.width, new_size.height);
 
     if let Some(old_sketch) = &frozen_sketch {
         new_sketch.copy_from(&old_sketch.as_sketch());
@@ -221,20 +264,24 @@ fn sketch_from_pixels(
     canvas_size: PhysicalSize<u32>,
 ) -> Option<OwnedSketch> {
     let mut pixels = pixels?;
-    let frame = pixels.get_frame();
+    let frame = pixels.get_frame_mut();
     let sketch = MutSketch::new(frame, canvas_size.width, canvas_size.height);
     Some(sketch.to_owned())
 }
 
 fn resize_buffer(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, new_size: PhysicalSize<u32>) {
-    let old_sketch =
-        MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height).to_owned();
+    let old_sketch = MutSketch::new(
+        pixels.get_frame_mut(),
+        canvas_size.width,
+        canvas_size.height,
+    )
+    .to_owned();
 
-    pixels.get_frame().fill(0x00);
+    pixels.get_frame_mut().fill(0x00);
     pixels.resize_surface(new_size.width, new_size.height);
     pixels.resize_buffer(new_size.width, new_size.height);
 
-    let mut new_sketch = MutSketch::new(pixels.get_frame(), new_size.width, new_size.height);
+    let mut new_sketch = MutSketch::new(pixels.get_frame_mut(), new_size.width, new_size.height);
 
     new_sketch.copy_from(&old_sketch.as_sketch());
 }
@@ -248,17 +295,34 @@ fn handle_commands_from_collaborators(
     }
 }
 
-fn redraw(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, app: &mut App) -> Result<(), ()> {
-    let sketch = MutSketch::new(pixels.get_frame(), canvas_size.width, canvas_size.height);
+fn redraw(
+    pixels: &mut Pixels,
+    canvas_size: PhysicalSize<u32>,
+    app: &mut App,
+    #[allow(unused)] framework: &mut Gui,
+) -> Result<(), ()> {
+    let sketch = MutSketch::new(
+        pixels.get_frame_mut(),
+        canvas_size.width,
+        canvas_size.height,
+    );
     app.update(sketch);
 
     pixels
-        .render()
+        .render_with(|encoder, render_target, context| {
+            context.scaling_renderer.render(encoder, render_target);
+            #[cfg(feature = "gui")]
+            framework.render(encoder, render_target, context);
+            Ok(())
+        })
         .map_err(|e| error!("pixels.render() failed: {}", e))
 }
 
-fn move_cursor_to_position(position: PhysicalPosition<f64>, pixels: &Pixels, app: &mut App) {
-    if let Ok((x, y)) = pixels.window_pos_to_pixel(position.into()) {
-        app.move_cursor(x as isize, y as isize);
+fn window_pos_to_cursor(position: PhysicalPosition<f64>, pixels: &Pixels) -> CursorPos {
+    let pos = pixels.window_pos_to_pixel(position.into());
+    let (x, y) = pos.unwrap_or_default();
+    CursorPos {
+        x: x as isize,
+        y: y as isize,
     }
 }

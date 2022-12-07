@@ -39,7 +39,7 @@ To install from sources:
 ```shell
 git clone https://github.com/alepez/lavagna.git
 cd lavagna
-cargo install --path lavagna
+cargo install --path lavagna --locked
 ```
 
 ### Install from crates.io
