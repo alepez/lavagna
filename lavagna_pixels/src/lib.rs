@@ -81,32 +81,10 @@ impl PixelsApp {
         };
 
         event_loop.run(move |event, _, control_flow| {
-            #[cfg(feature = "gui")]
-            if let Event::WindowEvent { event, .. } = &event {
-                running.gui.handle_event(event);
-            }
-
-            running.handle_event_without_pixels(&event);
-
-            if running.pixels.is_some() {
-                running.handle_event_with_pixels(&event);
-            }
+            running.update(event);
 
             if running.exit {
                 *control_flow = ControlFlow::Exit;
-            }
-
-            if running.app.needs_update() {
-                running.window.request_redraw();
-            }
-
-            if let Some(event) = running.gui.take_event() {
-                match event {
-                    gui::Event::ChangeColor => running.app.change_color(),
-                    gui::Event::ClearAll => running.app.clear_all(),
-                    gui::Event::ShrinkPen => running.app.shrink_pen(),
-                    gui::Event::GrowPen => running.app.grow_pen(),
-                }
             }
         });
     }
@@ -126,6 +104,32 @@ pub struct RunningPixelsApp {
 }
 
 impl RunningPixelsApp {
+    fn update<T>(&mut self, event: winit::event::Event<T>) {
+        #[cfg(feature = "gui")]
+        if let Event::WindowEvent { event, .. } = &event {
+            self.gui.handle_event(event);
+        }
+
+        self.handle_event_without_pixels(&event);
+
+        if self.pixels.is_some() {
+            self.handle_event_with_pixels(&event);
+        }
+
+        if self.app.needs_update() {
+            self.window.request_redraw();
+        }
+
+        if let Some(event) = self.gui.take_event() {
+            match event {
+                gui::Event::ChangeColor => self.app.change_color(),
+                gui::Event::ClearAll => self.app.clear_all(),
+                gui::Event::ShrinkPen => self.app.shrink_pen(),
+                gui::Event::GrowPen => self.app.grow_pen(),
+            }
+        }
+    }
+
     fn handle_event_without_pixels<T>(&mut self, event: &winit::event::Event<T>) {
         match *event {
             // Resumed on Android
