@@ -4,7 +4,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use log::error;
 pub use pixels::Error;
 use pixels::{Pixels, SurfaceTexture};
 use winit::dpi::{PhysicalPosition, PhysicalSize};
@@ -48,15 +47,13 @@ pub fn run(opt: Opt) -> Result<(), Error> {
     let mut app = App::new(pen_id);
     let collab_uri = get_collab_uri(&opt);
     let collab = add_collab_channel(&mut app, &collab_uri);
-    let frozen_sketch: Option<OwnedSketch> = None;
     let gui = Gui::new(&event_loop, canvas_size.width, canvas_size.height);
     let cursor = Cursor::new();
 
     let mut running = PixelsApp {
         app,
         collab,
-        collab_uri,
-        frozen_sketch,
+        frozen_sketch: None,
         visible: None,
         gui,
         cursor,
@@ -82,7 +79,6 @@ struct PixelsApp {
     gui: Gui,
     cursor: Cursor,
     canvas_size: PhysicalSize<u32>,
-    collab_uri: CollabUri,
     exit: bool,
     visible: Option<Visible>,
 }
@@ -98,16 +94,19 @@ impl PixelsApp {
             self.gui.handle_event(event);
         }
 
-        self.handle_event_without_pixels(&event);
+        self.handle_event(&event);
 
         if self.visible.is_some() {
-            self.handle_event_with_pixels(&event);
+            self.handle_event_when_visible(&event);
+            self.handle_gui_events();
         }
 
         if self.app.needs_update() {
             self.window.request_redraw();
         }
+    }
 
+    fn handle_gui_events(&mut self) {
         if let Some(event) = self.gui.take_event() {
             match event {
                 gui::Event::ChangeColor => self.app.change_color(),
@@ -118,53 +117,31 @@ impl PixelsApp {
         }
     }
 
-    fn handle_event_without_pixels(&mut self, event: &winit::event::Event<()>) {
+    fn handle_event(&mut self, event: &winit::event::Event<()>) {
         match *event {
             // Resumed on Android
-            Event::Resumed => {
-                log::info!("Resumed");
-                self.canvas_size = self.window.inner_size();
-                self.visible = self.resume(self.canvas_size);
-                self.gui.set_pixels(&self.visible.as_ref().unwrap().pixels);
-                self.gui.resize(self.canvas_size);
-                self.collab = add_collab_channel(&mut self.app, &self.collab_uri);
-
-                // Prevent drawing a line from the last location when resuming
-                self.cursor.pressed = false;
-            }
+            Event::Resumed => self.resume(),
             // Suspended on Android
-            Event::Suspended => {
-                self.frozen_sketch =
-                    sketch_from_pixels(self.visible.take().map(|x| x.pixels), self.canvas_size);
-                self.cursor.pressed = false;
-            }
+            Event::Suspended => self.suspend(),
             // Window resized on Desktop (Linux/Windows/iOS)
             Event::WindowEvent {
-                event: WindowEvent::Resized(new_size),
+                event: WindowEvent::Resized(_),
                 ..
             } => {
-                if let Some(visible) = self.visible.as_mut() {
-                    if self.canvas_size != new_size {
-                        resize_buffer(&mut visible.pixels, self.canvas_size, new_size);
-                        self.gui.resize(self.canvas_size);
-                    }
+                if self.visible.is_some() {
+                    self.resize();
                 } else {
-                    self.frozen_sketch =
-                        sketch_from_pixels(self.visible.take().map(|x| x.pixels), self.canvas_size);
-                    self.visible = self.resume(new_size);
-                    self.gui.set_pixels(&self.visible.as_ref().unwrap().pixels);
-                    self.window.request_redraw();
+                    self.resume();
                 }
-
-                self.canvas_size = new_size;
             }
             _ => (),
         }
     }
 
-    fn handle_event_with_pixels(&mut self, event: &winit::event::Event<()>) {
+    fn handle_event_when_visible(&mut self, event: &winit::event::Event<()>) {
         let visible = self.visible.as_mut().unwrap();
         let pixels = &mut visible.pixels;
+
         match *event {
             Event::MainEventsCleared => {
                 // All events from winit have been received, now it's time
@@ -172,9 +149,7 @@ impl PixelsApp {
                 handle_commands_from_collaborators(&self.collab, &mut self.app);
             }
             Event::RedrawRequested(_) => {
-                #[cfg(feature = "gui")]
-                self.gui.prepare(&self.window);
-                self.exit = redraw(pixels, self.canvas_size, &mut self.app, &mut self.gui).is_err();
+                self.redraw();
             }
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
@@ -249,9 +224,67 @@ impl PixelsApp {
         }
     }
 
-    fn resume(&mut self, new_size: PhysicalSize<u32>) -> Option<Visible> {
+    fn redraw(&mut self) {
+        #[cfg(feature = "gui")]
+        self.gui.prepare(&self.window);
+
+        let visible = self.visible.as_mut().unwrap();
+        let pixels = &mut visible.pixels;
+        let canvas_size = self.canvas_size;
+
+        let sketch = MutSketch::new(
+            pixels.get_frame_mut(),
+            canvas_size.width,
+            canvas_size.height,
+        );
+
+        self.app.update(sketch);
+
+        if let Err(err) = pixels.render_with(|encoder, render_target, context| {
+            context.scaling_renderer.render(encoder, render_target);
+
+            #[cfg(feature = "gui")]
+            self.gui.render(encoder, render_target, context);
+
+            Ok(())
+        }) {
+            log::error!("pixels.render() failed: {}", err);
+            self.exit = true;
+        }
+    }
+
+    fn suspend(&mut self) {
+        log::debug!("Suspend");
+        if let Some(visible) = self.visible.take() {
+            self.frozen_sketch = Some(sketch_from_pixels(visible.pixels, self.canvas_size));
+        }
+        self.cursor.pressed = false;
+    }
+
+    fn resize(&mut self) {
+        log::debug!("Resize");
+
+        let new_size = self.window.inner_size();
+
+        if self.canvas_size != new_size {
+            resize_buffer(
+                &mut self.visible.as_mut().unwrap().pixels,
+                self.canvas_size,
+                new_size,
+            );
+            self.canvas_size = new_size;
+            self.gui.resize(self.canvas_size);
+        }
+    }
+
+    fn resume(&mut self) {
+        log::debug!("Resume");
+        let new_size = self.window.inner_size();
+        self.canvas_size = new_size;
+
         let surface_texture = SurfaceTexture::new(new_size.width, new_size.height, &self.window);
-        let mut pixels = Pixels::new(new_size.width, new_size.height, surface_texture).ok()?;
+        let mut pixels = Pixels::new(new_size.width, new_size.height, surface_texture)
+            .expect("Cannot create pixels from surface texture");
 
         pixels.get_frame_mut().fill(0x00);
 
@@ -262,9 +295,13 @@ impl PixelsApp {
             new_sketch.copy_from(&old_sketch.as_sketch());
         }
 
-        let visible = Visible { pixels };
+        self.gui.set_pixels(&pixels);
+        self.gui.resize(self.canvas_size);
 
-        Some(visible)
+        // Prevent drawing a line from the last location when resuming
+        self.cursor.pressed = false;
+
+        self.visible = Some(Visible { pixels })
     }
 }
 
@@ -297,14 +334,10 @@ fn get_collab_uri(opt: &Opt) -> CollabUri {
     collab_uri
 }
 
-fn sketch_from_pixels(
-    pixels: Option<Pixels>,
-    canvas_size: PhysicalSize<u32>,
-) -> Option<OwnedSketch> {
-    let mut pixels = pixels?;
+fn sketch_from_pixels(mut pixels: Pixels, canvas_size: PhysicalSize<u32>) -> OwnedSketch {
     let frame = pixels.get_frame_mut();
     let sketch = MutSketch::new(frame, canvas_size.width, canvas_size.height);
-    Some(sketch.to_owned())
+    sketch.to_owned()
 }
 
 fn resize_buffer(pixels: &mut Pixels, canvas_size: PhysicalSize<u32>, new_size: PhysicalSize<u32>) {
@@ -331,29 +364,6 @@ fn handle_commands_from_collaborators(
     while let Ok(cmd) = collab.borrow_mut().rx().try_recv() {
         app.send_command(cmd);
     }
-}
-
-fn redraw(
-    pixels: &mut Pixels,
-    canvas_size: PhysicalSize<u32>,
-    app: &mut App,
-    #[allow(unused)] framework: &mut Gui,
-) -> Result<(), ()> {
-    let sketch = MutSketch::new(
-        pixels.get_frame_mut(),
-        canvas_size.width,
-        canvas_size.height,
-    );
-    app.update(sketch);
-
-    pixels
-        .render_with(|encoder, render_target, context| {
-            context.scaling_renderer.render(encoder, render_target);
-            #[cfg(feature = "gui")]
-            framework.render(encoder, render_target, context);
-            Ok(())
-        })
-        .map_err(|e| error!("pixels.render() failed: {}", e))
 }
 
 fn window_pos_to_cursor(position: PhysicalPosition<f64>, pixels: &Pixels) -> CursorPos {
