@@ -53,7 +53,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
     let gui = Gui::new(&event_loop, canvas_size.width, canvas_size.height);
     let cursor = Cursor::new();
 
-    let mut running = RunningPixelsApp {
+    let mut running = PixelsApp {
         app,
         collab,
         collab_uri,
@@ -75,7 +75,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
     });
 }
 
-struct RunningPixelsApp {
+struct PixelsApp {
     window: Window,
     app: App,
     collab: Rc<RefCell<SupportedCollaborationChannel>>,
@@ -88,7 +88,7 @@ struct RunningPixelsApp {
     exit: bool,
 }
 
-impl RunningPixelsApp {
+impl PixelsApp {
     fn update(&mut self, event: winit::event::Event<()>) {
         #[cfg(feature = "gui")]
         if let Event::WindowEvent { event, .. } = &event {
