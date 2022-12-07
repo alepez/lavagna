@@ -27,6 +27,20 @@ pub struct Opt {
     pub collab: Option<CollabOpt>,
 }
 
+pub struct PixelsApp {
+    opt: Opt,
+}
+
+impl PixelsApp {
+    pub fn new(opt: Opt) -> Self {
+        Self { opt }
+    }
+
+    pub fn run(&self) -> Result<(), Error> {
+        run(&self.opt)
+    }
+}
+
 fn connect_collab_channel(app: &mut App, collab: Rc<RefCell<SupportedCollaborationChannel>>) {
     app.connect_command_sender(Box::new(move |cmd| {
         collab.borrow_mut().send_command(cmd);
@@ -56,7 +70,7 @@ fn get_collab_uri(opt: &Opt) -> CollabUri {
     collab_uri
 }
 
-pub fn run(opt: Opt) -> Result<(), Error> {
+pub fn run(opt: &Opt) -> Result<(), Error> {
     log::info!("lavagna start");
 
     let event_loop = EventLoop::new();
@@ -77,7 +91,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
 
     let mut app = App::new(pen_id);
 
-    let collab_uri = get_collab_uri(&opt);
+    let collab_uri = get_collab_uri(opt);
 
     let mut collab = add_collab_channel(&mut app, &collab_uri);
 
