@@ -1,7 +1,7 @@
 #![allow(unused)] // When feature gui is disabled, most of this module is unused
 use pixels::{wgpu, Pixels, PixelsContext};
-use winit::event_loop::EventLoopWindowTarget;
 use winit::window::Window;
+use winit::{dpi::PhysicalSize, event_loop::EventLoopWindowTarget};
 
 use egui::{ClippedPrimitive, Context, TexturesDelta};
 use egui_wgpu::renderer::{RenderPass, ScreenDescriptor};
@@ -72,9 +72,9 @@ impl Gui {
     }
 
     /// Resize egui.
-    pub(crate) fn resize(&mut self, width: u32, height: u32) {
-        if width > 0 && height > 0 {
-            self.screen_descriptor.size_in_pixels = [width, height];
+    pub(crate) fn resize(&mut self, size: PhysicalSize<u32>) {
+        if size.width > 0 && size.height > 0 {
+            self.screen_descriptor.size_in_pixels = [size.width, size.height];
         }
     }
 

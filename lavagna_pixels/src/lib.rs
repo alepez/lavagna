@@ -134,8 +134,7 @@ impl RunningPixelsApp {
                 self.canvas_size = self.window.inner_size();
                 self.pixels = resume(&self.window, self.canvas_size, self.frozen_sketch.take());
                 self.gui.set_pixels(self.pixels.as_ref().unwrap());
-                self.gui
-                    .resize(self.canvas_size.width, self.canvas_size.height);
+                self.gui.resize(self.canvas_size);
                 self.collab = add_collab_channel(&mut self.app, &self.collab_uri);
 
                 // Prevent drawing a line from the last location when resuming
@@ -154,8 +153,7 @@ impl RunningPixelsApp {
                 if let Some(pixels) = self.pixels.as_mut() {
                     if self.canvas_size != new_size {
                         resize_buffer(pixels, self.canvas_size, new_size);
-                        self.gui
-                            .resize(self.canvas_size.width, self.canvas_size.height);
+                        self.gui.resize(self.canvas_size);
                     }
                 } else {
                     self.frozen_sketch = sketch_from_pixels(self.pixels.take(), self.canvas_size);
