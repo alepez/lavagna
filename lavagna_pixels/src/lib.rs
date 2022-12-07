@@ -47,7 +47,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
     let mut app = App::new(pen_id);
     let collab_uri = get_collab_uri(&opt);
     let collab = add_collab_channel(&mut app, &collab_uri);
-    let gui = Gui::new(&event_loop, canvas_size.width, canvas_size.height);
+    let gui = Gui::new(&event_loop, canvas_size);
 
     let mut running = PixelsApp {
         app,
@@ -294,7 +294,7 @@ impl PixelsApp {
         }
 
         self.gui.set_pixels(&pixels);
-        self.gui.resize(self.canvas_size);
+        self.gui.resize(new_size);
 
         self.visible = Some(Visible {
             pixels,
