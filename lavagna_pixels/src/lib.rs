@@ -131,12 +131,7 @@ impl PixelsApp {
                     self.resume();
                 }
             }
-            Event::NewEvents(_) => (),
-            Event::MainEventsCleared => (),
-            Event::RedrawEventsCleared => (),
-            event => {
-                log::info!("Event: {:?}", event);
-            }
+            _ => (),
         }
     }
 
@@ -257,14 +252,14 @@ impl PixelsApp {
     }
 
     fn suspend(&mut self) {
-        log::info!("Suspend");
+        log::debug!("Suspend");
         if let Some(visible) = self.visible.take() {
             self.frozen_sketch = Some(sketch_from_pixels(visible.pixels, visible.canvas_size));
         }
     }
 
     fn resize(&mut self) {
-        log::info!("Resize");
+        log::debug!("Resize");
 
         let visible = self.visible.as_mut().unwrap();
         let new_size = self.window.inner_size();
@@ -277,7 +272,7 @@ impl PixelsApp {
     }
 
     fn resume(&mut self) {
-        log::info!("Resume");
+        log::debug!("Resume");
         let new_size = self.window.inner_size();
 
         let surface_texture = SurfaceTexture::new(new_size.width, new_size.height, &self.window);
