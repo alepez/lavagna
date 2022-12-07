@@ -160,8 +160,8 @@ impl App {
         self.send_command_chained(Command::TakeSnapshot);
     }
 
-    pub fn move_cursor(&mut self, cursor: Cursor) {
-        self.send_pen_command(PenCommand::MoveCursor(cursor));
+    pub fn move_cursor(&mut self, cursor: &Cursor) {
+        self.send_pen_command(PenCommand::MoveCursor(*cursor));
     }
 
     pub fn change_color(&mut self) {

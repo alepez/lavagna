@@ -48,7 +48,6 @@ pub fn run(opt: Opt) -> Result<(), Error> {
     let collab_uri = get_collab_uri(&opt);
     let collab = add_collab_channel(&mut app, &collab_uri);
     let gui = Gui::new(&event_loop, canvas_size.width, canvas_size.height);
-    let cursor = Cursor::new();
 
     let mut running = PixelsApp {
         app,
@@ -56,7 +55,6 @@ pub fn run(opt: Opt) -> Result<(), Error> {
         frozen_sketch: None,
         visible: None,
         gui,
-        cursor,
         window,
         canvas_size,
         exit: false,
@@ -77,7 +75,6 @@ struct PixelsApp {
     collab: Rc<RefCell<SupportedCollaborationChannel>>,
     frozen_sketch: Option<OwnedSketch>,
     gui: Gui,
-    cursor: Cursor,
     canvas_size: PhysicalSize<u32>,
     exit: bool,
     visible: Option<Visible>,
@@ -85,6 +82,7 @@ struct PixelsApp {
 
 struct Visible {
     pixels: Pixels,
+    cursor: Cursor,
 }
 
 impl PixelsApp {
@@ -141,6 +139,7 @@ impl PixelsApp {
     fn handle_event_when_visible(&mut self, event: &winit::event::Event<()>) {
         let visible = self.visible.as_mut().unwrap();
         let pixels = &mut visible.pixels;
+        let cursor = &mut visible.cursor;
 
         match *event {
             Event::MainEventsCleared => {
@@ -165,20 +164,20 @@ impl PixelsApp {
                 ..
             } => {
                 match phase {
-                    TouchPhase::Started => self.cursor.pressed = true,
-                    TouchPhase::Ended => self.cursor.pressed = false,
+                    TouchPhase::Started => cursor.pressed = true,
+                    TouchPhase::Ended => cursor.pressed = false,
                     _ => (),
                 }
 
-                self.cursor.pos = window_pos_to_cursor(location, pixels);
-                self.app.move_cursor(self.cursor);
+                cursor.pos = window_pos_to_cursor(location, pixels);
+                self.app.move_cursor(cursor);
             }
             Event::WindowEvent {
                 event: WindowEvent::CursorMoved { position, .. },
                 ..
             } => {
-                self.cursor.pos = window_pos_to_cursor(position, pixels);
-                self.app.move_cursor(self.cursor);
+                cursor.pos = window_pos_to_cursor(position, pixels);
+                self.app.move_cursor(cursor);
             }
             Event::WindowEvent {
                 event:
@@ -190,12 +189,12 @@ impl PixelsApp {
                 ..
             } => match state {
                 ElementState::Pressed => {
-                    self.cursor.pressed = true;
-                    self.app.move_cursor(self.cursor)
+                    cursor.pressed = true;
+                    self.app.move_cursor(cursor)
                 }
                 ElementState::Released => {
-                    self.cursor.pressed = false;
-                    self.app.move_cursor(self.cursor)
+                    cursor.pressed = false;
+                    self.app.move_cursor(cursor)
                 }
             },
             Event::WindowEvent {
@@ -258,7 +257,6 @@ impl PixelsApp {
         if let Some(visible) = self.visible.take() {
             self.frozen_sketch = Some(sketch_from_pixels(visible.pixels, self.canvas_size));
         }
-        self.cursor.pressed = false;
     }
 
     fn resize(&mut self) {
@@ -298,10 +296,10 @@ impl PixelsApp {
         self.gui.set_pixels(&pixels);
         self.gui.resize(self.canvas_size);
 
-        // Prevent drawing a line from the last location when resuming
-        self.cursor.pressed = false;
-
-        self.visible = Some(Visible { pixels })
+        self.visible = Some(Visible {
+            pixels,
+            cursor: Cursor::new(),
+        })
     }
 }
 
