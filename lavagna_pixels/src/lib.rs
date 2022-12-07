@@ -49,7 +49,6 @@ pub fn run(opt: Opt) -> Result<(), Error> {
     let collab_uri = get_collab_uri(&opt);
     let collab = add_collab_channel(&mut app, &collab_uri);
     let frozen_sketch: Option<OwnedSketch> = None;
-    let pixels: Option<Pixels> = None;
     let gui = Gui::new(&event_loop, canvas_size.width, canvas_size.height);
     let cursor = Cursor::new();
 
@@ -58,7 +57,7 @@ pub fn run(opt: Opt) -> Result<(), Error> {
         collab,
         collab_uri,
         frozen_sketch,
-        pixels,
+        visible: None,
         gui,
         cursor,
         window,
@@ -80,12 +79,16 @@ struct PixelsApp {
     app: App,
     collab: Rc<RefCell<SupportedCollaborationChannel>>,
     frozen_sketch: Option<OwnedSketch>,
-    pixels: Option<Pixels>,
     gui: Gui,
     cursor: Cursor,
     canvas_size: PhysicalSize<u32>,
     collab_uri: CollabUri,
     exit: bool,
+    visible: Option<Visible>,
+}
+
+struct Visible {
+    pixels: Pixels,
 }
 
 impl PixelsApp {
@@ -97,7 +100,7 @@ impl PixelsApp {
 
         self.handle_event_without_pixels(&event);
 
-        if self.pixels.is_some() {
+        if self.visible.is_some() {
             self.handle_event_with_pixels(&event);
         }
 
@@ -121,8 +124,8 @@ impl PixelsApp {
             Event::Resumed => {
                 log::info!("Resumed");
                 self.canvas_size = self.window.inner_size();
-                self.pixels = self.resume(self.canvas_size);
-                self.gui.set_pixels(self.pixels.as_ref().unwrap());
+                self.visible = self.resume(self.canvas_size);
+                self.gui.set_pixels(&self.visible.as_ref().unwrap().pixels);
                 self.gui.resize(self.canvas_size);
                 self.collab = add_collab_channel(&mut self.app, &self.collab_uri);
 
@@ -131,7 +134,8 @@ impl PixelsApp {
             }
             // Suspended on Android
             Event::Suspended => {
-                self.frozen_sketch = sketch_from_pixels(self.pixels.take(), self.canvas_size);
+                self.frozen_sketch =
+                    sketch_from_pixels(self.visible.take().map(|x| x.pixels), self.canvas_size);
                 self.cursor.pressed = false;
             }
             // Window resized on Desktop (Linux/Windows/iOS)
@@ -139,15 +143,16 @@ impl PixelsApp {
                 event: WindowEvent::Resized(new_size),
                 ..
             } => {
-                if let Some(pixels) = self.pixels.as_mut() {
+                if let Some(visible) = self.visible.as_mut() {
                     if self.canvas_size != new_size {
-                        resize_buffer(pixels, self.canvas_size, new_size);
+                        resize_buffer(&mut visible.pixels, self.canvas_size, new_size);
                         self.gui.resize(self.canvas_size);
                     }
                 } else {
-                    self.frozen_sketch = sketch_from_pixels(self.pixels.take(), self.canvas_size);
-                    self.pixels = self.resume(new_size);
-                    self.gui.set_pixels(self.pixels.as_ref().unwrap());
+                    self.frozen_sketch =
+                        sketch_from_pixels(self.visible.take().map(|x| x.pixels), self.canvas_size);
+                    self.visible = self.resume(new_size);
+                    self.gui.set_pixels(&self.visible.as_ref().unwrap().pixels);
                     self.window.request_redraw();
                 }
 
@@ -158,7 +163,8 @@ impl PixelsApp {
     }
 
     fn handle_event_with_pixels(&mut self, event: &winit::event::Event<()>) {
-        let pixels = self.pixels.as_mut().unwrap();
+        let visible = self.visible.as_mut().unwrap();
+        let pixels = &mut visible.pixels;
         match *event {
             Event::MainEventsCleared => {
                 // All events from winit have been received, now it's time
@@ -243,7 +249,7 @@ impl PixelsApp {
         }
     }
 
-    fn resume(&mut self, new_size: PhysicalSize<u32>) -> Option<Pixels> {
+    fn resume(&mut self, new_size: PhysicalSize<u32>) -> Option<Visible> {
         let surface_texture = SurfaceTexture::new(new_size.width, new_size.height, &self.window);
         let mut pixels = Pixels::new(new_size.width, new_size.height, surface_texture).ok()?;
 
@@ -256,7 +262,9 @@ impl PixelsApp {
             new_sketch.copy_from(&old_sketch.as_sketch());
         }
 
-        Some(pixels)
+        let visible = Visible { pixels };
+
+        Some(visible)
     }
 }
 
