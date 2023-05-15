@@ -113,19 +113,17 @@ fn debug_test_system(
     let x = pen.x;
     let y = pen.y;
 
-    let mut fps = 0.0;
-    if let Some(fps_diagnostic) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
-        if let Some(fps_smoothed) = fps_diagnostic.smoothed() {
-            fps = fps_smoothed;
-        }
-    }
+    let fps = diagnostics
+        .get(FrameTimeDiagnosticsPlugin::FPS)
+        .and_then(|x| x.smoothed())
+        .map(|x| format!("{:.1} fps", x))
+        .unwrap_or("".to_owned());
 
-    let mut frame_time = time.delta_seconds_f64();
-    if let Some(frame_time_diagnostic) = diagnostics.get(FrameTimeDiagnosticsPlugin::FRAME_TIME) {
-        if let Some(frame_time_smoothed) = frame_time_diagnostic.smoothed() {
-            frame_time = frame_time_smoothed;
-        }
-    }
+    let frame_time = diagnostics
+        .get(FrameTimeDiagnosticsPlugin::FRAME_TIME)
+        .and_then(|x| x.smoothed())
+        .unwrap_or_else(|| time.delta_seconds_f64());
+    let frame_time = format!("{:.3} ms/frame", frame_time);
 
-    text.sections[0].value = format!("{fps:.1} fps\n{frame_time:.3} ms/frame\n{x}:{y}\n",);
+    text.sections[0].value = format!("{fps}\n{frame_time}\n{x}:{y}\n",);
 }
