@@ -92,7 +92,7 @@ struct DebugText;
 impl Pen {
     fn new() -> Self {
         Self {
-            pressed: true,
+            pressed: false,
             x: 0,
             y: 0,
         }
@@ -108,9 +108,6 @@ fn debug_test_system(
     let mut text = text.single_mut();
     let pen = pen.single_mut();
 
-    let x = pen.x;
-    let y = pen.y;
-
     let fps = diagnostics
         .get(FrameTimeDiagnosticsPlugin::FPS)
         .and_then(|x| x.smoothed())
@@ -123,5 +120,10 @@ fn debug_test_system(
         .unwrap_or_else(|| time.delta_seconds_f64());
     let frame_time = format!("{:.3} ms/frame", frame_time);
 
-    text.sections[0].value = format!("{fps}\n{frame_time}\n{x}:{y}\n",);
+    let x = pen.x;
+    let y = pen.y;
+    let pressed = pen.pressed;
+    let pen = format!("{x}:{y} {pressed}");
+
+    text.sections[0].value = format!("{fps}\n{frame_time}\n{pen}\n",);
 }
