@@ -22,14 +22,14 @@ fn main() {
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2dBundle::default());
 
-    commands.spawn(Pen::new_local());
+    commands.spawn((Pen::new(), LocalPen));
 
     commands.spawn((
         TextBundle::from_section(
             "--",
             TextStyle {
                 font: asset_server.load("fonts/FiraMono-Medium.ttf"),
-                font_size: 50.0,
+                font_size: 20.0,
                 color: Color::WHITE,
             },
         )
@@ -49,52 +49,50 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 fn mouse_system(
     mut mouse_button_input_events: EventReader<MouseButtonInput>,
     mut cursor_moved_events: EventReader<CursorMoved>,
-    mut query: Query<&mut Pen>,
+    mut pen: Query<&mut Pen, With<LocalPen>>,
 ) {
-    for mut pen in &mut query {
-        if pen.local {
-            for event in mouse_button_input_events.iter() {
-                match event {
-                    MouseButtonInput {
-                        button: MouseButton::Left,
-                        state: ButtonState::Pressed,
-                    } => {
-                        pen.pressed = true;
-                    }
-                    MouseButtonInput {
-                        button: MouseButton::Left,
-                        state: ButtonState::Released,
-                    } => {
-                        pen.pressed = false;
-                    }
-                    _ => {}
-                }
+    let mut pen = pen.single_mut();
+    for event in mouse_button_input_events.iter() {
+        match event {
+            MouseButtonInput {
+                button: MouseButton::Left,
+                state: ButtonState::Pressed,
+            } => {
+                pen.pressed = true;
             }
-
-            for event in cursor_moved_events.iter() {
-                pen.x = event.position[0] as i64;
-                pen.y = event.position[1] as i64;
+            MouseButtonInput {
+                button: MouseButton::Left,
+                state: ButtonState::Released,
+            } => {
+                pen.pressed = false;
             }
+            _ => {}
         }
+    }
+
+    for event in cursor_moved_events.iter() {
+        pen.x = event.position[0] as i64;
+        pen.y = event.position[1] as i64;
     }
 }
 
 #[derive(Component)]
 struct Pen {
     pressed: bool,
-    local: bool,
     x: i64,
     y: i64,
 }
 
 #[derive(Component)]
+struct LocalPen;
+
+#[derive(Component)]
 struct DebugText;
 
 impl Pen {
-    fn new_local() -> Self {
+    fn new() -> Self {
         Self {
             pressed: true,
-            local: true,
             x: 0,
             y: 0,
         }
