@@ -19,6 +19,7 @@ fn update(
     mut polyline_q: Query<&mut PendingPolyline>,
     mut path_q: Query<&mut Path, With<Pending>>,
     mut stroke_q: Query<&mut Stroke, With<Pending>>,
+    time: Res<Time>,
 ) {
     let chalk = chalk_q.single();
     let polyline: &mut PendingPolyline = &mut polyline_q.single_mut();
@@ -31,7 +32,7 @@ fn update(
     stroke.options.line_width = chalk.line_width as f32;
 
     if just_released {
-        complete_pending_path(polyline, commands, chalk);
+        complete_pending_path(polyline, commands, chalk, &time);
     } else if update {
         add_point(polyline, chalk);
     }
@@ -45,11 +46,35 @@ fn add_point(polyline: &mut PendingPolyline, chalk: &Chalk) {
     polyline.points.push(new_point);
 }
 
-fn complete_pending_path(polyline: &mut PendingPolyline, mut commands: Commands, chalk: &Chalk) {
+fn z_from_time(time: &Time) -> f32 {
+    let t = time.elapsed_seconds();
+    const MAX_Z: f32 = 500.0;
+    const MAX_TIME: f32 = 10_000.0;
+    let step = MAX_Z / MAX_TIME;
+    t * step
+}
+
+fn complete_pending_path(
+    polyline: &mut PendingPolyline,
+    mut commands: Commands,
+    chalk: &Chalk,
+    time: &Time,
+) {
     let path = Path::from(&*polyline);
 
+    let z = z_from_time(time);
+
+    let transform = Transform {
+        translation: Vec3::new(0., 0., z),
+        ..default()
+    };
+
     commands.spawn((
-        ShapeBundle { path, ..default() },
+        ShapeBundle {
+            path,
+            transform,
+            ..default()
+        },
         Stroke::new(chalk.color, chalk.line_width as f32),
         Fill::color(Color::NONE),
         Completed,
@@ -64,8 +89,18 @@ fn setup(mut commands: Commands) {
     let path_builder = PathBuilder::new();
     let path = path_builder.build();
 
+    // z-index at maximum before clipping pane
+    let transform = Transform {
+        translation: Vec3::new(0., 0., 999.0),
+        ..default()
+    };
+
     commands.spawn((
-        ShapeBundle { path, ..default() },
+        ShapeBundle {
+            path,
+            transform,
+            ..default()
+        },
         Stroke::new(Color::WHITE, 10.0),
         Fill::color(Color::NONE),
         Pending,
