@@ -1,14 +1,28 @@
-use crate::LocalPen;
 use crate::MainCamera;
 use crate::Pen;
 
 use bevy::{
     input::{mouse::MouseButtonInput, ButtonState},
-    prelude::{Camera, EventReader, GlobalTransform, MouseButton, Query, With},
+    prelude::*,
     window::Window,
 };
 
-pub(crate) fn input_system(
+pub(crate) struct LocalPenPlugin;
+
+#[derive(Component)]
+struct LocalPen;
+
+impl Plugin for LocalPenPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_startup_system(startup).add_system(update);
+    }
+}
+
+fn startup(mut commands: Commands) {
+    commands.spawn((Pen::new(), LocalPen));
+}
+
+fn update(
     window_q: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
     mut mouse_button_input_events: EventReader<MouseButtonInput>,
