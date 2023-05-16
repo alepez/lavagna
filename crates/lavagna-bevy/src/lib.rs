@@ -1,14 +1,14 @@
 mod debug;
 mod drawing;
 mod keybinding;
-mod local_pen;
+mod local_chalk;
 
 use bevy::{prelude::*, window::Window};
 
 use crate::debug::DebugPlugin;
 use crate::drawing::DrawingPlugin;
 use crate::keybinding::KeybindingPlugin;
-use crate::local_pen::LocalPenPlugin;
+use crate::local_chalk::LocalPenPlugin;
 
 pub fn run() {
     App::new()
