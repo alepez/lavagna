@@ -1,10 +1,10 @@
 mod debug;
-mod input;
+mod local_pen;
 
 use bevy::{prelude::*, window::Window};
 
 use crate::debug::DebugPlugin;
-use crate::input::LocalPenPlugin;
+use crate::local_pen::LocalPenPlugin;
 
 pub fn run() {
     App::new()
