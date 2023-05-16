@@ -47,7 +47,7 @@ fn handle_user_input(
     let mut pen = pen_q.single_mut();
     let window = window_q.single();
 
-    let prev_pen = pen.clone();
+    let prev_pen = *pen;
 
     if let Some(world_position) = window
         .cursor_position()
