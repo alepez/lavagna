@@ -1,14 +1,14 @@
 mod debug;
 mod drawing;
-mod local_pen;
 mod keybinding;
+mod local_pen;
 
 use bevy::{prelude::*, window::Window};
 
 use crate::debug::DebugPlugin;
 use crate::drawing::DrawingPlugin;
-use crate::local_pen::LocalPenPlugin;
 use crate::keybinding::KeybindingPlugin;
+use crate::local_pen::LocalPenPlugin;
 
 pub fn run() {
     App::new()
@@ -30,8 +30,9 @@ pub fn run() {
 #[derive(Component)]
 struct MainCamera;
 
-fn setup(mut commands: Commands) {
+fn setup(mut commands: Commands, mut clear_color: ResMut<ClearColor>) {
     commands.spawn((Camera2dBundle::default(), MainCamera));
+    clear_color.0 = Color::BLACK;
 }
 
 #[derive(Component, Debug, Clone, Copy)]
