@@ -34,8 +34,7 @@ fn setup(mut commands: Commands) {
 #[derive(Component, Debug, Clone, Copy)]
 struct Pen {
     pressed: bool,
-    // TODO Fix typo
-    updateded: bool,
+    updated: bool,
     x: i64,
     y: i64,
 }
@@ -44,7 +43,7 @@ impl Pen {
     fn new() -> Self {
         Self {
             pressed: false,
-            updateded: false,
+            updated: false,
             x: 0,
             y: 0,
         }

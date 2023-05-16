@@ -76,7 +76,7 @@ fn handle_user_input(
         }
     }
 
-    pen.updateded = is_updated(&prev_pen, &pen);
+    pen.updated = is_updated(&prev_pen, &pen);
 }
 
 fn update_sprite_position(
