@@ -13,17 +13,37 @@ impl Plugin for DrawingPlugin {
     }
 }
 
-fn update(pens_q: Query<&Pen>, mut polyline_q: Query<&mut Polyline>, mut path_q: Query<&mut Path>) {
+fn update(
+    mut commands: Commands,
+    pens_q: Query<&Pen>,
+    mut polyline_q: Query<&mut Polyline>,
+    mut path_q: Query<&mut Path, With<Pending>>,
+) {
     let pen = pens_q.single();
     let polyline: &mut Polyline = &mut polyline_q.single_mut();
 
     let update = pen.pressed && pen.updated;
+    let just_released = !pen.pressed && !polyline.points.is_empty();
 
     if update {
         let new_point = Vec2::new(pen.x as f32, pen.y as f32);
         polyline.points.push(new_point);
 
         *path_q.single_mut() = Path::from(&*polyline);
+    }
+
+    if just_released {
+        commands.spawn((
+            ShapeBundle {
+                path: Path::from(&*polyline),
+                ..default()
+            },
+            Stroke::new(Color::WHITE, 10.0),
+            Fill::color(Color::NONE),
+            Completed,
+        ));
+
+        polyline.points.clear();
     }
 }
 
@@ -37,12 +57,19 @@ fn setup(mut commands: Commands) {
         ShapeBundle { path, ..default() },
         Stroke::new(Color::WHITE, 10.0),
         Fill::color(Color::NONE),
+        Pending,
     ));
 }
 
+#[derive(Debug, Component, Default)]
+struct Completed;
+
+#[derive(Debug, Component, Default)]
+struct Pending;
+
 #[derive(Debug, Clone, Component, Default)]
 struct Polyline {
-    pub points: Vec<Vec2>,
+    points: Vec<Vec2>,
 }
 
 impl From<&Polyline> for Path {
