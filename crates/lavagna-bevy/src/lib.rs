@@ -1,12 +1,14 @@
 mod debug;
 mod drawing;
 mod local_pen;
+mod keybinding;
 
 use bevy::{prelude::*, window::Window};
 
 use crate::debug::DebugPlugin;
 use crate::drawing::DrawingPlugin;
 use crate::local_pen::LocalPenPlugin;
+use crate::keybinding::KeybindingPlugin;
 
 pub fn run() {
     App::new()
@@ -20,6 +22,7 @@ pub fn run() {
         .add_plugin(DebugPlugin)
         .add_plugin(LocalPenPlugin)
         .add_plugin(DrawingPlugin)
+        .add_plugin(KeybindingPlugin)
         .add_startup_system(setup)
         .run();
 }
