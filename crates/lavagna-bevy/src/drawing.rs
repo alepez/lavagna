@@ -1,56 +1,64 @@
 use crate::Pen;
 use bevy::prelude::*;
 
-use bevy::render::mesh::PrimitiveTopology;
-use bevy::sprite::MaterialMesh2dBundle;
+use bevy_prototype_lyon::prelude::*;
 
 pub(crate) struct DrawingPlugin;
 
 impl Plugin for DrawingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_startup_system(setup).add_system(update);
+        app.add_plugin(ShapePlugin)
+            .add_startup_system(setup)
+            .add_system(update);
     }
 }
 
-fn update(pens_q: Query<&Pen>) {
-    for pen in &pens_q {
-        if pen.pressed {
-            dbg!(&pen);
+fn update(pens_q: Query<&Pen>, mut polyline_q: Query<&mut Polyline>, mut path_q: Query<&mut Path>) {
+    let pen = pens_q.single();
+    let polyline: &mut Polyline = &mut polyline_q.single_mut();
+
+    let update = pen.pressed && pen.updateded;
+
+    if update {
+        let new_point = Vec2::new(pen.x as f32, pen.y as f32);
+        polyline.points.push(new_point);
+
+        *path_q.single_mut() = Path::from(&*polyline);
+    }
+}
+
+fn setup(mut commands: Commands) {
+    commands.spawn(Polyline::default());
+
+    let path_builder = PathBuilder::new();
+    let path = path_builder.build();
+
+    commands.spawn((
+        ShapeBundle { path, ..default() },
+        Stroke::new(Color::WHITE, 10.0),
+        Fill::color(Color::NONE),
+    ));
+}
+
+#[derive(Debug, Clone, Component, Default)]
+struct Polyline {
+    pub points: Vec<Vec2>,
+}
+
+impl From<&Polyline> for Path {
+    fn from(polyline: &Polyline) -> Self {
+        let mut path_builder = PathBuilder::new();
+
+        let mut iter = polyline.points.iter();
+
+        if let Some(first) = iter.next() {
+            path_builder.move_to(*first);
         }
-    }
-}
 
-fn setup(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-) {
-    commands.spawn(MaterialMesh2dBundle {
-        mesh: bevy::sprite::Mesh2dHandle(meshes.add(Mesh::from(Polyline {
-            lines: vec![
-                (Vec3::ZERO, Vec3::new(100.0, 100.0, 0.0)),
-                (Vec3::new(100.0, 100.0, 0.0), Vec3::new(100.0, 0.0, 0.0)),
-            ],
-        }))),
-        material: materials.add(ColorMaterial::from(Color::WHITE)),
-        ..default()
-    });
-}
+        for point in iter {
+            path_builder.line_to(*point);
+        }
 
-/// A list of lines with a start and end position
-#[derive(Debug, Clone)]
-pub struct Polyline {
-    pub lines: Vec<(Vec3, Vec3)>,
-}
-
-impl From<Polyline> for Mesh {
-    fn from(line: Polyline) -> Self {
-        // This tells wgpu that the positions are list of lines
-        // where every pair is a start and end point
-        let mut mesh = Mesh::new(PrimitiveTopology::LineList);
-
-        let vertices: Vec<_> = line.lines.into_iter().flat_map(|(a, b)| [a, b]).collect();
-        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vertices);
-        mesh
+        path_builder.build()
     }
 }
