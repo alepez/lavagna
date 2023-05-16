@@ -34,8 +34,10 @@ fn update(
         complete_pending_path(polyline, commands, chalk);
     } else if update {
         add_point(polyline, chalk);
-        *path_q.single_mut() = Path::from(&*polyline);
     }
+
+    // Regenerate mesh from list of points
+    *path_q.single_mut() = Path::from(&*polyline);
 }
 
 fn add_point(polyline: &mut PendingPolyline, chalk: &Chalk) {
