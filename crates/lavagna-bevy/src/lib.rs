@@ -1,10 +1,12 @@
 mod debug;
 mod local_pen;
+mod drawing;
 
 use bevy::{prelude::*, window::Window};
 
 use crate::debug::DebugPlugin;
 use crate::local_pen::LocalPenPlugin;
+use crate::drawing::DrawingPlugin;
 
 pub fn run() {
     App::new()
@@ -17,6 +19,7 @@ pub fn run() {
         }))
         .add_plugin(DebugPlugin)
         .add_plugin(LocalPenPlugin)
+        .add_plugin(DrawingPlugin)
         .add_startup_system(setup)
         .run();
 }
@@ -28,7 +31,7 @@ fn setup(mut commands: Commands) {
     commands.spawn((Camera2dBundle::default(), MainCamera));
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 struct Pen {
     pressed: bool,
     x: i64,
