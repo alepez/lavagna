@@ -1889,13 +1889,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "lavagna"
-version = "0.1.0"
-dependencies = [
- "lavagna-bevy",
-]
-
-[[package]]
 name = "lavagna-bevy"
 version = "0.1.0"
 dependencies = [
