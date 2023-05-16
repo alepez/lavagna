@@ -26,7 +26,7 @@ fn setup(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.spawn(MaterialMesh2dBundle {
-        mesh: bevy::sprite::Mesh2dHandle(meshes.add(Mesh::from(LineList {
+        mesh: bevy::sprite::Mesh2dHandle(meshes.add(Mesh::from(Polyline {
             lines: vec![
                 (Vec3::ZERO, Vec3::new(100.0, 100.0, 0.0)),
                 (Vec3::new(100.0, 100.0, 0.0), Vec3::new(100.0, 0.0, 0.0)),
@@ -39,12 +39,12 @@ fn setup(
 
 /// A list of lines with a start and end position
 #[derive(Debug, Clone)]
-pub struct LineList {
+pub struct Polyline {
     pub lines: Vec<(Vec3, Vec3)>,
 }
 
-impl From<LineList> for Mesh {
-    fn from(line: LineList) -> Self {
+impl From<Polyline> for Mesh {
+    fn from(line: Polyline) -> Self {
         // This tells wgpu that the positions are list of lines
         // where every pair is a start and end point
         let mut mesh = Mesh::new(PrimitiveTopology::LineList);
