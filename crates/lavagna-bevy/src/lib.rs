@@ -36,14 +36,14 @@ fn setup(mut commands: Commands, mut clear_color: ResMut<ClearColor>) {
 }
 
 #[derive(Component, Debug, Clone, Copy)]
-struct Pen {
+struct Chalk {
     pressed: bool,
     updated: bool,
     x: i64,
     y: i64,
 }
 
-impl Pen {
+impl Chalk {
     fn new() -> Self {
         Self {
             pressed: false,
