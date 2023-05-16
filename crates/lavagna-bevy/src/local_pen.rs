@@ -47,6 +47,8 @@ fn handle_user_input(
     let mut pen = pen_q.single_mut();
     let window = window_q.single();
 
+    let prev_pen = pen.clone();
+
     if let Some(world_position) = window
         .cursor_position()
         .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor))
@@ -73,6 +75,9 @@ fn handle_user_input(
             _ => {}
         }
     }
+
+    let updateded = is_updated(&prev_pen, &pen);
+    pen.updateded = pen.updateded || updateded;
 }
 
 fn update_sprite_position(
@@ -90,4 +95,8 @@ fn update_sprite_position(
     } else {
         Visibility::Hidden
     };
+}
+
+fn is_updated(old_pen: &Pen, new_pen: &Pen) -> bool {
+    old_pen.x != new_pen.x || old_pen.y != new_pen.y
 }
