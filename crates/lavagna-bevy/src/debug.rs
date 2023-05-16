@@ -5,7 +5,7 @@ use bevy::{
     time::Time,
 };
 
-use crate::Pen;
+use crate::Chalk;
 
 pub(crate) struct DebugPlugin;
 
@@ -45,7 +45,7 @@ fn update(
     time: Res<Time>,
     diagnostics: Res<Diagnostics>,
     mut text: Query<&mut Text, With<DebugText>>,
-    mut pen: Query<&mut Pen>,
+    mut pen: Query<&mut Chalk>,
 ) {
     let mut text = text.single_mut();
     let pen = pen.single_mut();

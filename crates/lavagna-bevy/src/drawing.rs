@@ -1,4 +1,4 @@
-use crate::Pen;
+use crate::Chalk;
 use bevy::prelude::*;
 
 use bevy_prototype_lyon::prelude::*;
@@ -15,7 +15,7 @@ impl Plugin for DrawingPlugin {
 
 fn update(
     commands: Commands,
-    pens_q: Query<&Pen>,
+    pens_q: Query<&Chalk>,
     mut polyline_q: Query<&mut PendingPolyline>,
     mut path_q: Query<&mut Path, With<Pending>>,
 ) {
@@ -33,7 +33,7 @@ fn update(
     }
 }
 
-fn add_point(polyline: &mut PendingPolyline, pen: &Pen) {
+fn add_point(polyline: &mut PendingPolyline, pen: &Chalk) {
     let new_point = Vec2::new(pen.x as f32, pen.y as f32);
     polyline.points.push(new_point);
 }

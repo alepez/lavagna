@@ -1,5 +1,5 @@
 use crate::MainCamera;
-use crate::Pen;
+use crate::Chalk;
 
 use bevy::{
     input::{mouse::MouseButtonInput, ButtonState},
@@ -21,7 +21,7 @@ impl Plugin for LocalPenPlugin {
 }
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn((LocalPen, Pen::new()));
+    commands.spawn((LocalPen, Chalk::new()));
 
     commands.spawn((
         LocalPen,
@@ -41,7 +41,7 @@ fn handle_user_input(
     window_q: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
     mut mouse_button_input_events: EventReader<MouseButtonInput>,
-    mut pen_q: Query<&mut Pen, With<LocalPen>>,
+    mut pen_q: Query<&mut Chalk, With<LocalPen>>,
 ) {
     let (camera, camera_transform) = camera_q.single();
     let mut pen = pen_q.single_mut();
@@ -80,7 +80,7 @@ fn handle_user_input(
 }
 
 fn update_sprite_position(
-    pen_q: Query<&mut Pen, With<LocalPen>>,
+    pen_q: Query<&mut Chalk, With<LocalPen>>,
     mut sprite_transform_q: Query<&mut Transform, With<LocalPen>>,
     mut sprite_visibility_q: Query<&mut Visibility, With<LocalPen>>,
 ) {
@@ -96,6 +96,6 @@ fn update_sprite_position(
     };
 }
 
-fn is_updated(old_pen: &Pen, new_pen: &Pen) -> bool {
+fn is_updated(old_pen: &Chalk, new_pen: &Chalk) -> bool {
     old_pen.x != new_pen.x || old_pen.y != new_pen.y
 }
