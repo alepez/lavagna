@@ -1,5 +1,5 @@
-use crate::MainCamera;
 use crate::Chalk;
+use crate::MainCamera;
 
 use bevy::{
     input::{mouse::MouseButtonInput, ButtonState},
@@ -9,14 +9,31 @@ use bevy::{
 
 pub(crate) struct LocalPenPlugin;
 
+#[derive(Resource)]
+pub(crate) struct LocalChalkConfig {
+    pub(crate) color: Color,
+    pub(crate) line_width: u32,
+}
+
+impl Default for LocalChalkConfig {
+    fn default() -> Self {
+        Self {
+            color: Color::WHITE,
+            line_width: 8,
+        }
+    }
+}
+
 #[derive(Component)]
 pub struct LocalChalk;
 
 impl Plugin for LocalPenPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(startup)
+        app.init_resource::<LocalChalkConfig>()
+            .add_startup_system(startup)
             .add_system(handle_user_input)
-            .add_system(update_sprite_position);
+            .add_system(update_sprite_position)
+            .add_system(update_config);
     }
 }
 
@@ -98,4 +115,13 @@ fn update_sprite_position(
 
 fn is_updated(old_pen: &Chalk, new_pen: &Chalk) -> bool {
     old_pen.x != new_pen.x || old_pen.y != new_pen.y
+}
+
+fn update_config(
+    chalk_config: Res<LocalChalkConfig>,
+    mut chalk_q: Query<&mut Chalk, With<LocalChalk>>,
+) {
+    let chalk = &mut chalk_q.single_mut();
+    chalk.color = chalk_config.color;
+    chalk.line_width = chalk_config.line_width;
 }

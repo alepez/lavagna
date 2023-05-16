@@ -1,4 +1,4 @@
-use crate::{local_chalk::LocalChalk, Chalk};
+use crate::local_chalk::LocalChalkConfig;
 use bevy::prelude::*;
 
 pub(crate) struct KeybindingPlugin;
@@ -9,9 +9,7 @@ impl Plugin for KeybindingPlugin {
     }
 }
 
-fn update(keyboard_input: Res<Input<KeyCode>>, mut chalk_q: Query<&mut Chalk, With<LocalChalk>>) {
-    let chalk = &mut chalk_q.single_mut();
-
+fn update(keyboard_input: Res<Input<KeyCode>>, mut chalk_config: ResMut<LocalChalkConfig>) {
     if keyboard_input.just_pressed(KeyCode::Escape) {
         println!("TODO Quit the application");
     }
@@ -34,15 +32,15 @@ fn update(keyboard_input: Res<Input<KeyCode>>, mut chalk_q: Query<&mut Chalk, Wi
 
     if keyboard_input.just_pressed(KeyCode::M) {
         println!("TODO Grow chalk size 2x");
-        if chalk.line_width < 100 {
-            chalk.line_width = chalk.line_width * 2;
+        if chalk_config.line_width < 100 {
+            chalk_config.line_width = chalk_config.line_width * 2;
         }
     }
 
     if keyboard_input.just_pressed(KeyCode::N) {
-        println!("TODO Shrink chalk size 2x");
-        if chalk.line_width > 1 {
-            chalk.line_width = chalk.line_width / 2;
+        println!("TODO Shrink chalk_config size 2x");
+        if chalk_config.line_width > 1 {
+            chalk_config.line_width = chalk_config.line_width / 2;
         }
     }
 }
