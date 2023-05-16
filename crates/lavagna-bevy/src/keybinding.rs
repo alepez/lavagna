@@ -9,6 +9,30 @@ impl Plugin for KeybindingPlugin {
     }
 }
 
+const COLORS: [Color; 7] = [
+    Color::WHITE,
+    Color::BLUE,
+    Color::TURQUOISE,
+    Color::GREEN,
+    Color::YELLOW,
+    Color::ORANGE,
+    Color::RED,
+];
+
+fn next_color(curr_color: Color) -> Color {
+    if let Some(next_color) = COLORS
+        .iter()
+        .cycle()
+        .skip_while(|&&x| x != curr_color)
+        .skip(1)
+        .next()
+    {
+        *next_color
+    } else {
+        curr_color
+    }
+}
+
 fn update(keyboard_input: Res<Input<KeyCode>>, mut chalk_config: ResMut<LocalChalkConfig>) {
     if keyboard_input.just_pressed(KeyCode::Escape) {
         println!("TODO Quit the application");
@@ -20,6 +44,7 @@ fn update(keyboard_input: Res<Input<KeyCode>>, mut chalk_config: ResMut<LocalCha
 
     if keyboard_input.just_pressed(KeyCode::C) {
         println!("TODO Change the chalk color");
+        chalk_config.color = next_color(chalk_config.color);
     }
 
     if keyboard_input.just_pressed(KeyCode::U) {
