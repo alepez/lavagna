@@ -3,6 +3,7 @@ mod input;
 
 use bevy::{prelude::*, window::Window};
 
+use crate::debug::DebugPlugin;
 use crate::input::*;
 
 pub fn run() {
@@ -14,10 +15,9 @@ pub fn run() {
             }),
             ..default()
         }))
+        .add_plugin(DebugPlugin)
         .add_startup_system(setup)
-        .add_startup_system(debug::setup)
         .add_system(input_system)
-        .add_system(debug::update)
         .run();
 }
 

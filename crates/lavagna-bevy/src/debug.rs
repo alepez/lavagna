@@ -7,10 +7,18 @@ use bevy::{
 
 use crate::Pen;
 
-#[derive(Component)]
-pub(crate) struct DebugText;
+pub(crate) struct DebugPlugin;
 
-pub(crate) fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+impl Plugin for DebugPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_startup_system(startup).add_system(update);
+    }
+}
+
+#[derive(Component)]
+struct DebugText;
+
+fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         TextBundle::from_section(
             "--",
@@ -33,7 +41,7 @@ pub(crate) fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     ));
 }
 
-pub(crate) fn update(
+fn update(
     time: Res<Time>,
     diagnostics: Res<Diagnostics>,
     mut text: Query<&mut Text, With<DebugText>>,
