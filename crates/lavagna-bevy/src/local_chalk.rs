@@ -6,6 +6,10 @@ use bevy::{
     prelude::*,
     window::Window,
 };
+use bevy_prototype_lyon::prelude::Fill;
+use bevy_prototype_lyon::prelude::GeometryBuilder;
+use bevy_prototype_lyon::prelude::ShapeBundle;
+use bevy_prototype_lyon::shapes;
 
 pub(crate) struct LocalPenPlugin;
 
@@ -32,25 +36,26 @@ impl Plugin for LocalPenPlugin {
         app.init_resource::<LocalChalkConfig>()
             .add_startup_system(startup)
             .add_system(handle_user_input)
-            .add_system(update_sprite_position)
+            .add_system(update_position)
             .add_system(update_config);
     }
 }
 
-fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn startup(mut commands: Commands, chalk_config: Res<LocalChalkConfig>) {
     commands.spawn((LocalChalk, Chalk::new()));
+
+    let shape = shapes::Circle {
+        radius: chalk_config.line_width as f32 / 2.,
+        center: Vec2::new(0.0, 0.0),
+    };
 
     commands.spawn((
         LocalChalk,
-        SpriteBundle {
-            texture: asset_server.load("sprites/pen.png"),
-            transform: Transform {
-                scale: Vec3::new(0.2, 0.2, 0.2),
-                ..default()
-            },
-            visibility: Visibility::Hidden,
+        ShapeBundle {
+            path: GeometryBuilder::build_as(&shape),
             ..default()
         },
+        Fill::color(chalk_config.color),
     ));
 }
 
@@ -96,21 +101,13 @@ fn handle_user_input(
     pen.updated = is_updated(&prev_pen, &pen);
 }
 
-fn update_sprite_position(
+fn update_position(
     pen_q: Query<&mut Chalk, With<LocalChalk>>,
     mut sprite_transform_q: Query<&mut Transform, With<LocalChalk>>,
-    mut sprite_visibility_q: Query<&mut Visibility, With<LocalChalk>>,
 ) {
     let pen = pen_q.single();
     let mut t = sprite_transform_q.single_mut();
-    let mut v = sprite_visibility_q.single_mut();
     t.translation = Vec3::new(pen.x as f32, pen.y as f32, 0.);
-
-    *v = if pen.pressed {
-        Visibility::Visible
-    } else {
-        Visibility::Hidden
-    };
 }
 
 fn is_updated(old_pen: &Chalk, new_pen: &Chalk) -> bool {
@@ -120,8 +117,12 @@ fn is_updated(old_pen: &Chalk, new_pen: &Chalk) -> bool {
 fn update_config(
     chalk_config: Res<LocalChalkConfig>,
     mut chalk_q: Query<&mut Chalk, With<LocalChalk>>,
+    mut fill_q: Query<&mut Fill, With<LocalChalk>>,
 ) {
     let chalk = &mut chalk_q.single_mut();
     chalk.color = chalk_config.color;
     chalk.line_width = chalk_config.line_width;
+
+    let fill: &mut Fill = &mut fill_q.single_mut();
+    *fill = Fill::color(chalk_config.color);
 }
