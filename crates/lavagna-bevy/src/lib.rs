@@ -41,6 +41,8 @@ struct Chalk {
     updated: bool,
     x: i64,
     y: i64,
+    color: Color,
+    line_width: u32,
 }
 
 impl Chalk {
@@ -50,6 +52,8 @@ impl Chalk {
             updated: false,
             x: 0,
             y: 0,
+            color: Color::WHITE,
+            line_width: 10,
         }
     }
 }

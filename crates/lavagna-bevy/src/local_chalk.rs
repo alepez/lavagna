@@ -10,7 +10,7 @@ use bevy::{
 pub(crate) struct LocalPenPlugin;
 
 #[derive(Component)]
-struct LocalChalk;
+pub struct LocalChalk;
 
 impl Plugin for LocalPenPlugin {
     fn build(&self, app: &mut App) {
