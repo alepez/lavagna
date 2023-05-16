@@ -27,6 +27,10 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         LocalPen,
         SpriteBundle {
             texture: asset_server.load("sprites/pen.png"),
+            transform: Transform {
+                scale: Vec3::new(0.2, 0.2, 0.2),
+                ..default()
+            },
             visibility: Visibility::Hidden,
             ..default()
         },
