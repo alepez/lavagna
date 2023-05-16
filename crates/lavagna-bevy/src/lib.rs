@@ -34,6 +34,7 @@ fn setup(mut commands: Commands) {
 #[derive(Component, Debug, Clone, Copy)]
 struct Pen {
     pressed: bool,
+    // TODO Fix typo
     updateded: bool,
     x: i64,
     y: i64,

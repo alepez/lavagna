@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 bevy = { version = "0.10", features = ["dynamic_linking"] }
+bevy_prototype_lyon = "0.8.0"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
