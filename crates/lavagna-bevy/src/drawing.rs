@@ -17,7 +17,7 @@ fn update(pens_q: Query<&Pen>, mut polyline_q: Query<&mut Polyline>, mut path_q:
     let pen = pens_q.single();
     let polyline: &mut Polyline = &mut polyline_q.single_mut();
 
-    let update = pen.pressed && pen.updateded;
+    let update = pen.pressed && pen.updated;
 
     if update {
         let new_point = Vec2::new(pen.x as f32, pen.y as f32);
