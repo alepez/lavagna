@@ -16,11 +16,11 @@ impl Plugin for DrawingPlugin {
 fn update(
     commands: Commands,
     pens_q: Query<&Pen>,
-    mut polyline_q: Query<&mut Polyline>,
+    mut polyline_q: Query<&mut PendingPolyline>,
     mut path_q: Query<&mut Path, With<Pending>>,
 ) {
     let pen = pens_q.single();
-    let polyline: &mut Polyline = &mut polyline_q.single_mut();
+    let polyline: &mut PendingPolyline = &mut polyline_q.single_mut();
 
     let update = pen.pressed && pen.updated;
     let just_released = !pen.pressed && !polyline.points.is_empty();
@@ -33,12 +33,12 @@ fn update(
     }
 }
 
-fn add_point(polyline: &mut Polyline, pen: &Pen) {
+fn add_point(polyline: &mut PendingPolyline, pen: &Pen) {
     let new_point = Vec2::new(pen.x as f32, pen.y as f32);
     polyline.points.push(new_point);
 }
 
-fn complete_pending_path(polyline: &mut Polyline, mut commands: Commands) {
+fn complete_pending_path(polyline: &mut PendingPolyline, mut commands: Commands) {
     let path = Path::from(&*polyline);
 
     commands.spawn((
@@ -52,7 +52,7 @@ fn complete_pending_path(polyline: &mut Polyline, mut commands: Commands) {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn(Polyline::default());
+    commands.spawn(PendingPolyline::default());
 
     let path_builder = PathBuilder::new();
     let path = path_builder.build();
@@ -72,12 +72,12 @@ struct Completed;
 struct Pending;
 
 #[derive(Debug, Clone, Component, Default)]
-struct Polyline {
+struct PendingPolyline {
     points: Vec<Vec2>,
 }
 
-impl From<&Polyline> for Path {
-    fn from(polyline: &Polyline) -> Self {
+impl From<&PendingPolyline> for Path {
+    fn from(polyline: &PendingPolyline) -> Self {
         let mut path_builder = PathBuilder::new();
 
         let mut iter = polyline.points.iter();
