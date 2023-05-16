@@ -10,7 +10,7 @@ use bevy::{
 pub(crate) struct LocalPenPlugin;
 
 #[derive(Component)]
-struct LocalPen;
+struct LocalChalk;
 
 impl Plugin for LocalPenPlugin {
     fn build(&self, app: &mut App) {
@@ -21,10 +21,10 @@ impl Plugin for LocalPenPlugin {
 }
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn((LocalPen, Chalk::new()));
+    commands.spawn((LocalChalk, Chalk::new()));
 
     commands.spawn((
-        LocalPen,
+        LocalChalk,
         SpriteBundle {
             texture: asset_server.load("sprites/pen.png"),
             transform: Transform {
@@ -41,7 +41,7 @@ fn handle_user_input(
     window_q: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
     mut mouse_button_input_events: EventReader<MouseButtonInput>,
-    mut pen_q: Query<&mut Chalk, With<LocalPen>>,
+    mut pen_q: Query<&mut Chalk, With<LocalChalk>>,
 ) {
     let (camera, camera_transform) = camera_q.single();
     let mut pen = pen_q.single_mut();
@@ -80,9 +80,9 @@ fn handle_user_input(
 }
 
 fn update_sprite_position(
-    pen_q: Query<&mut Chalk, With<LocalPen>>,
-    mut sprite_transform_q: Query<&mut Transform, With<LocalPen>>,
-    mut sprite_visibility_q: Query<&mut Visibility, With<LocalPen>>,
+    pen_q: Query<&mut Chalk, With<LocalChalk>>,
+    mut sprite_transform_q: Query<&mut Transform, With<LocalChalk>>,
+    mut sprite_visibility_q: Query<&mut Visibility, With<LocalChalk>>,
 ) {
     let pen = pen_q.single();
     let mut t = sprite_transform_q.single_mut();
