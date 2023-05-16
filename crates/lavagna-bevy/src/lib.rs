@@ -4,7 +4,7 @@ mod input;
 use bevy::{prelude::*, window::Window};
 
 use crate::debug::DebugPlugin;
-use crate::input::*;
+use crate::input::LocalPenPlugin;
 
 pub fn run() {
     App::new()
@@ -16,8 +16,8 @@ pub fn run() {
             ..default()
         }))
         .add_plugin(DebugPlugin)
+        .add_plugin(LocalPenPlugin)
         .add_startup_system(setup)
-        .add_system(input_system)
         .run();
 }
 
@@ -26,7 +26,6 @@ struct MainCamera;
 
 fn setup(mut commands: Commands) {
     commands.spawn((Camera2dBundle::default(), MainCamera));
-    commands.spawn((Pen::new(), LocalPen));
 }
 
 #[derive(Component)]
@@ -35,9 +34,6 @@ struct Pen {
     x: i64,
     y: i64,
 }
-
-#[derive(Component)]
-struct LocalPen;
 
 impl Pen {
     fn new() -> Self {
