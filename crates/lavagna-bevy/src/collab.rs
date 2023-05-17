@@ -3,6 +3,8 @@ use futures::{select, FutureExt};
 use futures_timer::Delay;
 use matchbox_socket::{PeerId, WebRtcSocket};
 use serde::{Deserialize, Serialize};
+use std::sync::atomic::AtomicBool;
+use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::mpsc::channel;
 use tokio::sync::mpsc::{Receiver, Sender};
@@ -52,6 +54,7 @@ struct Room {
     runtime: tokio::runtime::Runtime,
     outgoing_tx: Sender<Event>,
     incoming_rx: Receiver<Event>,
+    has_peers: Arc<AtomicBool>,
 }
 
 /// If this timeout is too long, the reactivity degrades
@@ -68,6 +71,9 @@ impl Room {
             .unwrap();
 
         let room_url = room_url.to_string();
+
+        let has_peers: Arc<AtomicBool> = Arc::new(false.into());
+        let has_peers_arc = has_peers.clone();
 
         runtime.spawn(async move {
             info!("connecting to matchbox server: {:?}", room_url);
@@ -88,6 +94,7 @@ impl Room {
                 socket.update_peers();
 
                 let peers: Vec<_> = socket.connected_peers().collect();
+                has_peers_arc.store(!peers.is_empty(), std::sync::atomic::Ordering::Relaxed);
 
                 while let Ok(msg) = outgoing_rx.try_recv() {
                     for peer in &peers {
@@ -118,20 +125,27 @@ impl Room {
             runtime,
             outgoing_tx,
             incoming_rx,
+            has_peers,
         }
     }
 
     fn send(&self, event: Event) {
-        self.outgoing_tx
-            .blocking_send(event)
-            .map_err(|e| {
-                error!("Cannot send to WebRtc: {}", e);
-            })
-            .ok();
+        if self.has_peers.load(std::sync::atomic::Ordering::Relaxed) {
+            self.outgoing_tx
+                .blocking_send(event)
+                .map_err(|e| {
+                    error!("Cannot send to WebRtc: {}", e);
+                })
+                .ok();
+        }
     }
 
     fn try_recv(&mut self) -> Option<Event> {
-        self.incoming_rx.try_recv().ok()
+        if self.has_peers.load(std::sync::atomic::Ordering::Relaxed) {
+            self.incoming_rx.try_recv().ok()
+        } else {
+            None
+        }
     }
 }
 
