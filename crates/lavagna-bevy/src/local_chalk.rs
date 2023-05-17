@@ -62,7 +62,6 @@ fn startup(mut commands: Commands, chalk_config: Res<LocalChalkConfig>) {
 fn handle_user_input(
     window_q: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
-    mut mouse_button_input_events: EventReader<MouseButtonInput>,
     mut chalk_q: Query<&mut Chalk, With<LocalChalk>>,
 ) {
     let (camera, camera_transform) = camera_q.single();
