@@ -6,6 +6,7 @@ mod local_chalk;
 use bevy::{prelude::*, window::Window};
 use bevy_embedded_assets::EmbeddedAssetPlugin;
 use bevy_framepace::{FramepacePlugin, FramepaceSettings, Limiter};
+use bevy_pancam::{PanCam, PanCamPlugin};
 
 use crate::debug::DebugPlugin;
 use crate::drawing::DrawingPlugin;
@@ -30,6 +31,7 @@ pub fn run() {
         .add_plugin(LocalPenPlugin)
         .add_plugin(DrawingPlugin)
         .add_plugin(KeybindingPlugin)
+        .add_plugin(PanCamPlugin::default())
         .add_startup_system(setup)
         .run();
 }
@@ -42,9 +44,22 @@ fn setup(
     mut clear_color: ResMut<ClearColor>,
     mut framepace: ResMut<FramepaceSettings>,
 ) {
-    commands.spawn((Camera2dBundle::default(), MainCamera));
+    commands
+        .spawn((Camera2dBundle::default(), MainCamera))
+        .insert(PanCam {
+            grab_buttons: vec![MouseButton::Middle],
+            enabled: true,
+            zoom_to_cursor: true,
+            min_scale: 0.1,
+            max_scale: Some(10.0),
+            min_x: None,
+            max_x: None,
+            min_y: None,
+            max_y: None,
+        });
+
     clear_color.0 = Color::BLACK;
-    
+
     // Limit frame rate, we dont't want to squeeze that CPU
     framepace.limiter = Limiter::from_framerate(30.0);
 }
