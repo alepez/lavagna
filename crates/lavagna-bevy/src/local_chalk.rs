@@ -75,8 +75,8 @@ fn handle_user_input(
         .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor))
         .map(|ray| ray.origin.truncate())
     {
-        chalk.x = world_position[0] as i64;
-        chalk.y = world_position[1] as i64;
+        chalk.x = world_position[0] as i32;
+        chalk.y = world_position[1] as i32;
     }
 
     chalk.updated = is_updated(&prev_chalk, &chalk);
