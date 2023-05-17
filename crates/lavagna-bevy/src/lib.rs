@@ -5,6 +5,7 @@ mod local_chalk;
 
 use bevy::{prelude::*, window::Window};
 use bevy_embedded_assets::EmbeddedAssetPlugin;
+use bevy_framepace::{FramepacePlugin, FramepaceSettings, Limiter};
 
 use crate::debug::DebugPlugin;
 use crate::drawing::DrawingPlugin;
@@ -24,6 +25,7 @@ pub fn run() {
                 })
                 .add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin),
         )
+        .add_plugin(FramepacePlugin)
         .add_plugin(DebugPlugin)
         .add_plugin(LocalPenPlugin)
         .add_plugin(DrawingPlugin)
@@ -35,9 +37,16 @@ pub fn run() {
 #[derive(Component)]
 struct MainCamera;
 
-fn setup(mut commands: Commands, mut clear_color: ResMut<ClearColor>) {
+fn setup(
+    mut commands: Commands,
+    mut clear_color: ResMut<ClearColor>,
+    mut framepace: ResMut<FramepaceSettings>,
+) {
     commands.spawn((Camera2dBundle::default(), MainCamera));
     clear_color.0 = Color::BLACK;
+    
+    // Limit frame rate to 30fps, we dont't want to squeeze that CPU
+    framepace.limiter = Limiter::from_framerate(30.0);
 }
 
 #[derive(Component, Debug, Clone, Copy)]
