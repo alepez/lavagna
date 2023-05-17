@@ -10,6 +10,7 @@ bevy = { version = "0.10", features = ["dynamic_linking"] }
 bevy_prototype_lyon = "0.8.0"
 bevy_embedded_assets = "0.7.0"
 bevy_framepace = "0.12"
+bevy_pancam = "0.8.0"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
