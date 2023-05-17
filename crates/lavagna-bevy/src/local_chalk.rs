@@ -37,6 +37,7 @@ impl Plugin for LocalPenPlugin {
             .add_startup_system(startup)
             .add_system(handle_user_input)
             .add_system(update_position)
+            .add_system(update_pressed)
             .add_system(update_config);
     }
 }
@@ -63,21 +64,39 @@ fn handle_user_input(
     window_q: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
     mut mouse_button_input_events: EventReader<MouseButtonInput>,
-    mut pen_q: Query<&mut Chalk, With<LocalChalk>>,
+    mut chalk_q: Query<&mut Chalk, With<LocalChalk>>,
 ) {
     let (camera, camera_transform) = camera_q.single();
-    let mut pen = pen_q.single_mut();
+    let mut chalk = chalk_q.single_mut();
     let window = window_q.single();
 
-    let prev_pen = *pen;
+    let prev_chalk = *chalk;
 
     if let Some(world_position) = window
         .cursor_position()
         .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor))
         .map(|ray| ray.origin.truncate())
     {
-        pen.x = world_position[0] as i64;
-        pen.y = world_position[1] as i64;
+        chalk.x = world_position[0] as i64;
+        chalk.y = world_position[1] as i64;
+    }
+
+    chalk.updated = is_updated(&prev_chalk, &chalk);
+}
+
+fn is_ctrl_pressed(keyboard_input: &Input<KeyCode>) -> bool {
+    keyboard_input.pressed(KeyCode::LControl) || keyboard_input.pressed(KeyCode::RControl)
+}
+
+fn update_pressed(
+    keyboard_input: Res<Input<KeyCode>>,
+    mut mouse_button_input_events: EventReader<MouseButtonInput>,
+    mut chalk_q: Query<&mut Chalk, With<LocalChalk>>,
+) {
+    let mut chalk = chalk_q.single_mut();
+
+    if is_ctrl_pressed(&keyboard_input) {
+        return;
     }
 
     for event in mouse_button_input_events.iter() {
@@ -86,32 +105,35 @@ fn handle_user_input(
                 button: MouseButton::Left,
                 state: ButtonState::Pressed,
             } => {
-                pen.pressed = true;
+                chalk.pressed = true;
             }
             MouseButtonInput {
                 button: MouseButton::Left,
                 state: ButtonState::Released,
             } => {
-                pen.pressed = false;
+                chalk.pressed = false;
             }
             _ => {}
         }
     }
-
-    pen.updated = is_updated(&prev_pen, &pen);
 }
 
 fn update_position(
-    pen_q: Query<&mut Chalk, With<LocalChalk>>,
+    chalk_q: Query<&mut Chalk, With<LocalChalk>>,
     mut sprite_transform_q: Query<&mut Transform, With<LocalChalk>>,
+    keyboard_input: Res<Input<KeyCode>>,
 ) {
-    let pen = pen_q.single();
+    if is_ctrl_pressed(&keyboard_input) {
+        return;
+    }
+
+    let chalk = chalk_q.single();
     let mut t = sprite_transform_q.single_mut();
-    t.translation = Vec3::new(pen.x as f32, pen.y as f32, 0.);
+    t.translation = Vec3::new(chalk.x as f32, chalk.y as f32, 0.);
 }
 
-fn is_updated(old_pen: &Chalk, new_pen: &Chalk) -> bool {
-    old_pen.x != new_pen.x || old_pen.y != new_pen.y
+fn is_updated(old_chalk: &Chalk, new_chalk: &Chalk) -> bool {
+    old_chalk.x != new_chalk.x || old_chalk.y != new_chalk.y
 }
 
 fn update_config(
