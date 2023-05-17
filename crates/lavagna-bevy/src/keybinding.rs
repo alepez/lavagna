@@ -56,14 +56,12 @@ fn update(keyboard_input: Res<Input<KeyCode>>, mut chalk_config: ResMut<LocalCha
     }
 
     if keyboard_input.just_pressed(KeyCode::M) {
-        println!("TODO Grow chalk size 2x");
         if chalk_config.line_width < 100 {
             chalk_config.line_width = chalk_config.line_width * 2;
         }
     }
 
     if keyboard_input.just_pressed(KeyCode::N) {
-        println!("TODO Shrink chalk_config size 2x");
         if chalk_config.line_width > 1 {
             chalk_config.line_width = chalk_config.line_width / 2;
         }
