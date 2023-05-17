@@ -45,7 +45,7 @@ fn setup(
     commands.spawn((Camera2dBundle::default(), MainCamera));
     clear_color.0 = Color::BLACK;
     
-    // Limit frame rate to 30fps, we dont't want to squeeze that CPU
+    // Limit frame rate, we dont't want to squeeze that CPU
     framepace.limiter = Limiter::from_framerate(30.0);
 }
 
