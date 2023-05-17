@@ -4,6 +4,7 @@ mod keybinding;
 mod local_chalk;
 
 use bevy::{prelude::*, window::Window};
+use bevy_embedded_assets::EmbeddedAssetPlugin;
 
 use crate::debug::DebugPlugin;
 use crate::drawing::DrawingPlugin;
@@ -12,13 +13,17 @@ use crate::local_chalk::LocalPenPlugin;
 
 pub fn run() {
     App::new()
-        .add_plugins(DefaultPlugins.set(WindowPlugin {
-            primary_window: Some(Window {
-                resolution: (640., 480.).into(),
-                ..default()
-            }),
-            ..default()
-        }))
+        .add_plugins(
+            DefaultPlugins
+                .set(WindowPlugin {
+                    primary_window: Some(Window {
+                        resolution: (640., 480.).into(),
+                        ..default()
+                    }),
+                    ..default()
+                })
+                .add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin),
+        )
         .add_plugin(DebugPlugin)
         .add_plugin(LocalPenPlugin)
         .add_plugin(DrawingPlugin)
