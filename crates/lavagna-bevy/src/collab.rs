@@ -149,7 +149,6 @@ impl Room {
     }
 }
 
-// TODO
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
 enum Event {
     Draw(DrawEvent),
