@@ -2,6 +2,7 @@ mod debug;
 mod drawing;
 mod keybinding;
 mod local_chalk;
+mod collab;
 
 use bevy::{prelude::*, window::Window};
 use bevy_embedded_assets::EmbeddedAssetPlugin;
@@ -12,6 +13,7 @@ use crate::debug::DebugPlugin;
 use crate::drawing::DrawingPlugin;
 use crate::keybinding::KeybindingPlugin;
 use crate::local_chalk::LocalPenPlugin;
+use crate::collab::CollabPlugin;
 
 pub fn run() {
     App::new()
@@ -32,6 +34,7 @@ pub fn run() {
         .add_plugin(DrawingPlugin)
         .add_plugin(KeybindingPlugin)
         .add_plugin(PanCamPlugin::default())
+        .add_plugin(CollabPlugin)
         .add_startup_system(setup)
         .run();
 }
@@ -68,8 +71,8 @@ fn setup(
 struct Chalk {
     pressed: bool,
     updated: bool,
-    x: i64,
-    y: i64,
+    x: i32,
+    y: i32,
     color: Color,
     line_width: u32,
 }
