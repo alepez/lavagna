@@ -82,20 +82,11 @@ fn handle_user_input(
     chalk.updated = is_updated(&prev_chalk, &chalk);
 }
 
-fn is_ctrl_pressed(keyboard_input: &Input<KeyCode>) -> bool {
-    keyboard_input.pressed(KeyCode::LControl) || keyboard_input.pressed(KeyCode::RControl)
-}
-
 fn update_pressed(
-    keyboard_input: Res<Input<KeyCode>>,
     mut mouse_button_input_events: EventReader<MouseButtonInput>,
     mut chalk_q: Query<&mut Chalk, With<LocalChalk>>,
 ) {
     let mut chalk = chalk_q.single_mut();
-
-    if is_ctrl_pressed(&keyboard_input) {
-        return;
-    }
 
     for event in mouse_button_input_events.iter() {
         match event {
@@ -119,12 +110,7 @@ fn update_pressed(
 fn update_position(
     chalk_q: Query<&mut Chalk, With<LocalChalk>>,
     mut sprite_transform_q: Query<&mut Transform, With<LocalChalk>>,
-    keyboard_input: Res<Input<KeyCode>>,
 ) {
-    if is_ctrl_pressed(&keyboard_input) {
-        return;
-    }
-
     let chalk = chalk_q.single();
     let mut t = sprite_transform_q.single_mut();
     t.translation = Vec3::new(chalk.x as f32, chalk.y as f32, 0.);
