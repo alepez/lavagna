@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use futures::{select, FutureExt};
 use futures_timer::Delay;
-use matchbox_socket::{PeerId, WebRtcSocket};
+use matchbox_socket::{WebRtcSocket};
 use serde::{Deserialize, Serialize};
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;

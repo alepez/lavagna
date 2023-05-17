@@ -23,9 +23,7 @@ fn next_color(curr_color: Color) -> Color {
     if let Some(next_color) = COLORS
         .iter()
         .cycle()
-        .skip_while(|&&x| x != curr_color)
-        .skip(1)
-        .next()
+        .skip_while(|&&x| x != curr_color).nth(1)
     {
         *next_color
     } else {
@@ -55,15 +53,11 @@ fn update(keyboard_input: Res<Input<KeyCode>>, mut chalk_config: ResMut<LocalCha
         println!("TODO Take a snapshot");
     }
 
-    if keyboard_input.just_pressed(KeyCode::M) {
-        if chalk_config.line_width < 100 {
-            chalk_config.line_width = chalk_config.line_width * 2;
-        }
+    if keyboard_input.just_pressed(KeyCode::M) && chalk_config.line_width < 100 {
+        chalk_config.line_width *= 2;
     }
 
-    if keyboard_input.just_pressed(KeyCode::N) {
-        if chalk_config.line_width > 1 {
-            chalk_config.line_width = chalk_config.line_width / 2;
-        }
+    if keyboard_input.just_pressed(KeyCode::N) && chalk_config.line_width > 1 {
+        chalk_config.line_width /= 2;
     }
 }
