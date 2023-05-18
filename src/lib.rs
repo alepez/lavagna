@@ -39,12 +39,13 @@ pub fn run(opt: Opt) {
             .add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin),
     );
 
+    app.add_startup_system(setup);
+
     app.add_plugin(FramepacePlugin);
     app.add_plugin(LocalPenPlugin);
     app.add_plugin(DrawingPlugin);
     app.add_plugin(KeybindingPlugin);
     app.add_plugin(PanCamPlugin::default());
-    app.add_startup_system(setup);
 
     if opt.show_debug_pane {
         app.add_plugin(DebugPlugin);
