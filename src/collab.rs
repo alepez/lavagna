@@ -31,15 +31,11 @@ fn setup(mut commands: Commands) {
     commands.insert_resource(room);
 }
 
-fn emit_events(mut chalk: ResMut<LocalChalk>, room: Res<Room>) {
-    let chalk = &mut chalk.get_mut();
+fn emit_events(chalk: ResMut<LocalChalk>, room: Res<Room>) {
+    let chalk = chalk.get();
 
     if chalk.updated && chalk.pressed {
-        let event = Event::Draw(DrawEvent {
-            color: chalk.color.as_rgba_u32(),
-            x: (chalk.x + 65535) as u32,
-            y: (chalk.y + 65535) as u32,
-        });
+        let event = Event::Draw(chalk.into());
         room.send(event);
     }
 }
@@ -69,6 +65,16 @@ fn handle_draw(
 
     if let Ok(mut chalk) = chalk_q.get_mut(*entity) {
         *chalk = event.into();
+    }
+}
+
+impl From<&Chalk> for DrawEvent {
+    fn from(chalk: &Chalk) -> Self {
+        Self {
+            color: chalk.color.as_rgba_u32(),
+            x: (chalk.x + 65535) as u32,
+            y: (chalk.y + 65535) as u32,
+        }
     }
 }
 
