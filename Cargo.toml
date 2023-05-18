@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = { version = "0.10", features = ["dynamic_linking"] }
+bevy = { version = "0.10" }
 bevy_embedded_assets = "0.7.0"
 bevy_framepace = "0.12"
 bevy_pancam = "0.8.0"
@@ -26,3 +26,6 @@ opt-level = 1
 # Enable high optimizations for dependencies (incl. Bevy), but not for our code:
 [profile.dev.package."*"]
 opt-level = 3
+
+[features]
+quick_build = ["bevy/dynamic_linking"]
