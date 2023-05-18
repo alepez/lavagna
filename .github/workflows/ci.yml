@@ -78,6 +78,12 @@ jobs:
       if: contains(matrix.platform.target, 'android')
       run: cargo install cargo-apk
 
+    # Note rust-toolchain.toml .cargo/config.toml are needed only for
+    # development so they're removed before building.
+    - name: Remove development files
+      run:
+        - rm rust-toolchain.toml .cargo/config.toml
+
     - name: Build tests
       shell: bash
       run: cargo $CMD test --no-run --verbose --target ${{ matrix.platform.target }} $OPTIONS --features $FEATURES

@@ -97,10 +97,11 @@ jobs:
           os: windows-2019
           rust: stable
           target: i686-pc-windows-msvc
-        - build: android
-          os: ubuntu-latest
-          rust: stable
-          target: aarch64-linux-android
+        # TODO Enable android
+        # - build: android
+        #   os: ubuntu-latest
+        #   rust: stable
+        #   target: aarch64-linux-android
 
     steps:
     - name: Checkout repository
@@ -136,14 +137,21 @@ jobs:
         echo "target flag is: ${{ env.TARGET_FLAGS }}"
         echo "target dir is: ${{ env.TARGET_DIR }}"
 
+    # Note rust-toolchain.toml .cargo/config.toml are needed only for
+    # development so they're removed before building.
+    - name: Remove development files
+      run:
+        - rm rust-toolchain.toml .cargo/config.toml
+
     - name: Build release binary
       if: matrix.build != 'android'
       run: ${{ env.CARGO }} build --verbose --release ${{ env.TARGET_FLAGS }}
 
     # FIXME Keystore password must be secret
-    - name: Build release apk
-      if: matrix.build == 'android'
-      run: echo this_is_the_keypass | ${{ env.CARGO }} apk build --package lavagna_android --verbose --release ${{ env.TARGET_FLAGS }}
+    # FIXME Enable apk
+    # - name: Build release apk
+    #   if: matrix.build == 'android'
+    #   run: echo this_is_the_keypass | ${{ env.CARGO }} apk build --package lavagna_android --verbose --release ${{ env.TARGET_FLAGS }}
 
     - name: Strip release binary (linux and macos)
       if: matrix.build == 'linux' || matrix.build == 'macos'
