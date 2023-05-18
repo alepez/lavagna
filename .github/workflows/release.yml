@@ -137,10 +137,17 @@ jobs:
         echo "target flag is: ${{ env.TARGET_FLAGS }}"
         echo "target dir is: ${{ env.TARGET_DIR }}"
 
-    # Note rust-toolchain.toml .cargo/config.toml are needed only for
-    # development so they're removed before building.
-    - name: Remove development files
-      run: rm rust-toolchain.toml .cargo/config.toml
+    # Note: rust-toolchain.toml is needed only during development so they're removed before building.
+    - name: Remove rust-toolchain.toml
+      uses: JesseTG/rm@v1.0.0
+      with:
+        path: rust-toolchain.toml
+
+    # Note: .cargo dir is needed only during development so they're removed before building.
+    - name: Remove .cargo
+      uses: JesseTG/rm@v1.0.0
+      with:
+        path: .cargo
 
     - name: Build release binary
       if: matrix.build != 'android'
