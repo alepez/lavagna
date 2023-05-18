@@ -74,6 +74,7 @@ impl From<&Chalk> for DrawEvent {
             color: chalk.color.as_rgba_u32(),
             x: (chalk.x + 65535) as u32,
             y: (chalk.y + 65535) as u32,
+            line_width: chalk.line_width,
         }
     }
 }
@@ -86,7 +87,7 @@ impl From<&DrawEvent> for Chalk {
             x: (event.x as i32) - 65535,
             y: (event.y as i32) - 65535,
             color: Color::WHITE, // TODO
-            line_width: 10,      // TODO
+            line_width: event.line_width,
         }
     }
 }
@@ -211,6 +212,7 @@ enum Event {
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
 struct DrawEvent {
     pub color: u32,
+    pub line_width: u32,
     pub x: u32,
     pub y: u32,
 }
