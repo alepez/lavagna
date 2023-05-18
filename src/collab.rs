@@ -1,4 +1,7 @@
+use crate::drawing::make_chalk;
+use crate::Chalk;
 use bevy::prelude::*;
+use bevy::utils::HashMap;
 use futures::{select, FutureExt};
 use futures_timer::Delay;
 use matchbox_socket::WebRtcSocket;
@@ -24,13 +27,14 @@ impl Plugin for CollabPlugin {
 fn setup(mut commands: Commands) {
     // FIXME
     let room_url = "ws://127.0.0.1:3536/lavagna";
-    commands.insert_resource(Room::new(room_url));
+    let room = Room::new(room_url);
+    commands.insert_resource(room);
 }
 
 fn emit_events(mut chalk: ResMut<LocalChalk>, room: Res<Room>) {
     let chalk = &mut chalk.get_mut();
 
-    if chalk.updated {
+    if chalk.updated && chalk.pressed {
         let event = Event::Draw(DrawEvent {
             color: chalk.color.as_rgba_u32(),
             x: (chalk.x + 65535) as u32,
@@ -40,12 +44,54 @@ fn emit_events(mut chalk: ResMut<LocalChalk>, room: Res<Room>) {
     }
 }
 
-fn handle_events(mut room: ResMut<Room>) {
-    while let Some(event) = room.try_recv() {
-        // TODO
-        info!("{:?}", event);
+fn handle_events(mut commands: Commands, mut room: ResMut<Room>, mut chalk_q: Query<&mut Chalk>) {
+    while let Some(AddressedEvent { src, event }) = room.try_recv() {
+        match event {
+            Event::Draw(e) => {
+                handle_draw(&mut commands, src, &e, &mut room, &mut chalk_q);
+            }
+        }
     }
 }
+
+fn handle_draw(
+    commands: &mut Commands,
+    src: CollabId,
+    event: &DrawEvent,
+    room: &mut Room,
+    chalk_q: &mut Query<&mut Chalk>,
+) {
+    let entity: &Entity = room
+        .peers
+        .0
+        .entry(src)
+        .or_insert_with(|| commands.spawn(make_chalk(event.into())).id());
+
+    if let Ok(mut chalk) = chalk_q.get_mut(*entity) {
+        chalk.pressed = true;
+        chalk.updated = true;
+        chalk.x = (event.x as i32) - 65535;
+        chalk.y = (event.y as i32) - 65535;
+        chalk.color = Color::WHITE; // TODO
+        chalk.line_width = 10; // TODO
+    }
+}
+
+impl From<&DrawEvent> for Chalk {
+    fn from(event: &DrawEvent) -> Self {
+        Self {
+            pressed: true,
+            updated: true,
+            x: (event.x as i32) - 65535,
+            y: (event.y as i32) - 65535,
+            color: Color::WHITE, // TODO
+            line_width: 10,      // TODO
+        }
+    }
+}
+
+#[derive(Default)]
+struct Peers(HashMap<CollabId, Entity>);
 
 #[derive(Resource)]
 struct Room {
@@ -54,6 +100,7 @@ struct Room {
     outgoing_tx: Sender<Event>,
     incoming_rx: Receiver<AddressedEvent>,
     has_peers: Arc<AtomicBool>,
+    peers: Peers,
 }
 
 /// If this timeout is too long, the reactivity degrades
@@ -134,6 +181,7 @@ impl Room {
             outgoing_tx,
             incoming_rx,
             has_peers,
+            peers: default(),
         }
     }
 
@@ -172,7 +220,7 @@ struct AddressedEvent {
     event: Event,
 }
 
-#[derive(Debug, Serialize, Deserialize, Copy, Clone)]
+#[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq, Hash)]
 struct CollabId(u16);
 
 impl CollabId {

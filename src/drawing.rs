@@ -13,13 +13,10 @@ impl Plugin for DrawingPlugin {
 
 fn update(
     mut commands: Commands,
-    chalk_q: Query<&Chalk>,
-    mut pending_q: Query<(&mut Path, &mut Stroke, &mut Polyline), With<Pending>>,
+    mut chalk_q: Query<(&mut Chalk, &mut Path, &mut Stroke, &mut Polyline), With<Pending>>,
     time: Res<Time>,
 ) {
-    for chalk in chalk_q.iter() {
-        let (mut path, mut stroke, mut polyline) = pending_q.single_mut();
-
+    for (chalk, mut path, mut stroke, mut polyline) in chalk_q.iter_mut() {
         let update = chalk.pressed && chalk.updated;
         let just_released = !chalk.pressed && !polyline.points.is_empty();
 
@@ -27,9 +24,9 @@ fn update(
         stroke.options.line_width = chalk.line_width as f32;
 
         if just_released {
-            complete_pending_path(&mut polyline, &mut commands, chalk, &time);
+            complete_pending_path(&mut polyline, &mut commands, &chalk, &time);
         } else if update {
-            add_point(&mut polyline, chalk);
+            add_point(&mut polyline, &chalk);
         }
 
         // Regenerate mesh from list of points
