@@ -144,13 +144,13 @@ jobs:
         echo "target flag is: ${{ env.TARGET_FLAGS }}"
         echo "target dir is: ${{ env.TARGET_DIR }}"
 
-    # Note: rust-toolchain.toml is needed only during development so they're removed before building.
+    # Note: rust-toolchain.toml is needed only during development so it's removed before building.
     - name: Remove rust-toolchain.toml
       uses: JesseTG/rm@v1.0.0
       with:
         path: rust-toolchain.toml
 
-    # Note: .cargo dir is needed only during development so they're removed before building.
+    # Note: .cargo dir is needed only during development so it's removed before building.
     - name: Remove .cargo
       uses: JesseTG/rm@v1.0.0
       with:
