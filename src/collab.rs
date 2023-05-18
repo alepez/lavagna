@@ -10,7 +10,6 @@ use tokio::sync::mpsc::channel;
 use tokio::sync::mpsc::{Receiver, Sender};
 
 use crate::local_chalk::LocalChalk;
-use crate::Chalk;
 
 pub(crate) struct CollabPlugin;
 
@@ -28,8 +27,8 @@ fn setup(mut commands: Commands) {
     commands.insert_resource(Room::new(room_url));
 }
 
-fn emit_events(chalk_q: Query<&mut Chalk, With<LocalChalk>>, room: Res<Room>) {
-    let chalk = chalk_q.single();
+fn emit_events(mut chalk: ResMut<LocalChalk>, room: Res<Room>) {
+    let chalk = &mut chalk.get_mut();
 
     if chalk.updated {
         let event = Event::Draw(DrawEvent {

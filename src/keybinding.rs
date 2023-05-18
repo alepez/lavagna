@@ -1,4 +1,4 @@
-use crate::local_chalk::LocalChalkConfig;
+use crate::local_chalk::LocalChalk;
 use bevy::prelude::*;
 
 pub(crate) struct KeybindingPlugin;
@@ -23,7 +23,8 @@ fn next_color(curr_color: Color) -> Color {
     if let Some(next_color) = COLORS
         .iter()
         .cycle()
-        .skip_while(|&&x| x != curr_color).nth(1)
+        .skip_while(|&&x| x != curr_color)
+        .nth(1)
     {
         *next_color
     } else {
@@ -31,7 +32,9 @@ fn next_color(curr_color: Color) -> Color {
     }
 }
 
-fn update(keyboard_input: Res<Input<KeyCode>>, mut chalk_config: ResMut<LocalChalkConfig>) {
+fn update(keyboard_input: Res<Input<KeyCode>>, mut chalk: ResMut<LocalChalk>) {
+    let chalk = &mut chalk.get_mut();
+
     if keyboard_input.just_pressed(KeyCode::Escape) {
         println!("TODO Quit the application");
     }
@@ -42,7 +45,7 @@ fn update(keyboard_input: Res<Input<KeyCode>>, mut chalk_config: ResMut<LocalCha
 
     if keyboard_input.just_pressed(KeyCode::C) {
         println!("TODO Change the chalk color");
-        chalk_config.color = next_color(chalk_config.color);
+        chalk.color = next_color(chalk.color);
     }
 
     if keyboard_input.just_pressed(KeyCode::U) {
@@ -53,11 +56,11 @@ fn update(keyboard_input: Res<Input<KeyCode>>, mut chalk_config: ResMut<LocalCha
         println!("TODO Take a snapshot");
     }
 
-    if keyboard_input.just_pressed(KeyCode::M) && chalk_config.line_width < 100 {
-        chalk_config.line_width *= 2;
+    if keyboard_input.just_pressed(KeyCode::M) && chalk.line_width < 100 {
+        chalk.line_width *= 2;
     }
 
-    if keyboard_input.just_pressed(KeyCode::N) && chalk_config.line_width > 1 {
-        chalk_config.line_width /= 2;
+    if keyboard_input.just_pressed(KeyCode::N) && chalk.line_width > 1 {
+        chalk.line_width /= 2;
     }
 }
