@@ -3021,7 +3021,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "lavagna-bevy"
+name = "lavagna"
 version = "0.1.0"
 dependencies = [
  "bevy",
@@ -3032,6 +3032,7 @@ dependencies = [
  "futures",
  "futures-timer",
  "matchbox_socket",
+ "rand",
  "serde",
  "serde_json",
  "tokio",

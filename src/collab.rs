@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use futures::{select, FutureExt};
 use futures_timer::Delay;
-use matchbox_socket::{WebRtcSocket};
+use matchbox_socket::WebRtcSocket;
 use serde::{Deserialize, Serialize};
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
@@ -53,7 +53,7 @@ struct Room {
     #[allow(dead_code)]
     runtime: tokio::runtime::Runtime,
     outgoing_tx: Sender<Event>,
-    incoming_rx: Receiver<Event>,
+    incoming_rx: Receiver<AddressedEvent>,
     has_peers: Arc<AtomicBool>,
 }
 
@@ -62,7 +62,7 @@ const TIMEOUT: Duration = Duration::from_millis(10);
 
 impl Room {
     fn new(room_url: &str) -> Self {
-        let (incoming_tx, incoming_rx) = channel::<Event>(1024);
+        let (incoming_tx, incoming_rx) = channel::<AddressedEvent>(1024);
         let (outgoing_tx, mut outgoing_rx) = channel::<Event>(1024);
 
         let runtime = tokio::runtime::Builder::new_multi_thread()
@@ -74,6 +74,8 @@ impl Room {
 
         let has_peers: Arc<AtomicBool> = Arc::new(false.into());
         let has_peers_arc = has_peers.clone();
+
+        let my_id = CollabId::random();
 
         runtime.spawn(async move {
             info!("connecting to matchbox server: {:?}", room_url);
@@ -96,17 +98,19 @@ impl Room {
                 let peers: Vec<_> = socket.connected_peers().collect();
                 has_peers_arc.store(!peers.is_empty(), std::sync::atomic::Ordering::Relaxed);
 
-                while let Ok(msg) = outgoing_rx.try_recv() {
+                while let Ok(event) = outgoing_rx.try_recv() {
+                    let event = AddressedEvent { src: my_id, event };
                     for peer in &peers {
-                        let packet = serde_json::to_vec(&msg).unwrap().into_boxed_slice();
+                        let packet = serde_json::to_vec(&event).unwrap().into_boxed_slice();
+                        info!("{}", std::str::from_utf8(&packet).unwrap());
                         channel.send(packet, *peer);
                     }
                 }
 
                 for (_peer, packet) in channel.receive() {
                     let packet = packet;
-                    let msg = serde_json::from_slice(&packet).unwrap();
-                    incoming_tx.send(msg).await.unwrap();
+                    let event = serde_json::from_slice(&packet).unwrap();
+                    incoming_tx.send(event).await.unwrap();
                 }
 
                 select! {
@@ -131,16 +135,13 @@ impl Room {
 
     fn send(&self, event: Event) {
         if self.has_peers.load(std::sync::atomic::Ordering::Relaxed) {
-            self.outgoing_tx
-                .blocking_send(event)
-                .map_err(|e| {
-                    error!("Cannot send to WebRtc: {}", e);
-                })
-                .ok();
+            let _ = self.outgoing_tx.blocking_send(event).map_err(|e| {
+                error!("Cannot send to WebRtc: {}", e);
+            });
         }
     }
 
-    fn try_recv(&mut self) -> Option<Event> {
+    fn try_recv(&mut self) -> Option<AddressedEvent> {
         if self.has_peers.load(std::sync::atomic::Ordering::Relaxed) {
             self.incoming_rx.try_recv().ok()
         } else {
@@ -159,4 +160,22 @@ struct DrawEvent {
     pub color: u32,
     pub x: u32,
     pub y: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Copy, Clone)]
+struct AddressedEvent {
+    src: CollabId,
+    event: Event,
+}
+
+#[derive(Debug, Serialize, Deserialize, Copy, Clone)]
+struct CollabId(u16);
+
+impl CollabId {
+    fn random() -> Self {
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
+        let n = rng.gen();
+        Self(n)
+    }
 }
