@@ -71,7 +71,15 @@ jobs:
       RUST_BACKTRACE: 1
     strategy:
       matrix:
-        build: [linux, linux-arm, macos, win-msvc, win-gnu, win32-msvc, android]
+        build:
+        - linux,
+        - linux-arm,
+        - macos,
+        - win-msvc,
+        - win-gnu,
+        - win32-msvc,
+        # TODO Enable android
+        # - android
         include:
         - build: linux
           os: ubuntu-20.04
@@ -97,11 +105,10 @@ jobs:
           os: windows-2019
           rust: stable
           target: i686-pc-windows-msvc
-        # TODO Enable android
-        # - build: android
-        #   os: ubuntu-latest
-        #   rust: stable
-        #   target: aarch64-linux-android
+        - build: android
+          os: ubuntu-latest
+          rust: stable
+          target: aarch64-linux-android
 
     steps:
     - name: Checkout repository
