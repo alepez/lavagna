@@ -96,10 +96,10 @@ jobs:
           os: windows-2019
           rust: stable
           target: i686-pc-windows-msvc
-        - build: android
-          os: ubuntu-latest
-          rust: stable
-          target: aarch64-linux-android
+        # - build: android
+        #   os: ubuntu-latest
+        #   rust: stable
+        #   target: aarch64-linux-android
 
     steps:
     - name: Checkout repository
