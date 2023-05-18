@@ -67,10 +67,11 @@ fn setup(
     framepace.limiter = Limiter::from_framerate(30.0);
 }
 
-#[derive(Component, Debug, Clone, Copy)]
+#[derive(Component, Debug, Clone, Copy, Default)]
 struct Chalk {
     pressed: bool,
     updated: bool,
+    just_released: bool,
     x: i32,
     y: i32,
     color: Color,
