@@ -1,8 +1,0 @@
-[package]
-name = "lavagna"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-lavagna-bevy = { path = "../lavagna-bevy" }
-
