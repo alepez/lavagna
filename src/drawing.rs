@@ -1,4 +1,4 @@
-use crate::{Chalk, local_chalk::LocalChalk};
+use crate::Chalk;
 use bevy::prelude::*;
 
 use bevy_prototype_lyon::prelude::*;
@@ -14,31 +14,32 @@ impl Plugin for DrawingPlugin {
 }
 
 fn update(
-    commands: Commands,
-    chalk: Res<LocalChalk>,
+    mut commands: Commands,
+    chalk_q: Query<&Chalk>,
     mut polyline_q: Query<&mut PendingPolyline>,
     mut path_q: Query<&mut Path, With<Pending>>,
     mut stroke_q: Query<&mut Stroke, With<Pending>>,
     time: Res<Time>,
 ) {
-    let chalk = chalk.get();
-    let polyline: &mut PendingPolyline = &mut polyline_q.single_mut();
-    let stroke = &mut stroke_q.single_mut();
+    for chalk in chalk_q.iter() {
+        let polyline: &mut PendingPolyline = &mut polyline_q.single_mut();
+        let stroke = &mut stroke_q.single_mut();
 
-    let update = chalk.pressed && chalk.updated;
-    let just_released = !chalk.pressed && !polyline.points.is_empty();
+        let update = chalk.pressed && chalk.updated;
+        let just_released = !chalk.pressed && !polyline.points.is_empty();
 
-    stroke.color = chalk.color;
-    stroke.options.line_width = chalk.line_width as f32;
+        stroke.color = chalk.color;
+        stroke.options.line_width = chalk.line_width as f32;
 
-    if just_released {
-        complete_pending_path(polyline, commands, chalk, &time);
-    } else if update {
-        add_point(polyline, chalk);
+        if just_released {
+            complete_pending_path(polyline, &mut commands, chalk, &time);
+        } else if update {
+            add_point(polyline, chalk);
+        }
+
+        // Regenerate mesh from list of points
+        *path_q.single_mut() = Path::from(&*polyline);
     }
-
-    // Regenerate mesh from list of points
-    *path_q.single_mut() = Path::from(&*polyline);
 }
 
 fn add_point(polyline: &mut PendingPolyline, chalk: &Chalk) {
@@ -56,7 +57,7 @@ fn z_from_time(time: &Time) -> f32 {
 
 fn complete_pending_path(
     polyline: &mut PendingPolyline,
-    mut commands: Commands,
+    commands: &mut Commands,
     chalk: &Chalk,
     time: &Time,
 ) {

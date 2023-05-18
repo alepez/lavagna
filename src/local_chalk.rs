@@ -14,6 +14,9 @@ use bevy_prototype_lyon::shapes;
 pub(crate) struct LocalPenPlugin;
 
 #[derive(Component)]
+struct LocalChalkFlag;
+
+#[derive(Component)]
 struct LocalCursor;
 
 #[derive(Resource)]
@@ -48,12 +51,15 @@ impl Plugin for LocalPenPlugin {
             .add_startup_system(startup)
             .add_system(handle_user_input)
             .add_system(update_pressed)
+            .add_system(update_chalk)
             .add_system(update_cursor);
     }
 }
 
-fn startup(mut commands: Commands, chalk: Res<LocalChalk>) {
-    let chalk = &chalk.0;
+fn startup(mut commands: Commands, mut chalk: ResMut<LocalChalk>) {
+    commands.spawn((LocalChalkFlag, chalk.0.clone()));
+
+    let chalk = &mut chalk.0;
 
     let shape = shapes::Circle {
         radius: 1.0,
@@ -62,7 +68,6 @@ fn startup(mut commands: Commands, chalk: Res<LocalChalk>) {
 
     commands.spawn((
         LocalCursor,
-        Chalk::new(),
         ShapeBundle {
             path: GeometryBuilder::build_as(&shape),
             ..default()
@@ -136,4 +141,13 @@ fn update_cursor(
     transform.scale = Vec3::new(scale, scale, scale);
 
     transform.translation = Vec3::new(chalk.x as f32, chalk.y as f32, 0.);
+}
+
+fn update_chalk(
+    local_chalk: Res<LocalChalk>,
+    mut chalk_q: Query<&mut Chalk, With<LocalChalkFlag>>,
+) {
+    if let Ok(mut chalk) = chalk_q.get_single_mut() {
+        *chalk = local_chalk.0;
+    }
 }
