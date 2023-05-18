@@ -19,6 +19,7 @@ use crate::local_chalk::LocalPenPlugin;
 #[derive(Debug)]
 pub struct Opt {
     pub collab: Option<CollabOpt>,
+    pub show_debug_pane: bool,
 }
 
 pub fn run(opt: Opt) {
@@ -39,12 +40,15 @@ pub fn run(opt: Opt) {
     );
 
     app.add_plugin(FramepacePlugin);
-    app.add_plugin(DebugPlugin);
     app.add_plugin(LocalPenPlugin);
     app.add_plugin(DrawingPlugin);
     app.add_plugin(KeybindingPlugin);
     app.add_plugin(PanCamPlugin::default());
     app.add_startup_system(setup);
+
+    if opt.show_debug_pane {
+        app.add_plugin(DebugPlugin);
+    }
 
     if let Some(collab_opt) = opt.collab {
         app.add_plugin(CollabPlugin::new(collab_opt));
