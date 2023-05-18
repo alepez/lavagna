@@ -15,7 +15,7 @@ pub use crate::collab::CollabPluginOpt as CollabOpt;
 use crate::debug::DebugPlugin;
 use crate::drawing::DrawingPlugin;
 use crate::keybinding::KeybindingPlugin;
-use crate::local_chalk::LocalPenPlugin;
+use crate::local_chalk::LocalChalkPlugin;
 
 #[derive(Debug)]
 pub struct Opt {
@@ -57,7 +57,7 @@ pub fn run(opt: Opt) {
     app.add_startup_system(setup);
 
     app.add_plugin(FramepacePlugin);
-    app.add_plugin(LocalPenPlugin);
+    app.add_plugin(LocalChalkPlugin);
     app.add_plugin(DrawingPlugin);
     app.add_plugin(KeybindingPlugin);
     app.add_plugin(PanCamPlugin::default());

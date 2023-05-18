@@ -12,7 +12,7 @@ use bevy_prototype_lyon::prelude::GeometryBuilder;
 use bevy_prototype_lyon::prelude::ShapeBundle;
 use bevy_prototype_lyon::shapes;
 
-pub(crate) struct LocalPenPlugin;
+pub(crate) struct LocalChalkPlugin;
 
 #[derive(Component)]
 struct LocalChalkFlag;
@@ -43,7 +43,7 @@ impl Default for LocalChalk {
     }
 }
 
-impl Plugin for LocalPenPlugin {
+impl Plugin for LocalChalkPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<LocalChalk>()
             .add_startup_system(startup)
