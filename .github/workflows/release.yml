@@ -159,7 +159,7 @@ jobs:
     - name: Build release binary
       if: matrix.build != 'android'
       env:
-        BEVY_ASSET_PATH: ${{ github.workspace }}/assets
+        BEVY_ASSET_PATH: /project/assets
       run: ${{ env.CARGO }} build --verbose --release ${{ env.TARGET_FLAGS }}
 
     # FIXME Keystore password must be secret
