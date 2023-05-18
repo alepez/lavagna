@@ -68,12 +68,7 @@ fn handle_draw(
         .or_insert_with(|| commands.spawn(make_chalk(event.into())).id());
 
     if let Ok(mut chalk) = chalk_q.get_mut(*entity) {
-        chalk.pressed = true;
-        chalk.updated = true;
-        chalk.x = (event.x as i32) - 65535;
-        chalk.y = (event.y as i32) - 65535;
-        chalk.color = Color::WHITE; // TODO
-        chalk.line_width = 10; // TODO
+        *chalk = event.into();
     }
 }
 
