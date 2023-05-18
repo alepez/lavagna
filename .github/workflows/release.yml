@@ -147,6 +147,9 @@ jobs:
       with:
         path: .cargo
 
+    - name: Setup bevy assets dir
+      run: echo "BEVY_ASSET_PATH=$GITHUB_WORKSPACE/assets" >> $GITHUB_ENV
+
     - name: Build release binary
       if: matrix.build != 'android'
       run: ${{ env.CARGO }} build --verbose --release ${{ env.TARGET_FLAGS }}
