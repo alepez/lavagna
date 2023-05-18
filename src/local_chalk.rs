@@ -13,27 +13,38 @@ use bevy_prototype_lyon::shapes;
 
 pub(crate) struct LocalPenPlugin;
 
-#[derive(Resource)]
-pub(crate) struct LocalChalkConfig {
-    pub(crate) color: Color,
-    pub(crate) line_width: u32,
-}
+#[derive(Component)]
+struct LocalCursor;
 
-impl Default for LocalChalkConfig {
-    fn default() -> Self {
-        Self {
-            color: Color::WHITE,
-            line_width: 8,
-        }
+#[derive(Resource)]
+pub struct LocalChalk(Chalk);
+
+impl LocalChalk {
+    pub(crate) fn get_mut(&mut self) -> &mut Chalk {
+        &mut self.0
+    }
+
+    pub(crate) fn get(&self) -> &Chalk {
+        &self.0
     }
 }
 
-#[derive(Component)]
-pub struct LocalChalk;
+impl Default for LocalChalk {
+    fn default() -> Self {
+        Self(Chalk {
+            color: Color::WHITE,
+            line_width: 8,
+            pressed: false,
+            updated: false,
+            x: 0,
+            y: 0,
+        })
+    }
+}
 
 impl Plugin for LocalPenPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<LocalChalkConfig>()
+        app.init_resource::<LocalChalk>()
             .add_startup_system(startup)
             .add_system(handle_user_input)
             .add_system(update_position)
@@ -42,30 +53,32 @@ impl Plugin for LocalPenPlugin {
     }
 }
 
-fn startup(mut commands: Commands, chalk_config: Res<LocalChalkConfig>) {
+fn startup(mut commands: Commands, chalk: Res<LocalChalk>) {
+    let chalk = &chalk.0;
+
     let shape = shapes::Circle {
         radius: 1.0,
         center: Vec2::new(0.0, 0.0),
     };
 
     commands.spawn((
-        LocalChalk,
+        LocalCursor,
         Chalk::new(),
         ShapeBundle {
             path: GeometryBuilder::build_as(&shape),
             ..default()
         },
-        Fill::color(chalk_config.color),
+        Fill::color(chalk.color),
     ));
 }
 
 fn handle_user_input(
     window_q: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
-    mut chalk_q: Query<&mut Chalk, With<LocalChalk>>,
+    mut chalk: ResMut<LocalChalk>,
 ) {
     let (camera, camera_transform) = camera_q.single();
-    let mut chalk = chalk_q.single_mut();
+    let chalk = &mut chalk.0;
     let window = window_q.single();
 
     let prev_chalk = *chalk;
@@ -84,9 +97,9 @@ fn handle_user_input(
 
 fn update_pressed(
     mut mouse_button_input_events: EventReader<MouseButtonInput>,
-    mut chalk_q: Query<&mut Chalk, With<LocalChalk>>,
+    mut chalk: ResMut<LocalChalk>,
 ) {
-    let mut chalk = chalk_q.single_mut();
+    let chalk = &mut chalk.0;
 
     for event in mouse_button_input_events.iter() {
         match event {
@@ -108,11 +121,11 @@ fn update_pressed(
 }
 
 fn update_position(
-    chalk_q: Query<&mut Chalk, With<LocalChalk>>,
-    mut sprite_transform_q: Query<&mut Transform, With<LocalChalk>>,
+    mut chalk: ResMut<LocalChalk>,
+    mut cursor_q: Query<&mut Transform, With<LocalCursor>>,
 ) {
-    let chalk = chalk_q.single();
-    let mut t = sprite_transform_q.single_mut();
+    let chalk = &mut chalk.0;
+    let mut t = cursor_q.single_mut();
     t.translation = Vec3::new(chalk.x as f32, chalk.y as f32, 0.);
 }
 
@@ -121,15 +134,16 @@ fn is_updated(old_chalk: &Chalk, new_chalk: &Chalk) -> bool {
 }
 
 fn update_config(
-    chalk_config: Res<LocalChalkConfig>,
-    mut chalk_q: Query<(&mut Chalk, &mut Fill, &mut Transform), With<LocalChalk>>,
+    mut chalk: ResMut<LocalChalk>,
+    mut cursor_q: Query<(&mut Fill, &mut Transform), With<LocalCursor>>,
 ) {
-    let (mut chalk, mut fill, mut transform) = chalk_q.single_mut();
+    let chalk = &mut chalk.0;
+    let (mut fill, mut transform) = cursor_q.single_mut();
 
-    chalk.color = chalk_config.color;
-    chalk.line_width = chalk_config.line_width;
+    // chalk.color = chalk_config.color;
+    // chalk.line_width = chalk_config.line_width;
 
-    *fill = Fill::color(chalk_config.color);
+    *fill = Fill::color(chalk.color);
 
     let scale = chalk.line_width as f32 / 2.0;
     transform.scale = Vec3::new(scale, scale, scale);

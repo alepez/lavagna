@@ -1,19 +1,19 @@
+mod collab;
 mod debug;
 mod drawing;
 mod keybinding;
 mod local_chalk;
-mod collab;
 
 use bevy::{prelude::*, window::Window};
 use bevy_embedded_assets::EmbeddedAssetPlugin;
 use bevy_framepace::{FramepacePlugin, FramepaceSettings, Limiter};
 use bevy_pancam::{PanCam, PanCamPlugin};
 
+use crate::collab::CollabPlugin;
 use crate::debug::DebugPlugin;
 use crate::drawing::DrawingPlugin;
 use crate::keybinding::KeybindingPlugin;
 use crate::local_chalk::LocalPenPlugin;
-use crate::collab::CollabPlugin;
 
 pub fn run() {
     App::new()

@@ -1,4 +1,4 @@
-use crate::{local_chalk::LocalChalk, Chalk};
+use crate::{Chalk, local_chalk::LocalChalk};
 use bevy::prelude::*;
 
 use bevy_prototype_lyon::prelude::*;
@@ -15,13 +15,13 @@ impl Plugin for DrawingPlugin {
 
 fn update(
     commands: Commands,
-    chalk_q: Query<&Chalk, With<LocalChalk>>,
+    chalk: Res<LocalChalk>,
     mut polyline_q: Query<&mut PendingPolyline>,
     mut path_q: Query<&mut Path, With<Pending>>,
     mut stroke_q: Query<&mut Stroke, With<Pending>>,
     time: Res<Time>,
 ) {
-    let chalk = chalk_q.single();
+    let chalk = chalk.get();
     let polyline: &mut PendingPolyline = &mut polyline_q.single_mut();
     let stroke = &mut stroke_q.single_mut();
 
