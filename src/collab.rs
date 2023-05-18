@@ -14,19 +14,33 @@ use tokio::sync::mpsc::{Receiver, Sender};
 
 use crate::local_chalk::LocalChalk;
 
-pub(crate) struct CollabPlugin;
+pub(crate) struct CollabPlugin {
+    opt: CollabPluginOpt,
+}
+
+#[derive(Debug, Resource, Clone)]
+pub struct CollabPluginOpt {
+    pub url: String,
+    pub collab_id: u16,
+}
+
+impl CollabPlugin {
+    pub fn new(opt: CollabPluginOpt) -> Self {
+        Self { opt }
+    }
+}
 
 impl Plugin for CollabPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
+        app.insert_resource(self.opt.clone());
         app.add_startup_system(setup);
         app.add_system(emit_events);
         app.add_system(handle_events);
     }
 }
 
-fn setup(mut commands: Commands) {
-    // FIXME
-    let room_url = "ws://127.0.0.1:3536/lavagna";
+fn setup(mut commands: Commands, opt: Res<CollabPluginOpt>) {
+    let room_url = &opt.url;
     let room = Room::new(room_url);
     commands.insert_resource(room);
 }

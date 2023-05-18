@@ -18,6 +18,7 @@ rand = "0.8"
 serde_json = "1.0"
 tokio = { version = "1.21", features = ["sync", "rt", "rt-multi-thread"] }
 serde = { version = "1.0", features = ["derive"] }
+clap = { version = "4.2.7", features = ["derive"] }
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
