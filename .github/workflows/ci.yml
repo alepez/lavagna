@@ -1,0 +1,97 @@
+name: ci
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+    - main
+  schedule:
+  - cron: '00 01 * * *'
+jobs:
+  fmt_check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        override: true
+        components: rustfmt
+
+    - name: Check Formatting
+      run: cargo +stable fmt --all -- --check
+
+  test:
+    name: test
+
+    env:
+      # Emit backtraces on panics.
+      RUST_BACKTRACE: 1
+      CARGO_INCREMENTAL: 0
+      RUSTFLAGS: "-C debuginfo=0 --deny warnings"
+      OPTIONS: ${{ matrix.platform.options }}
+      FEATURES: ${{ format(',{0}', matrix.platform.features ) }}
+      CMD: ${{ matrix.platform.cmd }}
+
+    runs-on: ${{ matrix.platform.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # We test lavagna on a pinned version of Rust, along with the moving
+        # targets of 'stable', 'beta', 'nightly'.
+        rust_version:
+          - 1.69.0
+          - stable
+          - beta
+          - nightly
+        # TODO Enable android target
+        platform:
+          - { target: x86_64-pc-windows-msvc,   os: windows-2019 }
+          - { target: x86_64-pc-windows-gnu,    os: windows-2019, host: -x86_64-pc-windows-gnu }
+          - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest }
+          - { target: x86_64-apple-darwin,      os: macos-latest    }
+          # - { target: aarch64-linux-android,    os: ubuntu-latest,  cmd: 'apk --' }
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Cache cargo folder
+      uses: actions/cache@v3
+      with:
+        path: ~/.cargo
+        key: ${{ matrix.platform.target }}-cargo-${{ matrix.rust_version }}
+
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ matrix.rust_version }}${{ matrix.platform.host }}
+        target: ${{ matrix.platform.target }}
+        profile: minimal
+        override: true
+        components: clippy, rustfmt
+
+    - name: Install cargo-apk
+      if: contains(matrix.platform.target, 'android')
+      run: cargo install cargo-apk
+
+    - name: Build tests
+      shell: bash
+      run: cargo $CMD test --no-run --verbose --target ${{ matrix.platform.target }} $OPTIONS --features $FEATURES
+
+    - name: Run tests
+      shell: bash
+      if: (
+        !contains(matrix.platform.target, 'android') &&
+        !contains(matrix.platform.target, 'ios') &&
+        !contains(matrix.platform.target, 'wasm32'))
+      run: cargo $CMD test --verbose --target ${{ matrix.platform.target }} $OPTIONS --features $FEATURES
+
+    - name: Lint with clippy
+      shell: bash
+      if: (matrix.rust_version == '1.69.0') && !contains(matrix.platform.options, '--no-default-features')
+      run: cargo clippy --all-targets --target ${{ matrix.platform.target }} $OPTIONS --features $FEATURES -- -Dwarnings
+
