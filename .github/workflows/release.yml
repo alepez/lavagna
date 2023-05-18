@@ -140,8 +140,7 @@ jobs:
     # Note rust-toolchain.toml .cargo/config.toml are needed only for
     # development so they're removed before building.
     - name: Remove development files
-      run:
-        - rm rust-toolchain.toml .cargo/config.toml
+      run: rm rust-toolchain.toml .cargo/config.toml
 
     - name: Build release binary
       if: matrix.build != 'android'
