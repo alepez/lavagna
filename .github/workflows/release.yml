@@ -32,7 +32,6 @@ jobs:
     env:
       # Set to force version number, e.g., when no tag exists.
       LAVAGNA_VERSION: ${{ inputs.version }}
-      BEVY_ASSET_PATH: $GITHUB_WORKSPACE/assets
 
     outputs:
       upload_url: ${{ steps.release.outputs.upload_url }}
@@ -151,7 +150,7 @@ jobs:
 
     - name: Build release binary
       if: matrix.build != 'android'
-      run: ${{ env.CARGO }} build --verbose --release ${{ env.TARGET_FLAGS }}
+      run: BEVY_ASSET_PATH=${GITHUB_WORKSPACE}/assets ${{ env.CARGO }} build --verbose --release ${{ env.TARGET_FLAGS }}
 
     # FIXME Keystore password must be secret
     # FIXME Enable apk
