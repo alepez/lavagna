@@ -40,8 +40,7 @@ impl Plugin for CollabPlugin {
 }
 
 fn setup(mut commands: Commands, opt: Res<CollabPluginOpt>) {
-    let room_url = &opt.url;
-    let room = Room::new(room_url);
+    let room = Room::new(&opt.url, opt.collab_id);
     commands.insert_resource(room);
 }
 
@@ -196,7 +195,7 @@ async fn room_run(
 }
 
 impl Room {
-    fn new(room_url: &str) -> Self {
+    fn new(room_url: &str, my_id: u16) -> Self {
         let (incoming_tx, incoming_rx) = channel::<AddressedEvent>(1024);
         let (outgoing_tx, outgoing_rx) = channel::<Event>(1024);
 
@@ -208,7 +207,7 @@ impl Room {
         let room_url = room_url.to_string();
         let has_peers: Arc<AtomicBool> = Arc::new(false.into());
         let has_peers_clone = has_peers.clone();
-        let my_id = CollabId::random();
+        let my_id = CollabId::from(my_id);
 
         runtime.spawn(async move {
             room_run(room_url, my_id, has_peers_clone, incoming_tx, outgoing_rx).await;
@@ -263,11 +262,8 @@ struct AddressedEvent {
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq, Hash)]
 struct CollabId(u16);
 
-impl CollabId {
-    fn random() -> Self {
-        use rand::Rng;
-        let mut rng = rand::thread_rng();
-        let n = rng.gen();
-        Self(n)
+impl From<u16> for CollabId {
+    fn from(value: u16) -> Self {
+        Self(value)
     }
 }
