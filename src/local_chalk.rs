@@ -57,7 +57,7 @@ impl Plugin for LocalChalkPlugin {
 fn startup(mut commands: Commands, mut chalk: ResMut<LocalChalk>) {
     commands.spawn((
         LocalChalkFlag, //
-        make_chalk(chalk.0.clone()),
+        make_chalk(chalk.0),
     ));
 
     let chalk = &mut chalk.0;
@@ -97,7 +97,7 @@ fn handle_user_input(
         chalk.y = world_position[1] as i32;
     }
 
-    chalk.updated = is_updated(&prev_chalk, &chalk);
+    chalk.updated = is_updated(&prev_chalk, chalk);
 }
 
 fn update_pressed(
