@@ -7,9 +7,7 @@ pub(crate) struct DrawingPlugin;
 
 impl Plugin for DrawingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugin(ShapePlugin)
-            .add_startup_system(setup)
-            .add_system(update);
+        app.add_plugin(ShapePlugin).add_system(update);
     }
 }
 
@@ -82,7 +80,7 @@ fn complete_pending_path(
     polyline.points.clear();
 }
 
-fn setup(mut commands: Commands) {
+pub(crate) fn make_chalk(chalk: Chalk) -> (ShapeBundle, Stroke, Fill, Polyline, Pending, Chalk) {
     // An empty path
     let path = PathBuilder::new().build();
 
@@ -92,7 +90,7 @@ fn setup(mut commands: Commands) {
         ..default()
     };
 
-    commands.spawn((
+    (
         ShapeBundle {
             path,
             transform,
@@ -102,17 +100,22 @@ fn setup(mut commands: Commands) {
         Fill::color(Color::NONE),
         Polyline::default(),
         Pending,
-    ));
+        chalk,
+    )
 }
+
+// pub fn add_chalk(commands: &mut Commands) {
+//     commands.spawn(make_chalk());
+// }
 
 #[derive(Debug, Component, Default)]
 struct Completed;
 
 #[derive(Debug, Component, Default)]
-struct Pending;
+pub(crate) struct Pending;
 
 #[derive(Debug, Clone, Component, Default)]
-struct Polyline {
+pub(crate) struct Polyline {
     points: Vec<Vec2>,
 }
 
