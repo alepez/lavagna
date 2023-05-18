@@ -14,6 +14,8 @@ struct Args {
     collab_url: Option<String>,
     #[clap(short = 'i', long, value_parser)]
     collab_id: Option<u16>,
+    #[clap(long)]
+    show_debug_pane: bool,
 }
 
 fn main() {
@@ -30,5 +32,8 @@ fn main() {
         None
     };
 
-    run(Opt { collab })
+    run(Opt {
+        collab,
+        show_debug_pane: args.show_debug_pane,
+    })
 }
