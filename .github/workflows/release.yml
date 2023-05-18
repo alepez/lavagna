@@ -32,6 +32,8 @@ jobs:
     env:
       # Set to force version number, e.g., when no tag exists.
       LAVAGNA_VERSION: ${{ inputs.version }}
+      BEVY_ASSET_PATH: $GITHUB_WORKSPACE/assets
+
     outputs:
       upload_url: ${{ steps.release.outputs.upload_url }}
       lavagna_version: ${{ env.LAVAGNA_VERSION }}
@@ -146,9 +148,6 @@ jobs:
       uses: JesseTG/rm@v1.0.0
       with:
         path: .cargo
-
-    - name: Setup bevy assets dir
-      run: echo "BEVY_ASSET_PATH=$GITHUB_WORKSPACE/assets" >> $GITHUB_ENV
 
     - name: Build release binary
       if: matrix.build != 'android'
