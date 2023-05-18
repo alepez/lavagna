@@ -4,6 +4,7 @@ mod drawing;
 mod keybinding;
 mod local_chalk;
 
+use bevy::log::LogPlugin;
 use bevy::{prelude::*, window::Window};
 use bevy_embedded_assets::EmbeddedAssetPlugin;
 use bevy_framepace::{FramepacePlugin, FramepaceSettings, Limiter};
@@ -20,22 +21,36 @@ use crate::local_chalk::LocalPenPlugin;
 pub struct Opt {
     pub collab: Option<CollabOpt>,
     pub show_debug_pane: bool,
+    pub verbose: bool,
 }
 
 pub fn run(opt: Opt) {
-    dbg!(&opt);
-
     let mut app = App::new();
+
+    let window_plugin = WindowPlugin {
+        primary_window: Some(Window {
+            resolution: (640., 480.).into(),
+            ..default()
+        }),
+        ..default()
+    };
+
+    let log_plugin = if opt.verbose {
+        LogPlugin {
+            filter: "wgpu_core=warn,wgpu_hal=warn".into(),
+            level: bevy::log::Level::DEBUG,
+        }
+    } else {
+        LogPlugin {
+            filter: default(),
+            level: bevy::log::Level::ERROR,
+        }
+    };
 
     app.add_plugins(
         DefaultPlugins
-            .set(WindowPlugin {
-                primary_window: Some(Window {
-                    resolution: (640., 480.).into(),
-                    ..default()
-                }),
-                ..default()
-            })
+            .set(window_plugin)
+            .set(log_plugin)
             .add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin),
     );
 

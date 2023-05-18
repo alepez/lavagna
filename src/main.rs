@@ -16,6 +16,8 @@ struct Args {
     collab_id: Option<u16>,
     #[clap(long)]
     show_debug_pane: bool,
+    #[clap(short = 'v', long, value_parser)]
+    verbose: bool,
 }
 
 fn main() {
@@ -35,5 +37,6 @@ fn main() {
     run(Opt {
         collab,
         show_debug_pane: args.show_debug_pane,
+        verbose: args.verbose,
     })
 }
