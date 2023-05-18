@@ -4,9 +4,22 @@ version = "2.0.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies.bevy]
+version = "0.10"
+default_features = false
+features = [
+  "bevy_asset",
+  "bevy_core_pipeline",
+  "bevy_render",
+  "bevy_sprite",
+  "bevy_text",
+  "bevy_ui",
+  "bevy_winit",
+  "x11",
+  "png",
+]
 
 [dependencies]
-bevy = { version = "0.10" }
 bevy_embedded_assets = "0.7.0"
 bevy_framepace = "0.12"
 bevy_pancam = "0.8.0"
