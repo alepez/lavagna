@@ -1,6 +1,6 @@
+use crate::drawing::make_chalk;
 use crate::Chalk;
 use crate::MainCamera;
-use crate::drawing::make_chalk;
 
 use bevy::{
     input::{mouse::MouseButtonInput, ButtonState},
@@ -38,10 +38,7 @@ impl Default for LocalChalk {
         Self(Chalk {
             color: Color::WHITE,
             line_width: 8,
-            pressed: false,
-            updated: false,
-            x: 0,
-            y: 0,
+            ..default()
         })
     }
 }
@@ -108,6 +105,7 @@ fn update_pressed(
     mut chalk: ResMut<LocalChalk>,
 ) {
     let chalk = &mut chalk.0;
+    let was_pressed = chalk.pressed;
 
     for event in mouse_button_input_events.iter() {
         match event {
@@ -115,6 +113,7 @@ fn update_pressed(
                 button: MouseButton::Left,
                 state: ButtonState::Pressed,
             } => {
+                chalk.just_released = false;
                 chalk.pressed = true;
             }
             MouseButtonInput {
@@ -126,10 +125,15 @@ fn update_pressed(
             _ => {}
         }
     }
+
+    chalk.just_released = was_pressed && !chalk.pressed;
 }
 
 fn is_updated(old_chalk: &Chalk, new_chalk: &Chalk) -> bool {
-    old_chalk.x != new_chalk.x || old_chalk.y != new_chalk.y
+    old_chalk.x != new_chalk.x
+        || old_chalk.y != new_chalk.y
+        || old_chalk.pressed != new_chalk.pressed
+        || old_chalk.just_released != new_chalk.just_released
 }
 
 fn update_cursor(

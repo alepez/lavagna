@@ -35,8 +35,11 @@ fn emit_events(chalk: ResMut<LocalChalk>, room: Res<Room>) {
     let chalk = chalk.get();
 
     if chalk.updated && chalk.pressed {
-        let event = Event::Draw(chalk.into());
-        room.send(event);
+        room.send(Event::Draw(chalk.into()));
+    }
+
+    if chalk.just_released {
+        room.send(Event::Release);
     }
 }
 
@@ -46,6 +49,18 @@ fn handle_events(mut commands: Commands, mut room: ResMut<Room>, mut chalk_q: Qu
             Event::Draw(e) => {
                 handle_draw(&mut commands, src, &e, &mut room, &mut chalk_q);
             }
+            Event::Release => {
+                handle_release(src, &mut room, &mut chalk_q);
+            }
+        }
+    }
+}
+
+fn handle_release(src: CollabId, room: &mut Room, chalk_q: &mut Query<&mut Chalk>) {
+    if let Some(entity) = room.peers.0.get(&src) {
+        if let Ok(mut chalk) = chalk_q.get_mut(*entity) {
+            chalk.pressed = false;
+            chalk.just_released = true;
         }
     }
 }
@@ -88,6 +103,7 @@ impl From<&DrawEvent> for Chalk {
             y: (event.y as i32) - 65535,
             color: Color::WHITE, // TODO
             line_width: event.line_width,
+            just_released: false,
         }
     }
 }
@@ -207,6 +223,7 @@ impl Room {
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
 enum Event {
     Draw(DrawEvent),
+    Release,
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
