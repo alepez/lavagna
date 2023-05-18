@@ -6,7 +6,7 @@ mod local_chalk;
 
 use bevy::log::LogPlugin;
 use bevy::{prelude::*, window::Window};
-use bevy_embedded_assets::EmbeddedAssetPlugin;
+// use bevy_embedded_assets::EmbeddedAssetPlugin;
 use bevy_framepace::{FramepacePlugin, FramepaceSettings, Limiter};
 use bevy_pancam::{PanCam, PanCamPlugin};
 
@@ -51,7 +51,7 @@ pub fn run(opt: Opt) {
         DefaultPlugins
             .set(window_plugin)
             .set(log_plugin)
-            .add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin),
+            // .add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin),
     );
 
     app.add_startup_system(setup);
