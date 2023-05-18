@@ -60,10 +60,61 @@ struct Room {
 /// If this timeout is too long, the reactivity degrades
 const TIMEOUT: Duration = Duration::from_millis(10);
 
+async fn room_run(
+    room_url: std::string::String,
+    my_id: CollabId,
+    has_peers: Arc<AtomicBool>,
+    incoming_tx: Sender<AddressedEvent>,
+    mut outgoing_rx: Receiver<Event>,
+) {
+    let (mut socket, loop_fut) = WebRtcSocket::new_reliable(room_url);
+
+    let mut channel = socket.take_channel(0).unwrap();
+
+    let loop_fut = loop_fut.fuse();
+    futures::pin_mut!(loop_fut);
+
+    let timeout = Delay::new(TIMEOUT);
+    futures::pin_mut!(timeout);
+
+    loop {
+        socket.update_peers();
+
+        let peers: Vec<_> = socket.connected_peers().collect();
+        has_peers.store(!peers.is_empty(), std::sync::atomic::Ordering::Relaxed);
+
+        while let Ok(event) = outgoing_rx.try_recv() {
+            let event = AddressedEvent { src: my_id, event };
+            for peer in &peers {
+                let packet = serde_json::to_vec(&event).unwrap().into_boxed_slice();
+                info!("TX {}", std::str::from_utf8(&packet).unwrap());
+                channel.send(packet, *peer);
+            }
+        }
+
+        for (_peer, packet) in channel.receive() {
+            let packet = packet;
+            info!("RX {}", std::str::from_utf8(&packet).unwrap());
+            let event = serde_json::from_slice(&packet).unwrap();
+            incoming_tx.send(event).await.unwrap();
+        }
+
+        select! {
+            _ = (&mut timeout).fuse() => {
+                timeout.reset(TIMEOUT);
+            }
+
+            _ = &mut loop_fut => {
+                break;
+            }
+        }
+    }
+}
+
 impl Room {
     fn new(room_url: &str) -> Self {
         let (incoming_tx, incoming_rx) = channel::<AddressedEvent>(1024);
-        let (outgoing_tx, mut outgoing_rx) = channel::<Event>(1024);
+        let (outgoing_tx, outgoing_rx) = channel::<Event>(1024);
 
         let runtime = tokio::runtime::Builder::new_multi_thread()
             .enable_all()
@@ -71,58 +122,12 @@ impl Room {
             .unwrap();
 
         let room_url = room_url.to_string();
-
         let has_peers: Arc<AtomicBool> = Arc::new(false.into());
-        let has_peers_arc = has_peers.clone();
-
+        let has_peers_clone = has_peers.clone();
         let my_id = CollabId::random();
 
         runtime.spawn(async move {
-            info!("connecting to matchbox server: {:?}", room_url);
-            let (mut socket, loop_fut) = WebRtcSocket::new_reliable(room_url);
-            info!("connected");
-
-            let mut channel = socket.take_channel(0).unwrap();
-
-            let loop_fut = loop_fut.fuse();
-            futures::pin_mut!(loop_fut);
-
-            let timeout = Delay::new(TIMEOUT);
-            futures::pin_mut!(timeout);
-
-            info!("enter loop");
-
-            loop {
-                socket.update_peers();
-
-                let peers: Vec<_> = socket.connected_peers().collect();
-                has_peers_arc.store(!peers.is_empty(), std::sync::atomic::Ordering::Relaxed);
-
-                while let Ok(event) = outgoing_rx.try_recv() {
-                    let event = AddressedEvent { src: my_id, event };
-                    for peer in &peers {
-                        let packet = serde_json::to_vec(&event).unwrap().into_boxed_slice();
-                        info!("{}", std::str::from_utf8(&packet).unwrap());
-                        channel.send(packet, *peer);
-                    }
-                }
-
-                for (_peer, packet) in channel.receive() {
-                    let packet = packet;
-                    let event = serde_json::from_slice(&packet).unwrap();
-                    incoming_tx.send(event).await.unwrap();
-                }
-
-                select! {
-                    _ = (&mut timeout).fuse() => {
-                        timeout.reset(TIMEOUT);
-                    }
-
-                    _ = &mut loop_fut => {
-                        break;
-                    }
-                }
-            }
+            room_run(room_url, my_id, has_peers_clone, incoming_tx, outgoing_rx).await;
         });
 
         Self {
