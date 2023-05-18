@@ -16,14 +16,11 @@ impl Plugin for DrawingPlugin {
 fn update(
     mut commands: Commands,
     chalk_q: Query<&Chalk>,
-    mut polyline_q: Query<&mut PendingPolyline>,
-    mut pending_q: Query<(&mut Path, &mut Stroke), With<Pending>>,
+    mut pending_q: Query<(&mut Path, &mut Stroke, &mut Polyline), With<Pending>>,
     time: Res<Time>,
 ) {
     for chalk in chalk_q.iter() {
-        let polyline: &mut PendingPolyline = &mut polyline_q.single_mut();
-
-        let (mut path, mut stroke) = pending_q.single_mut();
+        let (mut path, mut stroke, mut polyline) = pending_q.single_mut();
 
         let update = chalk.pressed && chalk.updated;
         let just_released = !chalk.pressed && !polyline.points.is_empty();
@@ -32,9 +29,9 @@ fn update(
         stroke.options.line_width = chalk.line_width as f32;
 
         if just_released {
-            complete_pending_path(polyline, &mut commands, chalk, &time);
+            complete_pending_path(&mut polyline, &mut commands, chalk, &time);
         } else if update {
-            add_point(polyline, chalk);
+            add_point(&mut polyline, chalk);
         }
 
         // Regenerate mesh from list of points
@@ -42,7 +39,7 @@ fn update(
     }
 }
 
-fn add_point(polyline: &mut PendingPolyline, chalk: &Chalk) {
+fn add_point(polyline: &mut Polyline, chalk: &Chalk) {
     let new_point = Vec2::new(chalk.x as f32, chalk.y as f32);
     polyline.points.push(new_point);
 }
@@ -56,7 +53,7 @@ fn z_from_time(time: &Time) -> f32 {
 }
 
 fn complete_pending_path(
-    polyline: &mut PendingPolyline,
+    polyline: &mut Polyline,
     commands: &mut Commands,
     chalk: &Chalk,
     time: &Time,
@@ -70,6 +67,7 @@ fn complete_pending_path(
         ..default()
     };
 
+    // The line is complete, we spawn a fresh mesh, which will persist
     commands.spawn((
         ShapeBundle {
             path,
@@ -85,10 +83,8 @@ fn complete_pending_path(
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn(PendingPolyline::default());
-
-    let path_builder = PathBuilder::new();
-    let path = path_builder.build();
+    // An empty path
+    let path = PathBuilder::new().build();
 
     // z-index at maximum before clipping pane
     let transform = Transform {
@@ -104,6 +100,7 @@ fn setup(mut commands: Commands) {
         },
         Stroke::new(Color::WHITE, 10.0),
         Fill::color(Color::NONE),
+        Polyline::default(),
         Pending,
     ));
 }
@@ -115,12 +112,12 @@ struct Completed;
 struct Pending;
 
 #[derive(Debug, Clone, Component, Default)]
-struct PendingPolyline {
+struct Polyline {
     points: Vec<Vec2>,
 }
 
-impl From<&PendingPolyline> for Path {
-    fn from(polyline: &PendingPolyline) -> Self {
+impl From<&Polyline> for Path {
+    fn from(polyline: &Polyline) -> Self {
         let mut path_builder = PathBuilder::new();
 
         let mut iter = polyline.points.iter();
