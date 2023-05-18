@@ -1,5 +1,6 @@
 use crate::Chalk;
 use crate::MainCamera;
+use crate::drawing::make_chalk;
 
 use bevy::{
     input::{mouse::MouseButtonInput, ButtonState},
@@ -57,7 +58,10 @@ impl Plugin for LocalPenPlugin {
 }
 
 fn startup(mut commands: Commands, mut chalk: ResMut<LocalChalk>) {
-    commands.spawn((LocalChalkFlag, chalk.0.clone()));
+    commands.spawn((
+        LocalChalkFlag, //
+        make_chalk(chalk.0.clone()),
+    ));
 
     let chalk = &mut chalk.0;
 

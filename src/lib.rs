@@ -76,16 +76,3 @@ struct Chalk {
     color: Color,
     line_width: u32,
 }
-
-impl Chalk {
-    fn new() -> Self {
-        Self {
-            pressed: false,
-            updated: false,
-            x: 0,
-            y: 0,
-            color: Color::WHITE,
-            line_width: 10,
-        }
-    }
-}

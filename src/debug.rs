@@ -6,7 +6,6 @@ use bevy::{
 };
 
 use crate::local_chalk::LocalChalk;
-use crate::Chalk;
 
 pub(crate) struct DebugPlugin;
 
