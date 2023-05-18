@@ -46,12 +46,8 @@ fn emit_events(chalk: ResMut<LocalChalk>, room: Res<Room>) {
 fn handle_events(mut commands: Commands, mut room: ResMut<Room>, mut chalk_q: Query<&mut Chalk>) {
     while let Some(AddressedEvent { src, event }) = room.try_recv() {
         match event {
-            Event::Draw(e) => {
-                handle_draw(&mut commands, src, &e, &mut room, &mut chalk_q);
-            }
-            Event::Release => {
-                handle_release(src, &mut room, &mut chalk_q);
-            }
+            Event::Draw(e) => handle_draw(&mut commands, src, &e, &mut room, &mut chalk_q),
+            Event::Release => handle_release(src, &mut room, &mut chalk_q),
         }
     }
 }
@@ -228,10 +224,10 @@ enum Event {
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
 struct DrawEvent {
-    pub color: u32,
-    pub line_width: u32,
-    pub x: u32,
-    pub y: u32,
+    color: u32,
+    line_width: u32,
+    x: u32,
+    y: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
