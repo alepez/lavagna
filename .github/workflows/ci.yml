@@ -80,8 +80,15 @@ jobs:
 
     # Note rust-toolchain.toml .cargo/config.toml are needed only for
     # development so they're removed before building.
-    - name: Remove development files
-      run: rm rust-toolchain.toml .cargo/config.toml
+    - name: Remove rust-toolchain.toml
+      uses: JesseTG/rm@v1.0.0
+      with:
+        path: rust-toolchain.toml
+
+    - name: Remove .cargo/config.toml
+      uses: JesseTG/rm@v1.0.0
+      with:
+        path: .cargo/config.toml
 
     - name: Build tests
       shell: bash
