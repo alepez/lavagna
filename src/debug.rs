@@ -5,6 +5,7 @@ use bevy::{
     time::Time,
 };
 
+use crate::local_chalk::LocalChalk;
 use crate::Chalk;
 
 pub(crate) struct DebugPlugin;
@@ -45,10 +46,10 @@ fn update(
     time: Res<Time>,
     diagnostics: Res<Diagnostics>,
     mut text: Query<&mut Text, With<DebugText>>,
-    mut pen: Query<&mut Chalk>,
+    chalk: Res<LocalChalk>,
 ) {
     let mut text = text.single_mut();
-    let pen = pen.single_mut();
+    let chalk = chalk.get();
 
     let fps = diagnostics
         .get(FrameTimeDiagnosticsPlugin::FPS)
@@ -62,9 +63,9 @@ fn update(
         .unwrap_or_else(|| time.delta_seconds_f64());
     let frame_time = format!("{:.3} ms/frame", frame_time);
 
-    let x = pen.x;
-    let y = pen.y;
-    let pressed = pen.pressed;
+    let x = chalk.x;
+    let y = chalk.y;
+    let pressed = chalk.pressed;
     let pen = format!("{x:+05}:{y:+05} {pressed}");
 
     text.sections[0].value = format!("{fps}\n{frame_time}\n{pen}\n",);
