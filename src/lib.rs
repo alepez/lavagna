@@ -10,33 +10,47 @@ use bevy_framepace::{FramepacePlugin, FramepaceSettings, Limiter};
 use bevy_pancam::{PanCam, PanCamPlugin};
 
 use crate::collab::CollabPlugin;
+pub use crate::collab::CollabPluginOpt as CollabOpt;
 use crate::debug::DebugPlugin;
 use crate::drawing::DrawingPlugin;
 use crate::keybinding::KeybindingPlugin;
 use crate::local_chalk::LocalPenPlugin;
 
-pub fn run() {
-    App::new()
-        .add_plugins(
-            DefaultPlugins
-                .set(WindowPlugin {
-                    primary_window: Some(Window {
-                        resolution: (640., 480.).into(),
-                        ..default()
-                    }),
+#[derive(Debug)]
+pub struct Opt {
+    pub collab: Option<CollabOpt>,
+}
+
+pub fn run(opt: Opt) {
+    dbg!(&opt);
+
+    let mut app = App::new();
+
+    app.add_plugins(
+        DefaultPlugins
+            .set(WindowPlugin {
+                primary_window: Some(Window {
+                    resolution: (640., 480.).into(),
                     ..default()
-                })
-                .add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin),
-        )
-        .add_plugin(FramepacePlugin)
-        .add_plugin(DebugPlugin)
-        .add_plugin(LocalPenPlugin)
-        .add_plugin(DrawingPlugin)
-        .add_plugin(KeybindingPlugin)
-        .add_plugin(PanCamPlugin::default())
-        .add_plugin(CollabPlugin)
-        .add_startup_system(setup)
-        .run();
+                }),
+                ..default()
+            })
+            .add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin),
+    );
+
+    app.add_plugin(FramepacePlugin);
+    app.add_plugin(DebugPlugin);
+    app.add_plugin(LocalPenPlugin);
+    app.add_plugin(DrawingPlugin);
+    app.add_plugin(KeybindingPlugin);
+    app.add_plugin(PanCamPlugin::default());
+    app.add_startup_system(setup);
+
+    if let Some(collab_opt) = opt.collab {
+        app.add_plugin(CollabPlugin::new(collab_opt));
+    }
+
+    app.run();
 }
 
 #[derive(Component)]
