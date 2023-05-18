@@ -17,13 +17,13 @@ fn update(
     mut commands: Commands,
     chalk_q: Query<&Chalk>,
     mut polyline_q: Query<&mut PendingPolyline>,
-    mut path_q: Query<&mut Path, With<Pending>>,
-    mut stroke_q: Query<&mut Stroke, With<Pending>>,
+    mut pending_q: Query<(&mut Path, &mut Stroke), With<Pending>>,
     time: Res<Time>,
 ) {
     for chalk in chalk_q.iter() {
         let polyline: &mut PendingPolyline = &mut polyline_q.single_mut();
-        let stroke = &mut stroke_q.single_mut();
+
+        let (mut path, mut stroke) = pending_q.single_mut();
 
         let update = chalk.pressed && chalk.updated;
         let just_released = !chalk.pressed && !polyline.points.is_empty();
@@ -38,7 +38,7 @@ fn update(
         }
 
         // Regenerate mesh from list of points
-        *path_q.single_mut() = Path::from(&*polyline);
+        *path = Path::from(&*polyline);
     }
 }
 
