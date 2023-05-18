@@ -79,12 +79,14 @@ fn handle_draw(
     }
 }
 
+const POSITION_OFFSET: i32 = 1 << 30;
+
 impl From<&Chalk> for DrawEvent {
     fn from(chalk: &Chalk) -> Self {
         Self {
             color: chalk.color.as_rgba_u32(),
-            x: (chalk.x + 65535) as u32,
-            y: (chalk.y + 65535) as u32,
+            x: (chalk.x + POSITION_OFFSET) as u32,
+            y: (chalk.y + POSITION_OFFSET) as u32,
             line_width: chalk.line_width,
         }
     }
@@ -95,13 +97,21 @@ impl From<&DrawEvent> for Chalk {
         Self {
             pressed: true,
             updated: true,
-            x: (event.x as i32) - 65535,
-            y: (event.y as i32) - 65535,
-            color: Color::WHITE, // TODO
+            x: (event.x as i32) - POSITION_OFFSET,
+            y: (event.y as i32) - POSITION_OFFSET,
+            color: color_from_u32(event.color),
             line_width: event.line_width,
             just_released: false,
         }
     }
+}
+
+fn color_from_u32(n: u32) -> Color {
+    let r = ((n) & 0xFF) as u8;
+    let g = ((n >> 8) & 0xFF) as u8;
+    let b = ((n >> 16) & 0xFF) as u8;
+    let a = ((n >> 24) & 0xFF) as u8;
+    Color::rgba_u8(r, g, b, a)
 }
 
 #[derive(Default)]
