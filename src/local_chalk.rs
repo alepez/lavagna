@@ -21,7 +21,7 @@ struct LocalChalkFlag;
 struct LocalCursor;
 
 #[derive(Resource)]
-pub struct LocalChalk(Chalk);
+pub(crate) struct LocalChalk(Chalk);
 
 impl LocalChalk {
     pub(crate) fn get_mut(&mut self) -> &mut Chalk {

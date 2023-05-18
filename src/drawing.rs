@@ -101,10 +101,6 @@ pub(crate) fn make_chalk(chalk: Chalk) -> (ShapeBundle, Stroke, Fill, Polyline, 
     )
 }
 
-// pub fn add_chalk(commands: &mut Commands) {
-//     commands.spawn(make_chalk());
-// }
-
 #[derive(Debug, Component, Default)]
 struct Completed;
 
