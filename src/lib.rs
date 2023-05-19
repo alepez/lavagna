@@ -24,6 +24,7 @@ pub struct Opt {
     pub collab: Option<CollabOpt>,
     pub show_debug_pane: bool,
     pub verbose: bool,
+    pub ui: bool,
 }
 
 pub fn run(opt: Opt) {
@@ -72,7 +73,9 @@ pub fn run(opt: Opt) {
         app.add_plugin(CollabPlugin::new(collab_opt));
     }
 
-    app.add_plugin(UiPlugin);
+    if opt.ui {
+        app.add_plugin(UiPlugin);
+    }
 
     app.run();
 }
