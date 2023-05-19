@@ -1,4 +1,4 @@
-use crate::local_chalk::LocalChalk;
+use crate::local_chalk::{LocalChalk, next_color};
 use bevy::prelude::*;
 
 pub(crate) struct KeybindingPlugin;
@@ -6,29 +6,6 @@ pub(crate) struct KeybindingPlugin;
 impl Plugin for KeybindingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_system(update);
-    }
-}
-
-const COLORS: [Color; 7] = [
-    Color::WHITE,
-    Color::BLUE,
-    Color::TURQUOISE,
-    Color::GREEN,
-    Color::YELLOW,
-    Color::ORANGE,
-    Color::RED,
-];
-
-fn next_color(curr_color: Color) -> Color {
-    if let Some(next_color) = COLORS
-        .iter()
-        .cycle()
-        .skip_while(|&&x| x != curr_color)
-        .nth(1)
-    {
-        *next_color
-    } else {
-        curr_color
     }
 }
 
