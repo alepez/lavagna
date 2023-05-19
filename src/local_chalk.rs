@@ -159,3 +159,26 @@ fn update_chalk(
         *chalk = local_chalk.0;
     }
 }
+
+const COLORS: [Color; 7] = [
+    Color::WHITE,
+    Color::BLUE,
+    Color::TURQUOISE,
+    Color::GREEN,
+    Color::YELLOW,
+    Color::ORANGE,
+    Color::RED,
+];
+
+pub(crate) fn next_color(curr_color: Color) -> Color {
+    if let Some(next_color) = COLORS
+        .iter()
+        .cycle()
+        .skip_while(|&&x| x != curr_color)
+        .nth(1)
+    {
+        *next_color
+    } else {
+        curr_color
+    }
+}

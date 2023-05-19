@@ -3,6 +3,7 @@ mod debug;
 mod drawing;
 mod keybinding;
 mod local_chalk;
+mod ui;
 
 use bevy::log::LogPlugin;
 use bevy::{prelude::*, window::Window};
@@ -16,6 +17,7 @@ use crate::debug::DebugPlugin;
 use crate::drawing::DrawingPlugin;
 use crate::keybinding::KeybindingPlugin;
 use crate::local_chalk::LocalChalkPlugin;
+use crate::ui::UiPlugin;
 
 #[derive(Debug)]
 pub struct Opt {
@@ -69,6 +71,8 @@ pub fn run(opt: Opt) {
     if let Some(collab_opt) = opt.collab {
         app.add_plugin(CollabPlugin::new(collab_opt));
     }
+
+    app.add_plugin(UiPlugin);
 
     app.run();
 }
