@@ -1,4 +1,4 @@
-use crate::local_chalk::{LocalChalk, next_color};
+use crate::local_chalk::LocalChalk;
 use bevy::prelude::*;
 
 pub(crate) struct KeybindingPlugin;
@@ -10,8 +10,6 @@ impl Plugin for KeybindingPlugin {
 }
 
 fn update(keyboard_input: Res<Input<KeyCode>>, mut chalk: ResMut<LocalChalk>) {
-    let chalk = &mut chalk.get_mut();
-
     if keyboard_input.just_pressed(KeyCode::Escape) {
         println!("TODO Quit the application");
     }
@@ -22,7 +20,7 @@ fn update(keyboard_input: Res<Input<KeyCode>>, mut chalk: ResMut<LocalChalk>) {
 
     if keyboard_input.just_pressed(KeyCode::C) {
         println!("TODO Change the chalk color");
-        chalk.color = next_color(chalk.color);
+        chalk.next_color();
     }
 
     if keyboard_input.just_pressed(KeyCode::U) {
@@ -33,11 +31,11 @@ fn update(keyboard_input: Res<Input<KeyCode>>, mut chalk: ResMut<LocalChalk>) {
         println!("TODO Take a snapshot");
     }
 
-    if keyboard_input.just_pressed(KeyCode::M) && chalk.line_width < 100 {
-        chalk.line_width *= 2;
+    if keyboard_input.just_pressed(KeyCode::M) {
+        chalk.incr_size();
     }
 
-    if keyboard_input.just_pressed(KeyCode::N) && chalk.line_width > 1 {
-        chalk.line_width /= 2;
+    if keyboard_input.just_pressed(KeyCode::N) {
+        chalk.decr_size();
     }
 }
