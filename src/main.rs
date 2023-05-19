@@ -1,6 +1,5 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
-
 // Disable the Windows Console
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
@@ -13,14 +12,16 @@ use lavagna::*;
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
-    #[clap(short = 'u', long, value_parser)]
+    #[clap(short = 'u', long)]
     collab_url: Option<String>,
-    #[clap(short = 'i', long, value_parser)]
+    #[clap(short = 'i', long)]
     collab_id: Option<u16>,
     #[clap(long)]
     show_debug_pane: bool,
-    #[clap(short = 'v', long, value_parser)]
+    #[clap(short = 'v', long)]
     verbose: bool,
+    #[clap(long)]
+    ui: bool,
 }
 
 fn main() {
@@ -41,5 +42,6 @@ fn main() {
         collab,
         show_debug_pane: args.show_debug_pane,
         verbose: args.verbose,
+        ui: args.ui,
     })
 }
