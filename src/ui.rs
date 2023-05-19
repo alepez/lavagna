@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::local_chalk::{next_color, LocalChalk};
+use crate::local_chalk::LocalChalk;
 
 pub(crate) struct UiPlugin;
 
@@ -136,14 +136,10 @@ fn color_btn_system(
         (Changed<Interaction>, With<ColorButton>),
     >,
 ) {
-    let chalk = &mut chalk.get_mut();
-
     for (interaction, mut bg) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
-                let color = next_color(chalk.color);
-                *bg = color.into();
-                chalk.color = color;
+                *bg = chalk.as_mut().next_color().into();
             }
             _ => {}
         }
@@ -151,12 +147,13 @@ fn color_btn_system(
 }
 
 fn incr_btn_system(
+    mut chalk: ResMut<LocalChalk>,
     mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<IncrementButton>)>,
 ) {
     for interaction in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
-                info!("+");
+                chalk.as_mut().incr_size();
             }
             _ => {}
         }
@@ -164,12 +161,13 @@ fn incr_btn_system(
 }
 
 fn decr_btn_system(
+    mut chalk: ResMut<LocalChalk>,
     mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<DecrementButton>)>,
 ) {
     for interaction in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
-                info!("-");
+                chalk.as_mut().decr_size();
             }
             _ => {}
         }

@@ -1,3 +1,6 @@
+use std::cmp::max;
+use std::cmp::min;
+
 use crate::drawing::make_chalk;
 use crate::Chalk;
 use crate::MainCamera;
@@ -24,10 +27,6 @@ struct LocalCursor;
 pub(crate) struct LocalChalk(Chalk);
 
 impl LocalChalk {
-    pub(crate) fn get_mut(&mut self) -> &mut Chalk {
-        &mut self.0
-    }
-
     pub(crate) fn get(&self) -> &Chalk {
         &self.0
     }
@@ -170,7 +169,7 @@ const COLORS: [Color; 7] = [
     Color::RED,
 ];
 
-pub(crate) fn next_color(curr_color: Color) -> Color {
+fn next_color(curr_color: Color) -> Color {
     if let Some(next_color) = COLORS
         .iter()
         .cycle()
@@ -180,5 +179,28 @@ pub(crate) fn next_color(curr_color: Color) -> Color {
         *next_color
     } else {
         curr_color
+    }
+}
+
+fn incr_size(size: u32) -> u32 {
+    min(100, size * 2)
+}
+
+fn decr_size(size: u32) -> u32 {
+    max(1, size / 2)
+}
+
+impl LocalChalk {
+    pub(crate) fn next_color(&mut self) -> Color {
+        self.0.color = next_color(self.0.color);
+        self.0.color
+    }
+    pub(crate) fn incr_size(&mut self) -> u32 {
+        self.0.line_width = incr_size(self.0.line_width);
+        self.0.line_width
+    }
+    pub(crate) fn decr_size(&mut self) -> u32 {
+        self.0.line_width = decr_size(self.0.line_width);
+        self.0.line_width
     }
 }
