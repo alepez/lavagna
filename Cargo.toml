@@ -40,3 +40,8 @@ opt-level = 3
 
 [features]
 quick-build = ["bevy/dynamic_linking"]
+
+# for wasm target
+[target.wasm32-unknown-unknown.dependencies]
+tracing-wasm = "0.2.1"
+tracing = "0.1.37"
