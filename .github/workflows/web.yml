@@ -19,7 +19,7 @@ jobs:
     - name: Cache cargo folder
       uses: actions/cache@v3
       with:
-        key: ${{ matrix.build }}
+        key: ${{ github.ref_name }}
         path: |
           ~/.cargo
           ~/.rustup
@@ -42,3 +42,7 @@ jobs:
       uses: JesseTG/rm@v1.0.0
       with:
         path: .cargo
+
+    - name: Build
+      shell: bash
+      run: ./tools/build-web
