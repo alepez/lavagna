@@ -4,23 +4,19 @@
 
 ![preview](.lavagna.gif)
 
-*Lavagna* is a "no frills" blackboard, ideal for simple sketches during online
-meetings. You have just a black screen, without icons or buttons cluttering
-your beautiful drawings.
+*Lavagna* is a "no frills", collaborative, blackboard, ideal for simple
+sketches during online meetings. You have just a black screen, without icons or
+buttons cluttering your beautiful drawings.
 
-Just you and your chalk.
+Just you, your peers, and your chalk.
 
 ## Keyboard bindings
 
 | Button | Action   | Note                                 |
 |--------|----------|--------------------------------------|
-| Esc    | Quit     | Quit the application                 |
-| X      | Clear    | Take a snapshot and clear everything |
 | C      | Color    | Change the chalk color               |
-| U      | Undo     | Resume the last snapshot             |
-| S      | Snapshot | Take a snapshot                      |
-| M      | Grow     | Grow chalk size 2x                     |
-| N      | Shrink   | Shrink chalk size 2x                   |
+| M      | Grow     | Grow chalk size 2x                   |
+| N      | Shrink   | Shrink chalk size 2x                 |
 
 ## Installation
 
@@ -59,8 +55,8 @@ page](https://github.com/alepez/lavagna/releases/latest).
 *lavagna* can use *WebRtc* for instant collaboration. Try it:
 
 ```shell
-lavagna --collab-url ws://ganymede.3mwd.net:9000/YOUR_ROOM
-cargo run --package lavagna -- --collab-url ws://ganymede.3mwd.net:9000/YOUR_ROOM
+lavagna --collab-url ws://example.com/YOUR_ROOM
+cargo run --package lavagna -- --collab-url ws://example.com/YOUR_ROOM
 ```
 
 Change `YOUR_ROOM` to whatever you prefer. If you do the same from a different
