@@ -19,6 +19,10 @@ features = [
   "png",
 ]
 
+[dependencies.tokio]
+version = "1.21"
+features = ["sync", "rt"]
+
 [dependencies]
 bevy_embedded_assets = "0.7.0"
 bevy_framepace = "0.12"
@@ -29,7 +33,6 @@ futures-timer = { version = "3" }
 matchbox_socket = "0.6.1"
 rand = "0.8"
 serde_json = "1.0"
-tokio = { version = "1.21", features = ["sync", "rt", "rt-multi-thread"] }
 serde = { version = "1.0", features = ["derive"] }
 clap = { version = "4.2.7", features = ["derive"] }
 
@@ -42,4 +45,5 @@ opt-level = 1
 opt-level = 3
 
 [features]
-quick_build = ["bevy/dynamic_linking"]
+quick-build = ["bevy/dynamic_linking"]
+multi-thread = ["tokio/rt-multi-thread"]
