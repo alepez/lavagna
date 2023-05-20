@@ -34,20 +34,55 @@ fn prepare_collab_options(collab_url: Option<String>, collab_id: Option<u16>) ->
     }
 }
 
-// TODO
-/// On wasm, some options are hardcoded, other are read from URL
-#[cfg(target_arch = "wasm32")]
-fn get_options() -> Opt {
-    let collab_url = Some("ws://localhost:3536/lavagna".to_string());
-    let collab_id = None;
-    let collab = prepare_collab_options(collab_url, collab_id);
-
-    Opt {
-        collab,
-        show_debug_pane: true,
-        verbose: true,
-        ui: true,
+#[allow(dead_code)]
+fn parse_request(request: &str) -> (Option<String>, Option<u16>) {
+    let mut collab_url = None;
+    let mut collab_id = None;
+    for param in request.split('&') {
+        let mut param = param.split('=');
+        let key = param.next().unwrap();
+        let value = param.next().unwrap();
+        match key {
+            "collab-url" => collab_url = Some(value.to_owned()),
+            "collab-id" => collab_id = Some(value.parse().unwrap()),
+            _ => (),
+        }
     }
+    (collab_url, collab_id)
+}
+
+#[cfg(target_arch = "wasm32")]
+mod wasm {
+    use super::*;
+
+    /// On wasm, some options are hardcoded, other are read from URL
+    pub(super) fn options() -> Opt {
+        let request = decode_request(web_sys::window().unwrap());
+
+        let (collab_url, collab_id) = parse_request(&request);
+        let collab = prepare_collab_options(collab_url, collab_id);
+
+        Opt {
+            collab,
+            show_debug_pane: true,
+            verbose: true,
+            ui: true,
+        }
+    }
+
+    fn decode_request(window: web_sys::Window) -> std::string::String {
+        window
+            .location()
+            .search()
+            .expect("no search exists")
+            .trim_start_matches('?')
+            .to_owned()
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+fn options() -> Opt {
+    wasm::options()
 }
 
 /// On native, options are read from command line arguments
@@ -65,6 +100,11 @@ fn options_from_args() -> Opt {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+fn options() -> Opt {
+    options_from_args()
+}
+
 fn main() {
     // This is needed, otherwise bevy logs are not shown on browser console
     #[cfg(target_arch = "wasm32")]
@@ -74,7 +114,19 @@ fn main() {
             .build(),
     );
 
-    let options = options_from_args();
+    let options = options();
 
     run(options)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_parse_request() {
+        let request = "collab-url=ws://127.0.0.1:3536/lavagna&collab-id=6";
+        let (collab_url, collab_id) = parse_request(request);
+        assert_eq!(collab_url, Some("ws://127.0.0.1:3536/lavagna".to_string()));
+        assert_eq!(collab_id, Some(6u16));
+    }
 }
