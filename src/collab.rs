@@ -194,15 +194,28 @@ async fn room_run(
     }
 }
 
+#[cfg(not(feature = "multi-thread"))]
+fn build_tokio_runtime() -> tokio::runtime::Runtime {
+    tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+}
+
+#[cfg(feature = "multi-thread")]
+fn build_tokio_runtime() -> tokio::runtime::Runtime {
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+}
+
 impl Room {
     fn new(room_url: &str, my_id: u16) -> Self {
         let (incoming_tx, incoming_rx) = channel::<AddressedEvent>(1024);
         let (outgoing_tx, outgoing_rx) = channel::<Event>(1024);
 
-        let runtime = tokio::runtime::Builder::new_multi_thread()
-            .enable_all()
-            .build()
-            .unwrap();
+        let runtime = build_tokio_runtime();
 
         let room_url = room_url.to_string();
         let has_peers: Arc<AtomicBool> = Arc::new(false.into());
