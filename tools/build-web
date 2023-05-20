@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 main() {
-  rm www/lavagna_bg.wasm www/lavagna.d.ts www/lavagna.js
+  rm -f www/lavagna_bg.wasm www/lavagna.d.ts www/lavagna.js
 
   cargo build --release --target wasm32-unknown-unknown
 
