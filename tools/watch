@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+cargo watch -x check -x "run --features=quick_build -- --verbose"
