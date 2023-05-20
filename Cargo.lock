@@ -910,6 +910,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_matchbox"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4df9767dccb33996f9539734fbf85f2b06ea337bc7c9019a531d6f432215661d"
+dependencies = [
+ "bevy",
+ "matchbox_socket",
+]
+
+[[package]]
 name = "bevy_math"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2709,16 +2719,13 @@ dependencies = [
  "bevy",
  "bevy_embedded_assets",
  "bevy_framepace",
+ "bevy_matchbox",
  "bevy_pancam",
  "bevy_prototype_lyon",
  "clap",
- "futures",
- "futures-timer",
- "matchbox_socket",
  "rand",
  "serde",
  "serde_json",
- "tokio",
 ]
 
 [[package]]
