@@ -36,20 +36,15 @@ jobs:
           ~/.cargo
           ~/.rustup
 
-    - name: Install Rust (wasm)
+    - name: Install Rust
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
         target: wasm32-unknown-unknown
 
-    - name: Install Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-
     - name: Install wasm-bindgen
       shell: bash
-      run: cargo cargo install -f wasm-bindgen-cli
+      run: cargo install -f wasm-bindgen-cli
 
     - name: Build
       shell: bash
