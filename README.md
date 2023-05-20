@@ -52,7 +52,8 @@ page](https://github.com/alepez/lavagna/releases/latest).
 
 ## Instant collaboration
 
-*lavagna* can use *WebRtc* for instant collaboration. Try it:
+*lavagna* can use *WebRtc* for instant collaboration. You need a signaling server
+like [`matchbox_server`](https://github.com/johanhelsing/matchbox/tree/main/matchbox_server)
 
 ```shell
 lavagna --collab-url ws://example.com/YOUR_ROOM
@@ -61,10 +62,6 @@ cargo run --package lavagna -- --collab-url ws://example.com/YOUR_ROOM
 
 Change `YOUR_ROOM` to whatever you prefer. If you do the same from a different
 computer, whatever you draw is visible on the other side (and vice versa).
-
-You can setup your own server by using
-[lavagna_server crate](https://github.com/alepez/lavagna_server) or [docker
-image](https://hub.docker.com/r/alepez/lavagna_server)
 
 ## Desktop app development
 
@@ -88,18 +85,3 @@ To print help information, just use:
 cargo run -- --help
 ```
 
-## Android app development
-
-Android development and testing is easy, thanks to [cargo-apk](https://crates.io/crates/cargo-apk)
-
-You just need to install `cargo-apk`:
-
-```shell
-cargo install cargo-apk
-```
-
-Plug your phone (or a virtual device) and launch lavagna:
-
-```shell
-cargo apk run --package lavagna_android
-```
