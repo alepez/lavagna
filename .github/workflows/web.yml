@@ -44,6 +44,20 @@ jobs:
         override: true
         target: wasm32-unknown-unknown
 
+    - name: Install wasm-bindgen
+      shell: bash
+      run: cargo cargo install -f wasm-bindgen-cli
+
     - name: Build
       shell: bash
       run: ./tools/build-web
+
+    - name: Netlify Actions
+      uses: nwtgck/actions-netlify@5da65c9f74c7961c5501a3ba329b8d0912f39c03
+      # uses: nwtgck/actions-netlify@v2.0.0
+      with:
+        # Publish directory
+        publish-dir: www
+      env:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
