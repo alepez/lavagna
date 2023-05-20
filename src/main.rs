@@ -3,12 +3,15 @@
 // Disable the Windows Console
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+#[cfg(not(target_arch = "wasm32"))]
 use clap::Parser;
+
 use lavagna::*;
 
 /// The uncluttered blackboard
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
+#[cfg(not(target_arch = "wasm32"))]
 struct Args {
     #[clap(short = 'u', long)]
     collab_url: Option<String>,
