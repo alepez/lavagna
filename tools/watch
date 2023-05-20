@@ -1,3 +1,31 @@
 #!/usr/bin/env bash
 
-cargo watch -x check -x "run --features=quick_build -- --verbose"
+watch() {
+  cargo watch -x check -x "run $( "${1}" )"
+}
+
+args_single_thread() {
+  echo "--features=quick-build -- --verbose --ui $( args_collab )"
+}
+
+args_multi_thread() {
+  echo "--features=quick-build,multi-thread -- --verbose --ui $( args_collab )"
+}
+
+args_no_ui_no_collab() {
+  echo "--features=quick-build,multi-thread -- --verbose"
+}
+
+args_collab() {
+  echo "--collab-url ws://127.0.0.1:3536/lavagna"
+}
+
+main() {
+   case $1 in
+     "multi-thread") watch args_multi_thread;;
+     "single-thread") watch args_single_thread;;
+     "no-ui-no-collab") watch args_no_ui_no_collab;;
+   esac
+}
+
+main "$@"
