@@ -42,6 +42,7 @@ jobs:
         toolchain: stable
         profile: minimal
         override: true
+        target: wasm32-unknown-unknown
 
     - name: Build
       shell: bash
