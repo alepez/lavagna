@@ -1,3 +1,5 @@
+#![allow(clippy::type_complexity)]
+
 use bevy::prelude::*;
 
 use crate::local_chalk::LocalChalk;
@@ -137,11 +139,8 @@ fn color_btn_system(
     >,
 ) {
     for (interaction, mut bg) in &mut interaction_query {
-        match *interaction {
-            Interaction::Clicked => {
-                *bg = chalk.as_mut().next_color().into();
-            }
-            _ => {}
+        if *interaction == Interaction::Clicked {
+            *bg = chalk.as_mut().next_color().into();
         }
     }
 }
@@ -151,11 +150,8 @@ fn incr_btn_system(
     mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<IncrementButton>)>,
 ) {
     for interaction in &mut interaction_query {
-        match *interaction {
-            Interaction::Clicked => {
-                chalk.as_mut().incr_size();
-            }
-            _ => {}
+        if *interaction == Interaction::Clicked {
+            chalk.as_mut().incr_size();
         }
     }
 }
@@ -165,11 +161,8 @@ fn decr_btn_system(
     mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<DecrementButton>)>,
 ) {
     for interaction in &mut interaction_query {
-        match *interaction {
-            Interaction::Clicked => {
-                chalk.as_mut().decr_size();
-            }
-            _ => {}
+        if *interaction == Interaction::Clicked {
+            chalk.as_mut().decr_size();
         }
     }
 }
