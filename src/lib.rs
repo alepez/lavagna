@@ -32,7 +32,7 @@ pub fn run(opt: Opt) {
 
     let window_plugin = WindowPlugin {
         primary_window: Some(Window {
-            resolution: (640., 480.).into(),
+            fit_canvas_to_parent: true,
             ..default()
         }),
         ..default()
