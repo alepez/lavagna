@@ -2,15 +2,8 @@ use crate::drawing::make_chalk;
 use crate::Chalk;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use futures::{select, FutureExt};
-use futures_timer::Delay;
-use matchbox_socket::WebRtcSocket;
+use bevy_matchbox::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::sync::atomic::AtomicBool;
-use std::sync::Arc;
-use std::time::Duration;
-use tokio::sync::mpsc::channel;
-use tokio::sync::mpsc::{Receiver, Sender};
 
 use crate::local_chalk::LocalChalk;
 
@@ -34,17 +27,20 @@ impl Plugin for CollabPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(self.opt.clone());
         app.add_startup_system(setup);
+        app.add_system(room_system);
         app.add_system(emit_events);
-        app.add_system(handle_events);
+        app.add_system(receive_events);
     }
 }
 
 fn setup(mut commands: Commands, opt: Res<CollabPluginOpt>) {
-    let room = Room::new(&opt.url, opt.collab_id);
+    let socket = MatchboxSocket::new_reliable(&opt.url);
+    let collab_id = CollabId(opt.collab_id);
+    let room = Room::new(socket, collab_id);
     commands.insert_resource(room);
 }
 
-fn emit_events(chalk: ResMut<LocalChalk>, room: Res<Room>) {
+fn emit_events(chalk: ResMut<LocalChalk>, mut room: ResMut<Room>) {
     let chalk = chalk.get();
 
     if chalk.updated && chalk.pressed {
@@ -56,8 +52,8 @@ fn emit_events(chalk: ResMut<LocalChalk>, room: Res<Room>) {
     }
 }
 
-fn handle_events(mut commands: Commands, mut room: ResMut<Room>, mut chalk_q: Query<&mut Chalk>) {
-    while let Some(AddressedEvent { src, event }) = room.try_recv() {
+fn receive_events(mut commands: Commands, mut room: ResMut<Room>, mut chalk_q: Query<&mut Chalk>) {
+    for AddressedEvent { src, event } in room.receive() {
         match event {
             Event::Draw(e) => handle_draw(&mut commands, src, &e, &mut room, &mut chalk_q),
             Event::Release => handle_release(src, &mut room, &mut chalk_q),
@@ -132,123 +128,39 @@ struct Peers(HashMap<CollabId, Entity>);
 
 #[derive(Resource)]
 struct Room {
-    #[allow(dead_code)]
-    runtime: tokio::runtime::Runtime,
-    outgoing_tx: Sender<Event>,
-    incoming_rx: Receiver<AddressedEvent>,
-    has_peers: Arc<AtomicBool>,
+    socket: MatchboxSocket<SingleChannel>,
+    collab_id: CollabId,
     peers: Peers,
 }
 
-/// If this timeout is too long, the reactivity degrades
-const TIMEOUT: Duration = Duration::from_millis(10);
-
-async fn room_run(
-    room_url: std::string::String,
-    my_id: CollabId,
-    has_peers: Arc<AtomicBool>,
-    incoming_tx: Sender<AddressedEvent>,
-    mut outgoing_rx: Receiver<Event>,
-) {
-    let (mut socket, loop_fut) = WebRtcSocket::new_reliable(room_url);
-
-    let mut channel = socket.take_channel(0).unwrap();
-
-    let loop_fut = loop_fut.fuse();
-    futures::pin_mut!(loop_fut);
-
-    let timeout = Delay::new(TIMEOUT);
-    futures::pin_mut!(timeout);
-
-    loop {
-        socket.update_peers();
-
-        let peers: Vec<_> = socket.connected_peers().collect();
-        has_peers.store(!peers.is_empty(), std::sync::atomic::Ordering::Relaxed);
-
-        while let Ok(event) = outgoing_rx.try_recv() {
-            let event = AddressedEvent { src: my_id, event };
-            for peer in &peers {
-                let packet = serde_json::to_vec(&event).unwrap().into_boxed_slice();
-                info!("TX {}", std::str::from_utf8(&packet).unwrap());
-                channel.send(packet, *peer);
-            }
-        }
-
-        for (_peer, packet) in channel.receive() {
-            let packet = packet;
-            info!("RX {}", std::str::from_utf8(&packet).unwrap());
-            let event = serde_json::from_slice(&packet).unwrap();
-            incoming_tx.send(event).await.unwrap();
-        }
-
-        select! {
-            _ = (&mut timeout).fuse() => {
-                timeout.reset(TIMEOUT);
-            }
-
-            _ = &mut loop_fut => {
-                break;
-            }
-        }
-    }
-}
-
-#[cfg(not(feature = "multi-thread"))]
-fn build_tokio_runtime() -> tokio::runtime::Runtime {
-    tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-}
-
-#[cfg(feature = "multi-thread")]
-fn build_tokio_runtime() -> tokio::runtime::Runtime {
-    tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-}
-
 impl Room {
-    fn new(room_url: &str, my_id: u16) -> Self {
-        let (incoming_tx, incoming_rx) = channel::<AddressedEvent>(1024);
-        let (outgoing_tx, outgoing_rx) = channel::<Event>(1024);
-
-        let runtime = build_tokio_runtime();
-
-        let room_url = room_url.to_string();
-        let has_peers: Arc<AtomicBool> = Arc::new(false.into());
-        let has_peers_clone = has_peers.clone();
-        let my_id = CollabId::from(my_id);
-
-        runtime.spawn(async move {
-            room_run(room_url, my_id, has_peers_clone, incoming_tx, outgoing_rx).await;
-        });
-
+    fn new(socket: MatchboxSocket<SingleChannel>, collab_id: CollabId) -> Self {
         Self {
-            runtime,
-            outgoing_tx,
-            incoming_rx,
-            has_peers,
-            peers: default(),
+            socket,
+            collab_id,
+            peers: Peers::default(),
         }
     }
 
-    fn send(&self, event: Event) {
-        if self.has_peers.load(std::sync::atomic::Ordering::Relaxed) {
-            let _ = self.outgoing_tx.blocking_send(event).map_err(|e| {
-                error!("Cannot send to WebRtc: {}", e);
-            });
+    fn send(&mut self, event: Event) {
+        let event = AddressedEvent {
+            src: self.collab_id,
+            event,
+        };
+        let peers: Vec<_> = self.socket.connected_peers().collect();
+        let packet = serde_json::to_vec(&event).unwrap().into_boxed_slice();
+        for peer in peers {
+            self.socket.send(packet.clone(), peer);
         }
     }
 
-    fn try_recv(&mut self) -> Option<AddressedEvent> {
-        if self.has_peers.load(std::sync::atomic::Ordering::Relaxed) {
-            self.incoming_rx.try_recv().ok()
-        } else {
-            None
-        }
+    fn receive(&mut self) -> Vec<AddressedEvent> {
+        self.socket
+            .receive()
+            .iter()
+            .filter_map(|(_peer_id, payload)| serde_json::from_slice(&payload).ok())
+            .inspect(|event| info!("RX {:?}", event))
+            .collect()
     }
 }
 
@@ -278,5 +190,15 @@ struct CollabId(u16);
 impl From<u16> for CollabId {
     fn from(value: u16) -> Self {
         Self(value)
+    }
+}
+
+// regularly call update_peers to update the list of connected peers
+fn room_system(mut room: ResMut<Room>) {
+    for (peer, new_state) in room.socket.update_peers() {
+        match new_state {
+            PeerState::Connected => info!("peer {peer:?} connected"),
+            PeerState::Disconnected => info!("peer {peer:?} disconnected"),
+        }
     }
 }

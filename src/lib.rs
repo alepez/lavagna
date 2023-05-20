@@ -40,7 +40,7 @@ pub fn run(opt: Opt) {
 
     let log_plugin = if opt.verbose {
         LogPlugin {
-            filter: "wgpu_core=warn,wgpu_hal=warn".into(),
+            filter: "warn,lavagna=debug,wgpu_core=warn,wgpu_hal=warn".into(),
             level: bevy::log::Level::DEBUG,
         }
     } else {
