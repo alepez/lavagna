@@ -2726,6 +2726,8 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
+ "tracing",
+ "tracing-wasm",
 ]
 
 [[package]]

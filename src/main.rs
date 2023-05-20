@@ -4,8 +4,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use clap::Parser;
-use rand::Rng;
-
 use lavagna::*;
 
 /// The uncluttered blackboard
@@ -24,24 +22,59 @@ struct Args {
     ui: bool,
 }
 
-fn main() {
-    let mut rng = rand::thread_rng();
-
-    let args = Args::parse();
-
-    let collab = if let Some(collab_url) = args.collab_url {
+/// When collab_url is set, collab_id is optional and defaults to a random value
+fn prepare_collab_options(collab_url: Option<String>, collab_id: Option<u16>) -> Option<CollabOpt> {
+    if let Some(collab_url) = collab_url {
         Some(CollabOpt {
             url: collab_url,
-            collab_id: args.collab_id.unwrap_or_else(|| rng.gen::<u16>()),
+            collab_id: collab_id.unwrap_or_else(rand::random),
         })
     } else {
         None
-    };
+    }
+}
 
-    run(Opt {
+// TODO
+/// On wasm, some options are hardcoded, other are read from URL
+#[cfg(target_arch = "wasm32")]
+fn get_options() -> Opt {
+    let collab_url = Some("ws://localhost:3536/lavagna".to_string());
+    let collab_id = None;
+    let collab = prepare_collab_options(collab_url, collab_id);
+
+    Opt {
+        collab,
+        show_debug_pane: true,
+        verbose: true,
+        ui: true,
+    }
+}
+
+/// On native, options are read from command line arguments
+#[cfg(not(target_arch = "wasm32"))]
+fn options_from_args() -> Opt {
+    let args = Args::parse();
+
+    let collab = prepare_collab_options(args.collab_url, args.collab_id);
+
+    Opt {
         collab,
         show_debug_pane: args.show_debug_pane,
         verbose: args.verbose,
         ui: args.ui,
-    })
+    }
+}
+
+fn main() {
+    // This is needed, otherwise bevy logs are not shown on browser console
+    #[cfg(target_arch = "wasm32")]
+    tracing_wasm::set_as_global_default_with_config(
+        tracing_wasm::WASMLayerConfigBuilder::default()
+            .set_max_level(tracing::Level::ERROR)
+            .build(),
+    );
+
+    let options = options_from_args();
+
+    run(options)
 }
