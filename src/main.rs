@@ -27,14 +27,10 @@ struct Args {
 
 /// When collab_url is set, collab_id is optional and defaults to a random value
 fn prepare_collab_options(collab_url: Option<String>, collab_id: Option<u16>) -> Option<CollabOpt> {
-    if let Some(collab_url) = collab_url {
-        Some(CollabOpt {
+    collab_url.map(|collab_url| CollabOpt {
             url: collab_url,
             collab_id: collab_id.unwrap_or_else(rand::random),
         })
-    } else {
-        None
-    }
 }
 
 #[allow(dead_code)]

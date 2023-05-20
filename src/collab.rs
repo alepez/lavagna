@@ -158,7 +158,7 @@ impl Room {
         self.socket
             .receive()
             .iter()
-            .filter_map(|(_peer_id, payload)| serde_json::from_slice(&payload).ok())
+            .filter_map(|(_peer_id, payload)| serde_json::from_slice(payload).ok())
             .inspect(|event| info!("RX {:?}", event))
             .collect()
     }
