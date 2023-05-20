@@ -47,13 +47,11 @@ jobs:
           - stable
           - beta
           - nightly
-        # TODO Enable android target
         platform:
           - { target: x86_64-pc-windows-msvc,   os: windows-2019 }
           - { target: x86_64-pc-windows-gnu,    os: windows-2019, host: -x86_64-pc-windows-gnu }
           - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest }
           - { target: x86_64-apple-darwin,      os: macos-latest    }
-          # - { target: aarch64-linux-android,    os: ubuntu-latest,  cmd: 'apk --' }
 
     steps:
     - name: Checkout repository
@@ -86,10 +84,6 @@ jobs:
         override: true
         components: clippy, rustfmt
 
-    - name: Install cargo-apk
-      if: contains(matrix.platform.target, 'android')
-      run: cargo install cargo-apk
-
     - name: Build tests
       shell: bash
       run: cargo $CMD test --no-run --verbose --target ${{ matrix.platform.target }} $OPTIONS --features $FEATURES
@@ -97,7 +91,6 @@ jobs:
     - name: Run tests
       shell: bash
       if: (
-        !contains(matrix.platform.target, 'android') &&
         !contains(matrix.platform.target, 'ios') &&
         !contains(matrix.platform.target, 'wasm32'))
       run: cargo $CMD test --verbose --target ${{ matrix.platform.target }} $OPTIONS --features $FEATURES
