@@ -131,7 +131,7 @@ mod tests {
     #[test]
     fn test_parse_request() {
         let request = "collab-url=ws://127.0.0.1:3536/lavagna&collab-id=6";
-        let (collab_url, collab_id) = parse_request(request);
+        let (collab_url, collab_id) = parse_request(Some(request.to_string()));
         assert_eq!(collab_url, Some("ws://127.0.0.1:3536/lavagna".to_string()));
         assert_eq!(collab_id, Some(6u16));
     }
