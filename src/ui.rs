@@ -133,13 +133,12 @@ struct DecrementButton;
 
 fn color_btn_system(
     mut chalk: ResMut<LocalChalk>,
-    mut interaction_query: Query<
-        (&Interaction, &mut BackgroundColor),
-        (Changed<Interaction>, With<ColorButton>),
-    >,
+    mut btn_query: Query<&mut BackgroundColor, With<ColorButton>>,
+    mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<ColorButton>)>,
 ) {
-    for (interaction, mut bg) in &mut interaction_query {
-        *bg = chalk.as_mut().color().into();
+    let mut bg = btn_query.single_mut();
+    *bg = chalk.as_mut().color().into();
+    for interaction in &mut interaction_query {
         if *interaction == Interaction::Clicked {
             *bg = chalk.as_mut().next_color().into();
         }

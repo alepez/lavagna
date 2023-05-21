@@ -19,7 +19,6 @@ fn update(keyboard_input: Res<Input<KeyCode>>, mut chalk: ResMut<LocalChalk>) {
     }
 
     if keyboard_input.just_pressed(KeyCode::C) {
-        println!("TODO Change the chalk color");
         chalk.next_color();
     }
 
