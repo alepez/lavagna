@@ -52,12 +52,18 @@ page](https://github.com/alepez/lavagna/releases/latest).
 
 ## Instant collaboration
 
-*lavagna* can use *WebRtc* for instant collaboration. You need a signaling server
+*lavagna* uses *WebRtc* for instant collaboration. So you can use it for online
+meetings. You don't even need to install anything, because *lavagna* is available
+as a web-app too.
+
+You need a signaling server
 like [`matchbox_server`](https://github.com/johanhelsing/matchbox/tree/main/matchbox_server)
+installed somewhere.
+
+Don't worry, for quick testing you can borrow *devand.dev* signaling server:
 
 ```shell
-lavagna --collab-url ws://example.com/YOUR_ROOM
-cargo run --package lavagna -- --collab-url ws://example.com/YOUR_ROOM
+lavagna --collab-url wss://lavagna.devand.dev/YOUR_ROOM
 ```
 
 Change `YOUR_ROOM` to whatever you prefer. If you do the same from a different
