@@ -34,16 +34,22 @@ fn prepare_collab_options(collab_url: Option<String>, collab_id: Option<u16>) ->
 }
 
 #[allow(dead_code)]
-fn parse_request(request: &str) -> (Option<String>, Option<u16>) {
+fn parse_request(request: Option<String>) -> (Option<String>, Option<u16>) {
+    let Some(request) = request else { return (None, None) };
+
+    if request.is_empty() {
+        return (None, None);
+    };
+
     let mut collab_url = None;
     let mut collab_id = None;
     for param in request.split('&') {
         let mut param = param.split('=');
-        let key = param.next().unwrap();
-        let value = param.next().unwrap();
+        let Some(key) = param.next() else { return (None, None) };
+        let Some(value) = param.next() else { return (None, None) };
         match key {
             "collab-url" => collab_url = Some(value.to_owned()),
-            "collab-id" => collab_id = Some(value.parse().unwrap()),
+            "collab-id" => collab_id = value.parse().ok(),
             _ => (),
         }
     }
@@ -57,8 +63,7 @@ mod wasm {
     /// On wasm, some options are hardcoded, other are read from URL
     pub(super) fn options() -> Opt {
         let request = decode_request(web_sys::window().unwrap());
-
-        let (collab_url, collab_id) = parse_request(&request);
+        let (collab_url, collab_id) = parse_request(request);
         let collab = prepare_collab_options(collab_url, collab_id);
 
         Opt {
@@ -69,13 +74,15 @@ mod wasm {
         }
     }
 
-    fn decode_request(window: web_sys::Window) -> std::string::String {
-        window
-            .location()
-            .search()
-            .expect("no search exists")
-            .trim_start_matches('?')
-            .to_owned()
+    fn decode_request(window: web_sys::Window) -> Option<std::string::String> {
+        Some(
+            window
+                .location()
+                .search()
+                .ok()?
+                .trim_start_matches('?')
+                .to_owned(),
+        )
     }
 }
 
