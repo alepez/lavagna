@@ -139,6 +139,7 @@ fn color_btn_system(
     >,
 ) {
     for (interaction, mut bg) in &mut interaction_query {
+        *bg = chalk.as_mut().color().into();
         if *interaction == Interaction::Clicked {
             *bg = chalk.as_mut().next_color().into();
         }

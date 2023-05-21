@@ -191,6 +191,9 @@ fn decr_size(size: u32) -> u32 {
 }
 
 impl LocalChalk {
+    pub(crate) fn color(&self) -> Color {
+        self.0.color
+    }
     pub(crate) fn next_color(&mut self) -> Color {
         self.0.color = next_color(self.0.color);
         self.0.color
