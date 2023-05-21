@@ -68,8 +68,8 @@ mod wasm {
 
         Opt {
             collab,
-            show_debug_pane: true,
-            verbose: true,
+            show_debug_pane: false,
+            verbose: false,
             ui: true,
         }
     }
