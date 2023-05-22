@@ -5,6 +5,7 @@ main() {
 
   export CARGO_PROFILE_RELEASE_LTO=fat
   export CARGO_PROFILE_RELEASE_OPT_LEVEL=s
+  export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
 
   cargo build --release --locked --target wasm32-unknown-unknown
 
