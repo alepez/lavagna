@@ -158,7 +158,6 @@ impl Room {
         let peers: Vec<_> = self.socket.connected_peers().collect();
         let mut payload = Vec::new();
         ciborium::ser::into_writer(&event, &mut payload).unwrap();
-        info!("TX bytes: {}", payload.len());
         for peer in peers {
             self.socket.send(payload.clone().into(), peer);
         }
@@ -170,7 +169,6 @@ impl Room {
             .iter()
             .map(|(_, payload)| payload)
             .filter_map(|payload| ciborium::de::from_reader(&payload[..]).ok())
-            .inspect(|event| info!("RX {:?}", event))
             .collect()
     }
 
@@ -179,14 +177,14 @@ impl Room {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Copy, Clone)]
+#[derive(Serialize, Deserialize, Copy, Clone)]
 enum Event {
     Draw(DrawEvent),
     Release,
     Clear,
 }
 
-#[derive(Debug, Serialize, Deserialize, Copy, Clone)]
+#[derive(Serialize, Deserialize, Copy, Clone)]
 struct DrawEvent {
     color: u32,
     line_width: u8,
@@ -194,13 +192,13 @@ struct DrawEvent {
     y: i16,
 }
 
-#[derive(Debug, Serialize, Deserialize, Copy, Clone)]
+#[derive(Serialize, Deserialize, Copy, Clone)]
 struct AddressedEvent {
     src: CollabId,
     event: Event,
 }
 
-#[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Copy, Clone, PartialEq, Eq, Hash)]
 struct CollabId(u16);
 
 impl From<u16> for CollabId {
