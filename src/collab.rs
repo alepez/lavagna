@@ -49,6 +49,11 @@ fn emit_events(chalk: ResMut<LocalChalk>, mut room: ResMut<Room>) {
 }
 
 fn receive_events(mut commands: Commands, mut room: ResMut<Room>, mut chalk_q: Query<&mut Chalk>) {
+    // This is needed, otherwise it can hangs forever when the connection is not established
+    if !room.is_ok() {
+        return;
+    }
+
     for AddressedEvent { src, event } in room.receive() {
         match event {
             Event::Draw(e) => handle_draw(&mut commands, src, &e, &mut room, &mut chalk_q),
@@ -158,6 +163,10 @@ impl Room {
             .filter_map(|(_peer_id, payload)| serde_json::from_slice(payload).ok())
             .inspect(|event| info!("RX {:?}", event))
             .collect()
+    }
+
+    fn is_ok(&self) -> bool {
+        self.socket.connected_peers().count() > 0
     }
 }
 
