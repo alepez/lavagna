@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 
 main() {
-  rm -f \
-    www/lavagna-*_bg.wasm \
-    www/lavagna-*.d.ts \
-    www/lavagna-*.js
+  rm -f www/lavagna-*.* www/index.html
 
   # Some compiler flags to optimize the build for file size
   # All this flags, reduce the size of the final .wasm file fro 18MB to 10MB
@@ -24,6 +21,8 @@ main() {
 
   cp www/index.html.template www/index.html
   sed -i "s/lavagna.*\.js/lavagna-${unique_id}\.js/g" www/index.html
+
+  gzip --keep www/lavagna-${unique_id}_bg.wasm
 }
 
 main "$@"
