@@ -7,7 +7,9 @@ pub(crate) struct DrawingPlugin;
 
 impl Plugin for DrawingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugin(ShapePlugin).add_system(update);
+        app.add_plugin(ShapePlugin)
+            .add_system(handle_keyboard)
+            .add_system(update);
     }
 }
 
@@ -127,5 +129,21 @@ impl From<&Polyline> for Path {
         }
 
         path_builder.build()
+    }
+}
+
+fn handle_keyboard(
+    keyboard_input: Res<Input<KeyCode>>,
+    lines: Query<Entity, With<Completed>>,
+    mut commands: Commands,
+) {
+    if keyboard_input.just_pressed(KeyCode::X) {
+        despawn_all_completed_lines(&mut commands, &lines)
+    }
+}
+
+fn despawn_all_completed_lines(commands: &mut Commands, lines: &Query<Entity, With<Completed>>) {
+    for line in lines.iter() {
+        commands.entity(line).despawn();
     }
 }
