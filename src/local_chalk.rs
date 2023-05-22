@@ -55,6 +55,7 @@ impl Plugin for LocalChalkPlugin {
             .add_system(handle_decr_size_event)
             .add_system(update_pressed)
             .add_system(update_chalk)
+            .add_system(touch_events)
             .add_system(update_cursor);
     }
 }
@@ -82,6 +83,16 @@ fn startup(mut commands: Commands, mut chalk: ResMut<LocalChalk>) {
     ));
 }
 
+fn cursor_to_world_position(
+    cursor_pos: Vec2,
+    camera: &Camera,
+    camera_t: &GlobalTransform,
+) -> Option<Vec2> {
+    let ray = camera.viewport_to_world(camera_t, cursor_pos)?;
+    let world_position = ray.origin.truncate();
+    Some(Vec2::new(world_position[0], world_position[1]))
+}
+
 fn handle_user_input(
     window_q: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
@@ -93,11 +104,9 @@ fn handle_user_input(
 
     let prev_chalk = *chalk;
 
-    if let Some(world_position) = window
-        .cursor_position()
-        .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor))
-        .map(|ray| ray.origin.truncate())
-    {
+    let Some(cursor_pos) = window.cursor_position() else { return; };
+
+    if let Some(world_position) = cursor_to_world_position(cursor_pos, camera, camera_transform) {
         chalk.x = world_position[0] as i32;
         chalk.y = world_position[1] as i32;
     }
@@ -128,6 +137,47 @@ fn update_pressed(
                 chalk.pressed = false;
             }
             _ => {}
+        }
+    }
+
+    chalk.just_released = was_pressed && !chalk.pressed;
+}
+
+fn touch_events(
+    mut touch_evr: EventReader<TouchInput>,
+    mut chalk: ResMut<LocalChalk>,
+    camera_q: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
+) {
+    use bevy::input::touch::TouchPhase;
+
+    let chalk = &mut chalk.0;
+    let was_pressed = chalk.pressed;
+
+    let mut cursor_position = None;
+
+    for event in touch_evr.iter() {
+        cursor_position = Some(event.position);
+        match event.phase {
+            TouchPhase::Started => {
+                chalk.just_released = false;
+                chalk.pressed = true;
+            }
+            TouchPhase::Moved => {}
+            TouchPhase::Ended => {
+                chalk.pressed = false;
+            }
+            TouchPhase::Cancelled => {
+                chalk.pressed = false;
+            }
+        }
+    }
+
+    if let Some(cursor_pos) = cursor_position {
+        let (camera, camera_transform) = camera_q.single();
+        if let Some(world_position) = cursor_to_world_position(cursor_pos, camera, camera_transform)
+        {
+            chalk.x = world_position[0] as i32;
+            chalk.y = -world_position[1] as i32;
         }
     }
 
