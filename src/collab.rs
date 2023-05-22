@@ -158,10 +158,11 @@ impl Room {
             event,
         };
         let peers: Vec<_> = self.socket.connected_peers().collect();
-        if let Ok(packet) = serde_json::to_vec(&event) {
-            for peer in peers {
-                self.socket.send(packet.clone().into(), peer);
-            }
+        let mut payload = Vec::new();
+        ciborium::ser::into_writer(&event, &mut payload).unwrap();
+        info!("TX bytes: {}", payload.len());
+        for peer in peers {
+            self.socket.send(payload.clone().into(), peer);
         }
     }
 
@@ -169,7 +170,8 @@ impl Room {
         self.socket
             .receive()
             .iter()
-            .filter_map(|(_peer_id, payload)| serde_json::from_slice(payload).ok())
+            .map(|(_, payload)| payload)
+            .filter_map(|payload| ciborium::de::from_reader(&payload[..]).ok())
             .inspect(|event| info!("RX {:?}", event))
             .collect()
     }
