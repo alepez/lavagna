@@ -20,7 +20,7 @@ fn update(
     mut grow_event: EventWriter<GrowEvent>,
 ) {
     if keyboard_input.just_pressed(KeyCode::X) {
-        clear_event.send(ClearEvent);
+        clear_event.send(ClearEvent::new());
     }
 
     if keyboard_input.just_pressed(KeyCode::C) {

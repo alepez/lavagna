@@ -139,14 +139,27 @@ fn despawn_all_completed_lines(commands: &mut Commands, lines: &Query<Entity, Wi
     }
 }
 
-pub(crate) struct ClearEvent;
+pub(crate) struct ClearEvent(bool);
+
+impl ClearEvent {
+    pub(crate) fn new() -> Self {
+        Self(true)
+    }
+    pub(crate) fn local_only() -> Self {
+        Self(false)
+    }
+    pub(crate) fn must_be_forwarded(&self) -> bool {
+        self.0
+    }
+}
 
 fn handle_clear_event(
     mut events: EventReader<ClearEvent>,
     lines: Query<Entity, With<Completed>>,
     mut commands: Commands,
 ) {
-    for _ in events.iter() {
+    let clear = events.iter().count() > 0;
+    if clear {
         despawn_all_completed_lines(&mut commands, &lines)
     }
 }

@@ -202,7 +202,7 @@ fn clear_btn_system(
 ) {
     for interaction in &mut interaction_query {
         if *interaction == Interaction::Clicked {
-            event.send(ClearEvent);
+            event.send(ClearEvent::new());
         }
     }
 }

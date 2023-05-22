@@ -1,4 +1,4 @@
-use crate::drawing::make_chalk;
+use crate::drawing::{make_chalk, ClearEvent};
 use crate::Chalk;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
@@ -33,6 +33,7 @@ impl Plugin for CollabPlugin {
         app.add_system(room_system);
         app.add_system(emit_events);
         app.add_system(receive_events);
+        app.add_system(handle_clear_event);
     }
 }
 
@@ -48,16 +49,24 @@ fn emit_events(chalk: ResMut<LocalChalk>, mut room: ResMut<Room>) {
     }
 }
 
-fn receive_events(mut commands: Commands, mut room: ResMut<Room>, mut chalk_q: Query<&mut Chalk>) {
+fn receive_events(
+    mut commands: Commands,
+    mut room: ResMut<Room>,
+    mut chalk_q: Query<&mut Chalk>,
+    mut clear_event: EventWriter<ClearEvent>,
+) {
     // This is needed, otherwise it can hangs forever when the connection is not established
     if !room.is_ok() {
         return;
     }
 
-    for AddressedEvent { src, event } in room.receive() {
+    let my_id = room.collab_id;
+
+    for &AddressedEvent { src, event } in room.receive().iter().filter(|e| e.src != my_id) {
         match event {
             Event::Draw(e) => handle_draw(&mut commands, src, &e, &mut room, &mut chalk_q),
             Event::Release => handle_release(src, &mut room, &mut chalk_q),
+            Event::Clear => clear_event.send(ClearEvent::local_only()),
         }
     }
 }
@@ -174,6 +183,7 @@ impl Room {
 enum Event {
     Draw(DrawEvent),
     Release,
+    Clear,
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
@@ -206,5 +216,13 @@ fn room_system(mut room: ResMut<Room>) {
             PeerState::Connected => info!("peer {peer:?} connected"),
             PeerState::Disconnected => info!("peer {peer:?} disconnected"),
         }
+    }
+}
+
+fn handle_clear_event(mut events: EventReader<ClearEvent>, mut room: ResMut<Room>) {
+    let clear = events.iter().filter(|e| e.must_be_forwarded()).count() > 0;
+
+    if clear {
+        room.send(Event::Clear);
     }
 }
