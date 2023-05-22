@@ -22,6 +22,9 @@ main() {
   cp www/index.html.template www/index.html
   sed -i "s/lavagna.*\.js/lavagna-${unique_id}\.js/g" www/index.html
 
+  # If the http server supports it, the gz file will be used Example: busybox
+  # httpd sends files using GZIP content encoding if the client supports it and
+  # a pre-compressed <file>.gz exists.
   gzip --keep www/lavagna-${unique_id}_bg.wasm
 }
 
