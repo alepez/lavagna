@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 main() {
-  docker build . -t alepez/lavagna-webapp -f ./docker/lavagna-webapp/Dockerfile
+  docker build -t alepez/lavagna-webapp -f ./docker/lavagna-webapp/Dockerfile .
 
   if [ "${1}" == "push" ]; then
     docker push alepez/lavagna-webapp
