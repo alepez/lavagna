@@ -98,14 +98,12 @@ fn handle_draw(
     }
 }
 
-const POSITION_OFFSET: i32 = 1 << 30;
-
 impl From<&Chalk> for DrawEvent {
     fn from(chalk: &Chalk) -> Self {
         Self {
             color: chalk.color.as_rgba_u32(),
-            x: (chalk.x + POSITION_OFFSET) as u32,
-            y: (chalk.y + POSITION_OFFSET) as u32,
+            x: chalk.x as i16,
+            y: chalk.y as i16,
             line_width: chalk.line_width as u8,
         }
     }
@@ -116,8 +114,8 @@ impl From<&DrawEvent> for Chalk {
         Self {
             pressed: true,
             updated: true,
-            x: (event.x as i32) - POSITION_OFFSET,
-            y: (event.y as i32) - POSITION_OFFSET,
+            x: event.x as i32,
+            y: event.y as i32,
             color: color_from_u32(event.color),
             line_width: event.line_width as u32,
             just_released: false,
@@ -192,8 +190,8 @@ enum Event {
 struct DrawEvent {
     color: u32,
     line_width: u8,
-    x: u32,
-    y: u32,
+    x: i16,
+    y: i16,
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
