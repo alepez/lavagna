@@ -180,7 +180,7 @@ fn incr_btn_system(
 ) {
     for interaction in &mut interaction_query {
         if *interaction == Interaction::Clicked {
-            chalk.as_mut().incr_size();
+            chalk.as_mut().grow();
         }
     }
 }
@@ -191,7 +191,7 @@ fn decr_btn_system(
 ) {
     for interaction in &mut interaction_query {
         if *interaction == Interaction::Clicked {
-            chalk.as_mut().decr_size();
+            chalk.as_mut().shrink();
         }
     }
 }

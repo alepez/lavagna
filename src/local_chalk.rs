@@ -204,11 +204,11 @@ impl LocalChalk {
         self.0.color = next_color(self.0.color);
         self.0.color
     }
-    pub(crate) fn incr_size(&mut self) -> u32 {
+    pub(crate) fn grow(&mut self) -> u32 {
         self.0.line_width = incr_size(self.0.line_width);
         self.0.line_width
     }
-    pub(crate) fn decr_size(&mut self) -> u32 {
+    pub(crate) fn shrink(&mut self) -> u32 {
         self.0.line_width = decr_size(self.0.line_width);
         self.0.line_width
     }
@@ -229,12 +229,12 @@ fn handle_change_color_event(
 
 fn handle_incr_size_event(mut events: EventReader<GrowEvent>, mut chalk: ResMut<LocalChalk>) {
     for _ in events.iter() {
-        chalk.incr_size();
+        chalk.grow();
     }
 }
 
 fn handle_decr_size_event(mut events: EventReader<ShrinkEvent>, mut chalk: ResMut<LocalChalk>) {
     for _ in events.iter() {
-        chalk.decr_size();
+        chalk.shrink();
     }
 }
