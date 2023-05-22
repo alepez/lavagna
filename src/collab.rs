@@ -106,7 +106,7 @@ impl From<&Chalk> for DrawEvent {
             color: chalk.color.as_rgba_u32(),
             x: (chalk.x + POSITION_OFFSET) as u32,
             y: (chalk.y + POSITION_OFFSET) as u32,
-            line_width: chalk.line_width,
+            line_width: chalk.line_width as u8,
         }
     }
 }
@@ -119,7 +119,7 @@ impl From<&DrawEvent> for Chalk {
             x: (event.x as i32) - POSITION_OFFSET,
             y: (event.y as i32) - POSITION_OFFSET,
             color: color_from_u32(event.color),
-            line_width: event.line_width,
+            line_width: event.line_width as u32,
             just_released: false,
         }
     }
@@ -191,7 +191,7 @@ enum Event {
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
 struct DrawEvent {
     color: u32,
-    line_width: u32,
+    line_width: u8,
     x: u32,
     y: u32,
 }
