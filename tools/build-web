@@ -3,6 +3,8 @@
 main() {
   rm -f www/lavagna_bg.wasm www/lavagna.d.ts www/lavagna.js
 
+  # Some compiler flags to optimize the build for file size
+  # All this flags, reduce the size of the final .wasm file fro 18MB to 10MB
   export CARGO_PROFILE_RELEASE_LTO=fat
   export CARGO_PROFILE_RELEASE_OPT_LEVEL=s
   export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
