@@ -3,6 +3,7 @@ mod debug;
 mod drawing;
 mod local_chalk;
 mod ui;
+mod keybinding;
 
 use bevy::log::LogPlugin;
 use bevy::{prelude::*, window::Window};
@@ -16,6 +17,7 @@ use crate::debug::DebugPlugin;
 use crate::drawing::DrawingPlugin;
 use crate::local_chalk::LocalChalkPlugin;
 use crate::ui::UiPlugin;
+use crate::keybinding::KeybindingPlugin;
 
 #[derive(Debug)]
 pub struct Opt {
@@ -58,6 +60,7 @@ pub fn run(opt: Opt) {
 
     app.add_startup_system(setup);
 
+    app.add_plugin(KeybindingPlugin);
     app.add_plugin(FramepacePlugin);
     app.add_plugin(LocalChalkPlugin);
     app.add_plugin(DrawingPlugin);
