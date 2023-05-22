@@ -25,19 +25,15 @@ impl CollabPlugin {
 
 impl Plugin for CollabPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.insert_resource(self.opt.clone());
-        app.add_startup_system(setup);
+        let socket = MatchboxSocket::new_reliable(&self.opt.url);
+        let collab_id = CollabId(self.opt.collab_id);
+        let room = Room::new(socket, collab_id);
+        app.insert_resource(room);
+
         app.add_system(room_system);
         app.add_system(emit_events);
         app.add_system(receive_events);
     }
-}
-
-fn setup(mut commands: Commands, opt: Res<CollabPluginOpt>) {
-    let socket = MatchboxSocket::new_reliable(&opt.url);
-    let collab_id = CollabId(opt.collab_id);
-    let room = Room::new(socket, collab_id);
-    commands.insert_resource(room);
 }
 
 fn emit_events(chalk: ResMut<LocalChalk>, mut room: ResMut<Room>) {
