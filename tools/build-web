@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
 main() {
-  rm -f www/lavagna_bg.wasm www/lavagna.d.ts www/lavagna.js
+  rm -f \
+    www/lavagna-*_bg.wasm \
+    www/lavagna-*.d.ts \
+    www/lavagna-*.js
 
   # Some compiler flags to optimize the build for file size
   # All this flags, reduce the size of the final .wasm file fro 18MB to 10MB
@@ -12,9 +15,15 @@ main() {
 
   cargo build --release --locked --target wasm32-unknown-unknown
 
-  wasm-bindgen --out-name lavagna \
+  # Prevent browser caching
+  local unique_id=$( printf "%02X" $( date +%s ) )
+
+  wasm-bindgen --out-name lavagna-${unique_id} \
     --out-dir www \
     --target web target/wasm32-unknown-unknown/release/lavagna.wasm
+
+  cp www/index.html.template www/index.html
+  sed -i "s/lavagna.*\.js/lavagna-${unique_id}\.js/g" www/index.html
 }
 
 main "$@"

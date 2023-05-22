@@ -1,5 +1,6 @@
 /target
-/www/lavagna_bg.wasm
-/www/lavagna_bg.wasm.d.ts
-/www/lavagna.d.ts
-/www/lavagna.js
+/www/lavagna-*_bg.wasm
+/www/lavagna-*_bg.wasm.d.ts
+/www/lavagna-*.d.ts
+/www/lavagna-*.js
+/www/index.html
