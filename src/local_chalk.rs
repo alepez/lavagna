@@ -109,9 +109,8 @@ fn handle_user_input(
     if let Some(world_position) = cursor_to_world_position(cursor_pos, camera, camera_transform) {
         chalk.x = world_position[0] as i32;
         chalk.y = world_position[1] as i32;
+        chalk.updated = is_updated(&prev_chalk, chalk);
     }
-
-    chalk.updated = is_updated(&prev_chalk, chalk);
 }
 
 fn update_pressed(
@@ -154,6 +153,7 @@ fn touch_events(
     let was_pressed = chalk.pressed;
 
     let mut cursor_position = None;
+    let prev_chalk = *chalk;
 
     for event in touch_evr.iter() {
         cursor_position = Some(event.position);
@@ -178,6 +178,7 @@ fn touch_events(
         {
             chalk.x = world_position[0] as i32;
             chalk.y = -world_position[1] as i32;
+            chalk.updated = is_updated(&prev_chalk, chalk);
         }
     }
 
