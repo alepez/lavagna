@@ -8,7 +8,9 @@ pub(crate) struct DrawingPlugin;
 impl Plugin for DrawingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_plugin(ShapePlugin)
+            .add_event::<ClearEvent>()
             .add_system(handle_keyboard)
+            .add_system(handle_clear_event)
             .add_system(update);
     }
 }
@@ -145,5 +147,17 @@ fn handle_keyboard(
 fn despawn_all_completed_lines(commands: &mut Commands, lines: &Query<Entity, With<Completed>>) {
     for line in lines.iter() {
         commands.entity(line).despawn();
+    }
+}
+
+pub(crate) struct ClearEvent;
+
+fn handle_clear_event(
+    mut events: EventReader<ClearEvent>,
+    lines: Query<Entity, With<Completed>>,
+    mut commands: Commands,
+) {
+    for event in events.iter() {
+        despawn_all_completed_lines(&mut commands, &lines)
     }
 }

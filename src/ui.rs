@@ -2,7 +2,7 @@
 
 use bevy::prelude::*;
 
-use crate::local_chalk::LocalChalk;
+use crate::{local_chalk::LocalChalk, drawing::ClearEvent};
 
 pub(crate) struct UiPlugin;
 
@@ -14,6 +14,7 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_startup_system(setup)
             .add_system(color_btn_system)
+            .add_system(clear_btn_system)
             .add_system(incr_btn_system)
             .add_system(decr_btn_system);
     }
@@ -51,7 +52,6 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, chalk: ResMut<L
                         },
                         ..default()
                     },
-                    background_color: BackgroundColor(Color::BLUE),
                     ..default()
                 })
                 .with_children(|parent| {
@@ -118,6 +118,32 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, chalk: ResMut<L
                                 },
                             ));
                         });
+                })
+                .with_children(|parent| {
+                    parent
+                        .spawn((
+                            ClearButton,
+                            ButtonBundle {
+                                style: Style {
+                                    size: Size::width(Val::Px(BTN_WIDTH)),
+                                    justify_content: JustifyContent::Center,
+                                    align_items: AlignItems::Center,
+                                    ..default()
+                                },
+                                background_color: BackgroundColor(Color::DARK_GRAY),
+                                ..default()
+                            },
+                        ))
+                        .with_children(|parent| {
+                            parent.spawn(TextBundle::from_section(
+                                "x",
+                                TextStyle {
+                                    font: font.clone(),
+                                    font_size: FONT_SIZE,
+                                    color: Color::WHITE,
+                                },
+                            ));
+                        });
                 });
         });
 }
@@ -130,6 +156,9 @@ struct IncrementButton;
 
 #[derive(Component)]
 struct DecrementButton;
+
+#[derive(Component)]
+struct ClearButton;
 
 fn color_btn_system(
     mut chalk: ResMut<LocalChalk>,
@@ -163,6 +192,17 @@ fn decr_btn_system(
     for interaction in &mut interaction_query {
         if *interaction == Interaction::Clicked {
             chalk.as_mut().decr_size();
+        }
+    }
+}
+
+fn clear_btn_system(
+    mut event: EventWriter<ClearEvent>,
+    mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<ClearButton>)>,
+) {
+    for interaction in &mut interaction_query {
+        if *interaction == Interaction::Clicked {
+            event.send(ClearEvent);
         }
     }
 }
