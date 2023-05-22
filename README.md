@@ -4,14 +4,12 @@
 
 ![preview](.lavagna.gif)
 
-*Lavagna* is a "no frills", collaborative, blackboard, ideal for simple
-sketches during online meetings. You have just a black screen, without icons or
-buttons cluttering your beautiful drawings.
+*Lavagna* is a collaborative blackboard software that is perfect for creating
+simple sketches during online meetings. It has an (optional) minimal UI and can
+be hidden to avoid distractions from your drawings. You can control colors and
+line width using the keyboard or the optional toolbar. 
 
-Colors and line width can be controlled by the keyboard, or by enabling a simple
-toolbar if the keyboard is not available.
-
-Just you, your peers, and your chalk.
+It's just you, your peers, and your creativity.
 
 ## Online demo
 
@@ -24,6 +22,7 @@ An online demo is available: [demo](https://lavagna.devand.dev/?collab-url=wss:/
 | C      | Color    | Change the chalk color               |
 | M      | Grow     | Grow chalk size 2x                   |
 | N      | Shrink   | Shrink chalk size 2x                 |
+| X      | Clear    | Clear the whole blackboard           |
 
 ## Installation
 
