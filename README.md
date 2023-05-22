@@ -72,8 +72,9 @@ Don't worry, for quick testing you can borrow *devand.dev* signaling server:
 lavagna --collab-url wss://lavagna-server.devand.dev/YOUR_ROOM
 ```
 
-Change `YOUR_ROOM` to whatever you prefer. If you do the same from a different
-computer, whatever you draw is visible on the other side (and vice versa).
+Change `YOUR_ROOM` to your preferred name or a unique id. If you do the same on
+different device, anything you draw will be visible on the other side (and vice
+versa).
 
 ## Desktop app development
 
@@ -97,3 +98,16 @@ To print help information, just use:
 cargo run -- --help
 ```
 
+## Web app development
+
+This script builds all the assets needed for a web application. You'll find them
+on `www` directory, so you can use any http server able to serve static files.
+
+```shell
+./tools/build-web
+cd www
+python -m http.server 8000
+```
+
+See also `docker/lavagna-webapp/Dockerfile` as an example of how to publish the
+web-app.
