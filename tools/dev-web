@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+main() {
+  rm -f www/lavagna-*.* www/index.html
+
+  cargo build --locked --target wasm32-unknown-unknown
+
+  wasm-bindgen --out-name lavagna-dev \
+    --out-dir www \
+    --target web target/wasm32-unknown-unknown/debug/lavagna.wasm
+
+  cp www/index.html.template www/index.html
+  sed -i "s/lavagna.*\.js/lavagna-dev\.js/g" www/index.html
+}
+
+main "$@"
