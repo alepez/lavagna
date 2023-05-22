@@ -45,9 +45,14 @@ impl Default for LocalChalk {
 impl Plugin for LocalChalkPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<LocalChalk>()
+            .add_event::<ChangeColorEvent>()
+            .add_event::<GrowEvent>()
+            .add_event::<ShrinkEvent>()
             .add_startup_system(startup)
             .add_system(handle_user_input)
-            .add_system(handle_keyboard)
+            .add_system(handle_change_color_event)
+            .add_system(handle_incr_size_event)
+            .add_system(handle_decr_size_event)
             .add_system(update_pressed)
             .add_system(update_chalk)
             .add_system(update_cursor);
@@ -209,16 +214,27 @@ impl LocalChalk {
     }
 }
 
-fn handle_keyboard(keyboard_input: Res<Input<KeyCode>>, mut chalk: ResMut<LocalChalk>) {
-    if keyboard_input.just_pressed(KeyCode::C) {
+pub(crate) struct ChangeColorEvent;
+pub(crate) struct GrowEvent;
+pub(crate) struct ShrinkEvent;
+
+fn handle_change_color_event(
+    mut events: EventReader<ChangeColorEvent>,
+    mut chalk: ResMut<LocalChalk>,
+) {
+    for _ in events.iter() {
         chalk.next_color();
     }
+}
 
-    if keyboard_input.just_pressed(KeyCode::M) {
+fn handle_incr_size_event(mut events: EventReader<GrowEvent>, mut chalk: ResMut<LocalChalk>) {
+    for _ in events.iter() {
         chalk.incr_size();
     }
+}
 
-    if keyboard_input.just_pressed(KeyCode::N) {
+fn handle_decr_size_event(mut events: EventReader<ShrinkEvent>, mut chalk: ResMut<LocalChalk>) {
+    for _ in events.iter() {
         chalk.decr_size();
     }
 }

@@ -1,4 +1,7 @@
-use crate::drawing::ClearEvent;
+use crate::{
+    drawing::ClearEvent,
+    local_chalk::{ChangeColorEvent, ShrinkEvent, GrowEvent},
+};
 use bevy::prelude::*;
 
 pub(crate) struct KeybindingPlugin;
@@ -9,20 +12,26 @@ impl Plugin for KeybindingPlugin {
     }
 }
 
-fn update(keyboard_input: Res<Input<KeyCode>>, mut event: EventWriter<ClearEvent>) {
+fn update(
+    keyboard_input: Res<Input<KeyCode>>,
+    mut clear_event: EventWriter<ClearEvent>,
+    mut change_color_event: EventWriter<ChangeColorEvent>,
+    mut shrink_event: EventWriter<ShrinkEvent>,
+    mut grow_event: EventWriter<GrowEvent>,
+) {
     if keyboard_input.just_pressed(KeyCode::X) {
-        event.send(ClearEvent);
+        clear_event.send(ClearEvent);
     }
 
     if keyboard_input.just_pressed(KeyCode::C) {
-        // chalk.next_color();
+        change_color_event.send(ChangeColorEvent);
     }
 
     if keyboard_input.just_pressed(KeyCode::M) {
-        // chalk.incr_size();
+        grow_event.send(GrowEvent);
     }
 
     if keyboard_input.just_pressed(KeyCode::N) {
-        // chalk.decr_size();
+        shrink_event.send(ShrinkEvent);
     }
 }
