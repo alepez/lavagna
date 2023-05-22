@@ -1,9 +1,9 @@
 mod collab;
 mod debug;
 mod drawing;
+mod keybinding;
 mod local_chalk;
 mod ui;
-mod keybinding;
 
 use bevy::log::LogPlugin;
 use bevy::{prelude::*, window::Window};
@@ -15,9 +15,9 @@ use crate::collab::CollabPlugin;
 pub use crate::collab::CollabPluginOpt as CollabOpt;
 use crate::debug::DebugPlugin;
 use crate::drawing::DrawingPlugin;
+use crate::keybinding::KeybindingPlugin;
 use crate::local_chalk::LocalChalkPlugin;
 use crate::ui::UiPlugin;
-use crate::keybinding::KeybindingPlugin;
 
 #[derive(Debug)]
 pub struct Opt {

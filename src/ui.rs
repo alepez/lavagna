@@ -2,7 +2,7 @@
 
 use bevy::prelude::*;
 
-use crate::{local_chalk::LocalChalk, drawing::ClearEvent};
+use crate::{drawing::ClearEvent, local_chalk::LocalChalk};
 
 pub(crate) struct UiPlugin;
 

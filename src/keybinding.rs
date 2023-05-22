@@ -1,6 +1,6 @@
 use crate::{
     drawing::ClearEvent,
-    local_chalk::{ChangeColorEvent, ShrinkEvent, GrowEvent},
+    local_chalk::{ChangeColorEvent, GrowEvent, ShrinkEvent},
 };
 use bevy::prelude::*;
 
