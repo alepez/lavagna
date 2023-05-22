@@ -2757,6 +2757,7 @@ dependencies = [
  "bevy_prototype_lyon",
  "ciborium",
  "clap",
+ "log",
  "rand",
  "serde",
  "tracing",

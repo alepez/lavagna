@@ -36,6 +36,10 @@ ciborium = "0.2.1"
 rand = "0.8"
 serde = { version = "1.0", features = ["derive"] }
 
+# Statically disable verbosity level for tracing, to avoid bloating the binary
+log = { version = "0.4", features = ["max_level_debug", "release_max_level_error"] }
+tracing = { version = "0.1", features = ["max_level_debug", "release_max_level_error"] }
+
 # Enable a small amount of optimization in debug mode
 [profile.dev]
 opt-level = 1
