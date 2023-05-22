@@ -148,9 +148,10 @@ impl Room {
             event,
         };
         let peers: Vec<_> = self.socket.connected_peers().collect();
-        let packet = serde_json::to_vec(&event).unwrap().into_boxed_slice();
-        for peer in peers {
-            self.socket.send(packet.clone(), peer);
+        if let Ok(packet) = serde_json::to_vec(&event) {
+            for peer in peers {
+                self.socket.send(packet.clone().into(), peer);
+            }
         }
     }
 
