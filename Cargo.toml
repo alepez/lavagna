@@ -1,7 +1,13 @@
 [package]
 name = "lavagna"
-version = "2.0.0"
+version = "2.1.1"
+authors = ["Alessandro Pezzato <alessandro@pezzato.net>"]
 edition = "2021"
+description = "The uncluttered blackboard"
+homepage = "https://github.com/alepez/lavagna"
+repository = "https://github.com/alepez/lavagna"
+readme = "README.md"
+license = "MIT/Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies.bevy]
