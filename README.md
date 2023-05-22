@@ -13,6 +13,10 @@ toolbar if the keyboard is not available.
 
 Just you, your peers, and your chalk.
 
+## Online demo
+
+An online demo is available: [demo](https://lavagna.devand.dev/?collab-url=wss://lavagna-server.devand.dev/demo)
+
 ## Keyboard bindings
 
 | Button | Action   | Note                                 |
@@ -66,7 +70,7 @@ installed somewhere.
 Don't worry, for quick testing you can borrow *devand.dev* signaling server:
 
 ```shell
-lavagna --collab-url wss://lavagna.devand.dev/YOUR_ROOM
+lavagna --collab-url wss://lavagna-server.devand.dev/YOUR_ROOM
 ```
 
 Change `YOUR_ROOM` to whatever you prefer. If you do the same from a different
