@@ -3,6 +3,9 @@
 main() {
   rm -f www/lavagna_bg.wasm www/lavagna.d.ts www/lavagna.js
 
+  export CARGO_PROFILE_RELEASE_LTO=thin
+  export CARGO_PROFILE_RELEASE_OPT_LEVEL=s
+
   cargo build --release --locked --target wasm32-unknown-unknown
 
   wasm-bindgen --out-name lavagna \
