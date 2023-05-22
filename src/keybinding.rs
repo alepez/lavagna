@@ -9,7 +9,7 @@ impl Plugin for KeybindingPlugin {
     }
 }
 
-fn update(keyboard_input: Res<Input<KeyCode>>, mut chalk: ResMut<LocalChalk>) {
+fn update(keyboard_input: Res<Input<KeyCode>>) {
     if keyboard_input.just_pressed(KeyCode::Escape) {
         println!("TODO Quit the application");
     }
@@ -18,23 +18,11 @@ fn update(keyboard_input: Res<Input<KeyCode>>, mut chalk: ResMut<LocalChalk>) {
         println!("TODO Take a snapshot and clear everything");
     }
 
-    if keyboard_input.just_pressed(KeyCode::C) {
-        chalk.next_color();
-    }
-
     if keyboard_input.just_pressed(KeyCode::U) {
         println!("TODO Resume the last snapshot");
     }
 
     if keyboard_input.just_pressed(KeyCode::S) {
         println!("TODO Take a snapshot");
-    }
-
-    if keyboard_input.just_pressed(KeyCode::M) {
-        chalk.incr_size();
-    }
-
-    if keyboard_input.just_pressed(KeyCode::N) {
-        chalk.decr_size();
     }
 }

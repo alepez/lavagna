@@ -47,6 +47,7 @@ impl Plugin for LocalChalkPlugin {
         app.init_resource::<LocalChalk>()
             .add_startup_system(startup)
             .add_system(handle_user_input)
+            .add_system(handle_keyboard)
             .add_system(update_pressed)
             .add_system(update_chalk)
             .add_system(update_cursor);
@@ -205,5 +206,19 @@ impl LocalChalk {
     pub(crate) fn decr_size(&mut self) -> u32 {
         self.0.line_width = decr_size(self.0.line_width);
         self.0.line_width
+    }
+}
+
+fn handle_keyboard(keyboard_input: Res<Input<KeyCode>>, mut chalk: ResMut<LocalChalk>) {
+    if keyboard_input.just_pressed(KeyCode::C) {
+        chalk.next_color();
+    }
+
+    if keyboard_input.just_pressed(KeyCode::M) {
+        chalk.incr_size();
+    }
+
+    if keyboard_input.just_pressed(KeyCode::N) {
+        chalk.decr_size();
     }
 }

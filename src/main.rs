@@ -23,6 +23,10 @@ struct Args {
     verbose: bool,
     #[clap(long)]
     ui: bool,
+    #[clap(long)]
+    width: Option<String>,
+    #[clap(long)]
+    height: Option<String>,
 }
 
 /// When collab_url is set, collab_id is optional and defaults to a random value
