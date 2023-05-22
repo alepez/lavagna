@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+main() {
+  cd docker/lavagna-server && docker build . -t alepez/lavagna-server
+
+  if [ "${1}" == "push" ]; then
+    docker push alepez/lavagna-server
+  fi
+}
+
+main "$@"
