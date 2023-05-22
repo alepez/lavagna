@@ -1,6 +1,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
       body {
         background: linear-gradient(
@@ -27,10 +28,11 @@
       }
 
       html, body {
+        position: fixed;
         margin: 0;
         padding: 0;
         width: 100vw;
-        height: 100vh;
+        height: 100%;
       }
     </style>
   </head>
