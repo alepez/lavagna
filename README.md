@@ -8,6 +8,9 @@
 sketches during online meetings. You have just a black screen, without icons or
 buttons cluttering your beautiful drawings.
 
+Colors and line width can be controlled by the keyboard, or by enabling a simple
+toolbar if the keyboard is not available.
+
 Just you, your peers, and your chalk.
 
 ## Keyboard bindings
