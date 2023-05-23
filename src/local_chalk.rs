@@ -53,7 +53,7 @@ impl Plugin for LocalChalkPlugin {
             .add_system(handle_change_color_event)
             .add_system(handle_incr_size_event)
             .add_system(handle_decr_size_event)
-            .add_system(update_pressed)
+            .add_system(mouse_events)
             .add_system(update_chalk)
             .add_system(touch_events)
             .add_system(update_cursor);
@@ -113,12 +113,15 @@ fn handle_user_input(
     }
 }
 
-fn update_pressed(
+fn mouse_events(
     mut mouse_button_input_events: EventReader<MouseButtonInput>,
     mut chalk: ResMut<LocalChalk>,
 ) {
     let chalk = &mut chalk.0;
     let was_pressed = chalk.pressed;
+
+    // This is needed to avoid interference with touch (see touch_events)
+    let mut press_changed = false;
 
     for event in mouse_button_input_events.iter() {
         match event {
@@ -128,15 +131,21 @@ fn update_pressed(
             } => {
                 chalk.just_released = false;
                 chalk.pressed = true;
+                press_changed = true;
             }
             MouseButtonInput {
                 button: MouseButton::Left,
                 state: ButtonState::Released,
             } => {
                 chalk.pressed = false;
+                press_changed = true;
             }
             _ => {}
         }
+    }
+
+    if !press_changed {
+        return;
     }
 
     chalk.just_released = was_pressed && !chalk.pressed;
@@ -152,6 +161,9 @@ fn touch_events(
     let chalk = &mut chalk.0;
     let was_pressed = chalk.pressed;
 
+    // This is needed to avoid interference with mouse (see mouse_events)
+    let mut press_changed = false;
+
     let mut cursor_position = None;
     let prev_chalk = *chalk;
 
@@ -161,15 +173,22 @@ fn touch_events(
             TouchPhase::Started => {
                 chalk.just_released = false;
                 chalk.pressed = true;
+                press_changed = true;
             }
             TouchPhase::Moved => {}
             TouchPhase::Ended => {
                 chalk.pressed = false;
+                press_changed = true;
             }
             TouchPhase::Cancelled => {
                 chalk.pressed = false;
+                press_changed = true;
             }
         }
+    }
+
+    if !press_changed {
+        return;
     }
 
     if let Some(cursor_pos) = cursor_position {
