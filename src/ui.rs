@@ -86,71 +86,25 @@ fn setup(
                     ..default()
                 })
                 .with_children(|parent| {
-                    parent.spawn((
-                        ColorButton,
-                        ButtonBundle {
-                            style: Style {
-                                size: Size::new(Val::Px(BTN_WIDTH), Val::Percent(100.)),
-                                ..default()
-                            },
-                            background_color: BackgroundColor(chalk.get().color),
-                            ..default()
-                        },
-                    ));
+                    parent.spawn((ColorButton, make_button_bundle()));
                 })
                 .with_children(|parent| {
                     parent
-                        .spawn((
-                            DecrementButton,
-                            ButtonBundle {
-                                style: Style {
-                                    size: Size::width(Val::Px(BTN_WIDTH)),
-                                    justify_content: JustifyContent::Center,
-                                    align_items: AlignItems::Center,
-                                    ..default()
-                                },
-                                background_color: BackgroundColor(Color::DARK_GRAY),
-                                ..default()
-                            },
-                        ))
+                        .spawn((DecrementButton, make_button_bundle()))
                         .with_children(|parent| {
                             parent.spawn(make_text_bundle("-", &font));
                         });
                 })
                 .with_children(|parent| {
                     parent
-                        .spawn((
-                            IncrementButton,
-                            ButtonBundle {
-                                style: Style {
-                                    size: Size::width(Val::Px(BTN_WIDTH)),
-                                    justify_content: JustifyContent::Center,
-                                    align_items: AlignItems::Center,
-                                    ..default()
-                                },
-                                background_color: BackgroundColor(Color::DARK_GRAY),
-                                ..default()
-                            },
-                        ))
+                        .spawn((IncrementButton, make_button_bundle()))
                         .with_children(|parent| {
                             parent.spawn(make_text_bundle("+", &font));
                         });
                 })
                 .with_children(|parent| {
                     parent
-                        .spawn((
-                            ClearButton,
-                            ButtonBundle {
-                                style: Style {
-                                    size: Size::width(Val::Px(BTN_WIDTH)),
-                                    justify_content: JustifyContent::Center,
-                                    align_items: AlignItems::Center,
-                                    ..default()
-                                },
-                                background_color: BackgroundColor(Color::DARK_GRAY),
-                                ..default()
-                            },
-                        ))
+                        .spawn((ClearButton, make_button_bundle()))
                         .with_children(|parent| {
                             parent.spawn(make_text_bundle("x", &font));
                         });
@@ -170,6 +124,21 @@ fn make_text_bundle(text: &str, font: &Handle<Font>) -> TextBundle {
                 color: Color::WHITE,
             },
         ),
+        ..default()
+    }
+}
+
+fn make_button_bundle() -> ButtonBundle {
+    const BTN_WIDTH: f32 = 50.0;
+
+    ButtonBundle {
+        style: Style {
+            size: Size::width(Val::Px(BTN_WIDTH)),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        background_color: BackgroundColor(Color::DARK_GRAY),
         ..default()
     }
 }
