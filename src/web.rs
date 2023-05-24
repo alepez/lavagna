@@ -1,29 +1,75 @@
-use super::Opt;
-use super::prepare_collab_options;
+use crate::collab::CollabPluginOpt as CollabOpt;
+use crate::Opt;
 
 /// On wasm, some options are hardcoded, other are read from URL
 pub fn options_from_url() -> Opt {
-    let request = decode_request(web_sys::window().unwrap());
-    let (collab_url, collab_id) = parse_request(request);
-    let collab = prepare_collab_options(collab_url, collab_id);
-
-    Opt {
-        collab,
-        show_debug_pane: false,
-        verbose: false,
-        ui: true,
-    }
+    web_sys::window()
+        .and_then(decode_request)
+        .map(|request| Opt::from(&request))
+        .unwrap_or_default()
 }
 
-fn decode_request(window: web_sys::Window) -> Option<std::string::String> {
-    Some(
+struct Request(String);
+
+fn decode_request(window: web_sys::Window) -> Option<Request> {
+    Some(Request(
         window
             .location()
             .search()
             .ok()?
             .trim_start_matches('?')
             .to_owned(),
-    )
+    ))
+}
+
+impl TryFrom<&Request> for CollabOpt {
+    type Error = ();
+
+    fn try_from(request: &Request) -> Result<Self, ()> {
+        let mut url: Option<String> = None;
+        let mut collab_id: Option<u16> = None;
+
+        for param in request.0.split('&') {
+            let mut param = param.split('=');
+            let Some(key) = param.next() else { break };
+            let Some(value) = param.next() else {  break };
+            match key {
+                "collab-url" => url = Some(value.to_owned()),
+                "collab-id" => collab_id = value.parse().ok(),
+                _ => (),
+            }
+        }
+
+        if let Some(url) = url {
+            // If collab-url is set, then collab-id must be set too. Randomize it if not.
+            let collab_id = collab_id.unwrap_or_else(|| rand::random());
+            Ok(CollabOpt { url, collab_id })
+        } else {
+            Err(())
+        }
+    }
+}
+
+impl From<&Request> for Opt {
+    fn from(request: &Request) -> Self {
+        let mut options = Self::default();
+
+        options.collab = CollabOpt::try_from(request).ok();
+
+        for param in request.0.split('&') {
+            let mut param = param.split('=');
+            let Some(key) = param.next() else { break };
+            let Some(value) = param.next() else { break };
+            match key {
+                "verbose" => options.verbose = value.parse().unwrap_or_default(),
+                "show-debug-pane" => options.show_debug_pane = value.parse().unwrap_or_default(),
+                "ui" => options.ui = value.parse().unwrap_or_default(),
+                _ => (),
+            }
+        }
+
+        options
+    }
 }
 
 pub fn setup_log() {
@@ -32,38 +78,4 @@ pub fn setup_log() {
             .set_max_level(tracing::Level::ERROR)
             .build(),
     );
-}
-
-fn parse_request(request: Option<String>) -> (Option<String>, Option<u16>) {
-    let Some(request) = request else { return (None, None) };
-
-    if request.is_empty() {
-        return (None, None);
-    };
-
-    let mut collab_url = None;
-    let mut collab_id = None;
-    for param in request.split('&') {
-        let mut param = param.split('=');
-        let Some(key) = param.next() else { return (None, None) };
-        let Some(value) = param.next() else { return (None, None) };
-        match key {
-            "collab-url" => collab_url = Some(value.to_owned()),
-            "collab-id" => collab_id = value.parse().ok(),
-            _ => (),
-        }
-    }
-    (collab_url, collab_id)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test_parse_request() {
-        let request = "collab-url=ws://127.0.0.1:3536/lavagna&collab-id=6";
-        let (collab_url, collab_id) = parse_request(Some(request.to_string()));
-        assert_eq!(collab_url, Some("ws://127.0.0.1:3536/lavagna".to_string()));
-        assert_eq!(collab_id, Some(6u16));
-    }
 }

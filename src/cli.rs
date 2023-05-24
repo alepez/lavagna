@@ -1,6 +1,6 @@
+use crate::CollabOpt;
+use crate::Opt;
 use clap::Parser;
-use super::prepare_collab_options;
-use super::Opt;
 
 /// The uncluttered blackboard
 #[derive(Parser, Debug)]
@@ -23,11 +23,19 @@ struct Args {
 }
 
 /// On native, options are read from command line arguments
-#[cfg(not(target_arch = "wasm32"))]
 pub(crate) fn options_from_args() -> Opt {
     let args = Args::parse();
 
-    let collab = prepare_collab_options(args.collab_url, args.collab_id);
+    // If collab-url is set, then collab-id must be set too. Randomize it if not.
+    let collab = if let Some(collab_url) = args.collab_url {
+        let collab_id = args.collab_id.unwrap_or_else(|| rand::random());
+        Some(CollabOpt {
+            url: collab_url,
+            collab_id,
+        })
+    } else {
+        None
+    };
 
     Opt {
         collab,
@@ -36,4 +44,3 @@ pub(crate) fn options_from_args() -> Opt {
         ui: args.ui,
     }
 }
-
