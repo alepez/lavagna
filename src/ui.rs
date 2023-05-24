@@ -67,32 +67,32 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, opt: Res<UiPlug
             },
         ))
         .with_children(|parent| {
-            parent.spawn((ColorButton, label()));
+            parent.spawn((ColorButton, button()));
         })
         .with_children(|parent| {
             parent
-                .spawn((DecrementButton, label()))
+                .spawn((DecrementButton, button()))
                 .with_children(|parent| {
-                    parent.spawn(button("-", &font));
+                    parent.spawn(label("-", &font));
                 });
         })
         .with_children(|parent| {
             parent
-                .spawn((IncrementButton, label()))
+                .spawn((IncrementButton, button()))
                 .with_children(|parent| {
-                    parent.spawn(button("+", &font));
+                    parent.spawn(label("+", &font));
                 });
         })
         .with_children(|parent| {
             parent
-                .spawn((ClearButton, label()))
+                .spawn((ClearButton, button()))
                 .with_children(|parent| {
-                    parent.spawn(button("x", &font));
+                    parent.spawn(label("x", &font));
                 });
         });
 }
 
-fn button(text: &str, font: &Handle<Font>) -> TextBundle {
+fn label(text: &str, font: &Handle<Font>) -> TextBundle {
     const FONT_SIZE: f32 = 40.0;
 
     TextBundle {
@@ -108,7 +108,7 @@ fn button(text: &str, font: &Handle<Font>) -> TextBundle {
     }
 }
 
-fn label() -> ButtonBundle {
+fn button() -> ButtonBundle {
     const BTN_WIDTH: f32 = 50.0;
 
     ButtonBundle {
