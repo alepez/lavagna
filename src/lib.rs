@@ -5,6 +5,12 @@ mod keybinding;
 mod local_chalk;
 mod ui;
 
+#[cfg(not(target_arch = "wasm32"))]
+pub mod cli;
+
+#[cfg(target_arch = "wasm32")]
+pub mod web;
+
 use bevy::log::LogPlugin;
 use bevy::{prelude::*, window::Window};
 use bevy_embedded_assets::EmbeddedAssetPlugin;
@@ -120,4 +126,24 @@ struct Chalk {
     y: i32,
     color: Color,
     line_width: u32,
+}
+
+pub fn options() -> Opt {
+    #[cfg(target_arch = "wasm32")]
+    {
+        web::options_from_url()
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        cli::options_from_args()
+    }
+}
+
+/// When collab_url is set, collab_id is optional and defaults to a random value
+fn prepare_collab_options(collab_url: Option<String>, collab_id: Option<u16>) -> Option<CollabOpt> {
+    collab_url.map(|collab_url| CollabOpt {
+        url: collab_url,
+        collab_id: collab_id.unwrap_or_else(rand::random),
+    })
 }

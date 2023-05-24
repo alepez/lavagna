@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-main() {
+build() {
   rm -f www/lavagna-*.* www/index.html
 
   cargo build --locked --target wasm32-unknown-unknown
@@ -11,6 +11,29 @@ main() {
 
   cp www/index.html.template www/index.html
   sed -i "s/lavagna.*\.js/lavagna-dev\.js/g" www/index.html
+}
+
+watch() {
+  inotifywait --recursive --monitor --event modify src/ |
+    while read -r directory events filename; do
+      echo "Detected change in $filename"
+      build
+    done
+}
+
+main() {
+  case $1 in
+    build)
+      build
+      ;;
+    watch)
+      watch
+      ;;
+    *)
+      echo "Usage: $0 <build|watch>"
+      exit 1
+      ;;
+  esac
 }
 
 main "$@"
