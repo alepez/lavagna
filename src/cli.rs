@@ -28,7 +28,7 @@ pub(crate) fn options_from_args() -> Opt {
 
     // If collab-url is set, then collab-id must be set too. Randomize it if not.
     let collab = if let Some(collab_url) = args.collab_url {
-        let collab_id = args.collab_id.unwrap_or_else(|| rand::random());
+        let collab_id = args.collab_id.unwrap_or_else(rand::random);
         Some(CollabOpt {
             url: collab_url,
             collab_id,
