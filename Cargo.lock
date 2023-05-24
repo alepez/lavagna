@@ -2747,7 +2747,7 @@ dependencies = [
 
 [[package]]
 name = "lavagna"
-version = "2.1.4"
+version = "2.1.5"
 dependencies = [
  "bevy",
  "bevy_embedded_assets",
