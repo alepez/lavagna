@@ -82,7 +82,7 @@ pub fn run(opt: Opt) {
         app.add_plugin(CollabPlugin::new(collab_opt));
     }
 
-    app.add_plugin(UiPlugin);
+    app.add_plugin(UiPlugin::new(opt.ui));
 
     app.run();
 }

@@ -4,7 +4,18 @@ use bevy::prelude::*;
 
 use crate::{drawing::ClearEvent, local_chalk::LocalChalk};
 
-pub(crate) struct UiPlugin;
+#[derive(Copy, Clone, Resource)]
+struct UiPluginOpt {
+    visible: bool,
+}
+
+pub(crate) struct UiPlugin(UiPluginOpt);
+
+impl UiPlugin {
+    pub fn new(visible: bool) -> Self {
+        Self(UiPluginOpt { visible })
+    }
+}
 
 pub(crate) fn default_font(asset_server: &Res<AssetServer>) -> Handle<Font> {
     asset_server.load("fonts/FiraMono-Medium.ttf")
@@ -12,7 +23,8 @@ pub(crate) fn default_font(asset_server: &Res<AssetServer>) -> Handle<Font> {
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_startup_system(setup)
+        app.insert_resource(self.0)
+            .add_startup_system(setup)
             .add_event::<ToggleUiEvent>()
             .add_system(toggle_ui_system)
             .add_system(color_btn_system)
@@ -26,10 +38,21 @@ impl Plugin for UiPlugin {
 struct Toolbar;
 
 // Add a green button in the bottom left corner
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>, chalk: ResMut<LocalChalk>) {
+fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    chalk: ResMut<LocalChalk>,
+    opt: Res<UiPluginOpt>,
+) {
     let font = default_font(&asset_server);
     const FONT_SIZE: f32 = 40.0;
     const BTN_WIDTH: f32 = 50.0;
+
+    let visibility = if opt.visible {
+        Visibility::Visible
+    } else {
+        Visibility::Hidden
+    };
 
     commands
         .spawn((
@@ -46,7 +69,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, chalk: ResMut<L
                     justify_content: JustifyContent::Center,
                     ..default()
                 },
-                visibility: Visibility::Visible,
+                visibility,
                 ..default()
             },
         ))
