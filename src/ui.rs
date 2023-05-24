@@ -45,7 +45,6 @@ fn setup(
     opt: Res<UiPluginOpt>,
 ) {
     let font = default_font(&asset_server);
-    const FONT_SIZE: f32 = 40.0;
     const BTN_WIDTH: f32 = 50.0;
 
     let visibility = if opt.visible {
@@ -115,14 +114,7 @@ fn setup(
                             },
                         ))
                         .with_children(|parent| {
-                            parent.spawn(TextBundle::from_section(
-                                "-",
-                                TextStyle {
-                                    font: font.clone(),
-                                    font_size: FONT_SIZE,
-                                    color: Color::WHITE,
-                                },
-                            ));
+                            parent.spawn(make_text_bundle("-", &font));
                         });
                 })
                 .with_children(|parent| {
@@ -141,14 +133,7 @@ fn setup(
                             },
                         ))
                         .with_children(|parent| {
-                            parent.spawn(TextBundle::from_section(
-                                "+",
-                                TextStyle {
-                                    font: font.clone(),
-                                    font_size: FONT_SIZE,
-                                    color: Color::WHITE,
-                                },
-                            ));
+                            parent.spawn(make_text_bundle("+", &font));
                         });
                 })
                 .with_children(|parent| {
@@ -167,17 +152,26 @@ fn setup(
                             },
                         ))
                         .with_children(|parent| {
-                            parent.spawn(TextBundle::from_section(
-                                "x",
-                                TextStyle {
-                                    font: font.clone(),
-                                    font_size: FONT_SIZE,
-                                    color: Color::WHITE,
-                                },
-                            ));
+                            parent.spawn(make_text_bundle("x", &font));
                         });
                 });
         });
+}
+
+fn make_text_bundle(text: &str, font: &Handle<Font>) -> TextBundle {
+    const FONT_SIZE: f32 = 40.0;
+
+    TextBundle {
+        text: Text::from_section(
+            text,
+            TextStyle {
+                font: font.clone(),
+                font_size: FONT_SIZE,
+                color: Color::WHITE,
+            },
+        ),
+        ..default()
+    }
 }
 
 #[derive(Component)]
