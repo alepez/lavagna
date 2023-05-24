@@ -38,14 +38,8 @@ impl Plugin for UiPlugin {
 struct Toolbar;
 
 // Add a green button in the bottom left corner
-fn setup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    chalk: ResMut<LocalChalk>,
-    opt: Res<UiPluginOpt>,
-) {
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>, opt: Res<UiPluginOpt>) {
     let font = default_font(&asset_server);
-    const BTN_WIDTH: f32 = 50.0;
 
     let visibility = if opt.visible {
         Visibility::Visible
@@ -73,46 +67,32 @@ fn setup(
             },
         ))
         .with_children(|parent| {
+            parent.spawn((ColorButton, label()));
+        })
+        .with_children(|parent| {
             parent
-                .spawn(NodeBundle {
-                    style: Style {
-                        position: UiRect {
-                            left: Val::Px(0.),
-                            bottom: Val::Px(0.),
-                            ..default()
-                        },
-                        ..default()
-                    },
-                    ..default()
-                })
+                .spawn((DecrementButton, label()))
                 .with_children(|parent| {
-                    parent.spawn((ColorButton, make_button_bundle()));
-                })
+                    parent.spawn(button("-", &font));
+                });
+        })
+        .with_children(|parent| {
+            parent
+                .spawn((IncrementButton, label()))
                 .with_children(|parent| {
-                    parent
-                        .spawn((DecrementButton, make_button_bundle()))
-                        .with_children(|parent| {
-                            parent.spawn(make_text_bundle("-", &font));
-                        });
-                })
+                    parent.spawn(button("+", &font));
+                });
+        })
+        .with_children(|parent| {
+            parent
+                .spawn((ClearButton, label()))
                 .with_children(|parent| {
-                    parent
-                        .spawn((IncrementButton, make_button_bundle()))
-                        .with_children(|parent| {
-                            parent.spawn(make_text_bundle("+", &font));
-                        });
-                })
-                .with_children(|parent| {
-                    parent
-                        .spawn((ClearButton, make_button_bundle()))
-                        .with_children(|parent| {
-                            parent.spawn(make_text_bundle("x", &font));
-                        });
+                    parent.spawn(button("x", &font));
                 });
         });
 }
 
-fn make_text_bundle(text: &str, font: &Handle<Font>) -> TextBundle {
+fn button(text: &str, font: &Handle<Font>) -> TextBundle {
     const FONT_SIZE: f32 = 40.0;
 
     TextBundle {
@@ -128,7 +108,7 @@ fn make_text_bundle(text: &str, font: &Handle<Font>) -> TextBundle {
     }
 }
 
-fn make_button_bundle() -> ButtonBundle {
+fn label() -> ButtonBundle {
     const BTN_WIDTH: f32 = 50.0;
 
     ButtonBundle {
