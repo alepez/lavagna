@@ -1,6 +1,7 @@
 use crate::{
     drawing::ClearEvent,
     local_chalk::{ChangeColorEvent, GrowEvent, ShrinkEvent},
+    ui::ToggleUiEvent,
 };
 use bevy::prelude::*;
 
@@ -18,6 +19,7 @@ fn update(
     mut change_color_event: EventWriter<ChangeColorEvent>,
     mut shrink_event: EventWriter<ShrinkEvent>,
     mut grow_event: EventWriter<GrowEvent>,
+    mut toggle_ui_event: EventWriter<ToggleUiEvent>,
 ) {
     if keyboard_input.just_pressed(KeyCode::X) {
         clear_event.send(ClearEvent::new());
@@ -33,5 +35,9 @@ fn update(
 
     if keyboard_input.just_pressed(KeyCode::N) {
         shrink_event.send(ShrinkEvent);
+    }
+
+    if keyboard_input.just_pressed(KeyCode::U) {
+        toggle_ui_event.send(ToggleUiEvent);
     }
 }

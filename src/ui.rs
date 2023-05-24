@@ -13,12 +13,17 @@ pub(crate) fn default_font(asset_server: &Res<AssetServer>) -> Handle<Font> {
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_startup_system(setup)
+            .add_event::<ToggleUiEvent>()
+            .add_system(toggle_ui_system)
             .add_system(color_btn_system)
             .add_system(clear_btn_system)
             .add_system(incr_btn_system)
             .add_system(decr_btn_system);
     }
 }
+
+#[derive(Component)]
+struct Toolbar;
 
 // Add a green button in the bottom left corner
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>, chalk: ResMut<LocalChalk>) {
@@ -27,20 +32,24 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, chalk: ResMut<L
     const BTN_WIDTH: f32 = 50.0;
 
     commands
-        .spawn(NodeBundle {
-            style: Style {
-                position_type: PositionType::Absolute,
-                position: UiRect {
-                    left: Val::Px(0.),
-                    bottom: Val::Px(0.),
+        .spawn((
+            Toolbar,
+            NodeBundle {
+                style: Style {
+                    position_type: PositionType::Absolute,
+                    position: UiRect {
+                        left: Val::Px(0.),
+                        bottom: Val::Px(0.),
+                        ..default()
+                    },
+                    size: Size::new(Val::Percent(100.), Val::Px(50.)),
+                    justify_content: JustifyContent::Center,
                     ..default()
                 },
-                size: Size::new(Val::Percent(100.), Val::Px(50.)),
-                justify_content: JustifyContent::Center,
+                visibility: Visibility::Visible,
                 ..default()
             },
-            ..default()
-        })
+        ))
         .with_children(|parent| {
             parent
                 .spawn(NodeBundle {
@@ -204,5 +213,22 @@ fn clear_btn_system(
         if *interaction == Interaction::Clicked {
             event.send(ClearEvent::new());
         }
+    }
+}
+
+pub(crate) struct ToggleUiEvent;
+
+fn toggle_ui_system(
+    mut events: EventReader<ToggleUiEvent>,
+    mut visibility_q: Query<&mut Visibility, With<Toolbar>>,
+) {
+    let visibility: &mut Visibility = &mut visibility_q.single_mut();
+
+    for _ in events.iter() {
+        *visibility = match *visibility {
+            Visibility::Visible => Visibility::Hidden,
+            Visibility::Hidden => Visibility::Visible,
+            x => x,
+        };
     }
 }
