@@ -187,10 +187,6 @@ fn touch_events(
         }
     }
 
-    if !press_changed {
-        return;
-    }
-
     if let Some(cursor_pos) = cursor_position {
         let (camera, camera_transform) = camera_q.single();
         if let Some(world_position) = cursor_to_world_position(cursor_pos, camera, camera_transform)
@@ -201,7 +197,9 @@ fn touch_events(
         }
     }
 
-    chalk.just_released = was_pressed && !chalk.pressed;
+    if press_changed {
+        chalk.just_released = was_pressed && !chalk.pressed;
+    }
 }
 
 fn is_updated(old_chalk: &Chalk, new_chalk: &Chalk) -> bool {
