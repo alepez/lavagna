@@ -63,7 +63,6 @@ fn receive_events(
     let my_id = room.collab_id;
 
     for &AddressedEvent { src, event } in room.receive().iter().filter(|e| e.src != my_id) {
-        info!("{:?}", event);
         match event {
             Event::Draw(e) => handle_draw(&mut commands, src, &e, &mut room, &mut chalk_q),
             Event::Release => handle_release(src, &mut room, &mut chalk_q),
@@ -73,7 +72,6 @@ fn receive_events(
 }
 
 fn handle_release(src: CollabId, room: &mut Room, chalk_q: &mut Query<&mut Chalk>) {
-    info!("Release event from {}", src.0);
     if let Some(entity) = room.peers.0.get(&src) {
         if let Ok(mut chalk) = chalk_q.get_mut(*entity) {
             chalk.pressed = false;
