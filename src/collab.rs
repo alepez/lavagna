@@ -1,5 +1,5 @@
 use crate::drawing::{make_chalk, ClearEvent};
-use crate::Chalk;
+use crate::{Chalk, Stats};
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use bevy_matchbox::prelude::*;
@@ -34,6 +34,7 @@ impl Plugin for CollabPlugin {
         app.add_system(emit_events);
         app.add_system(receive_events);
         app.add_system(handle_clear_event);
+        app.add_system(update_stats);
     }
 }
 
@@ -223,4 +224,9 @@ fn handle_clear_event(mut events: EventReader<ClearEvent>, mut room: ResMut<Room
     if clear {
         room.send(Event::Clear);
     }
+}
+
+fn update_stats(room: Res<Room>, mut stats: ResMut<Stats>) {
+    stats.collab.active = true;
+    stats.collab.peers = room.socket.connected_peers().count();
 }

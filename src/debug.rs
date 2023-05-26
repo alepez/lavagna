@@ -66,19 +66,22 @@ fn update(
         format!("{:.3} ms/frame", t)
     };
 
-    let pen = {
+    let chalk = {
         let x = chalk.x;
         let y = chalk.y;
         let pressed = chalk.pressed;
         format!("{x:+05}:{y:+05} {pressed}")
     };
 
+    let collab = { format!("{:?}", stats.collab) };
+
     let text_value = &mut text.sections[0].value;
 
     *text_value = format!(
-r#"{fps}
+        r#"{fps}
 {frame_time}
-{pen}
+{chalk}
+{collab}
 "#
     );
 }

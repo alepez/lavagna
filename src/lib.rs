@@ -66,6 +66,8 @@ pub fn run(opt: Opt) {
             .add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin),
     );
 
+    app.insert_resource(Stats::default());
+
     app.add_startup_system(setup);
 
     app.add_plugin(KeybindingPlugin);
@@ -136,4 +138,16 @@ pub fn options() -> Opt {
     {
         cli::options_from_args()
     }
+}
+
+#[derive(Debug, Default)]
+pub struct CollabStats {
+    pub active: bool,
+    pub peers: usize,
+}
+
+
+#[derive(Debug, Resource, Default)]
+pub struct Stats {
+    pub collab: CollabStats,
 }
