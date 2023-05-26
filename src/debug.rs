@@ -6,6 +6,7 @@ use bevy::{
 };
 
 use crate::local_chalk::LocalChalk;
+use crate::Stats;
 
 pub(crate) struct DebugPlugin;
 
@@ -46,6 +47,7 @@ fn update(
     diagnostics: Res<Diagnostics>,
     mut text: Query<&mut Text, With<DebugText>>,
     chalk: Res<LocalChalk>,
+    stats: Res<Stats>,
 ) {
     let mut text = text.single_mut();
     let chalk = chalk.get();
@@ -54,18 +56,29 @@ fn update(
         .get(FrameTimeDiagnosticsPlugin::FPS)
         .and_then(|x| x.smoothed())
         .map(|x| format!("{:.1} fps", x))
-        .unwrap_or("".to_owned());
+        .unwrap_or("-- fps".to_owned());
 
-    let frame_time = diagnostics
-        .get(FrameTimeDiagnosticsPlugin::FRAME_TIME)
-        .and_then(|x| x.smoothed())
-        .unwrap_or_else(|| time.delta_seconds_f64());
-    let frame_time = format!("{:.3} ms/frame", frame_time);
+    let frame_time = {
+        let t = diagnostics
+            .get(FrameTimeDiagnosticsPlugin::FRAME_TIME)
+            .and_then(|x| x.smoothed())
+            .unwrap_or_else(|| time.delta_seconds_f64());
+        format!("{:.3} ms/frame", t)
+    };
 
-    let x = chalk.x;
-    let y = chalk.y;
-    let pressed = chalk.pressed;
-    let pen = format!("{x:+05}:{y:+05} {pressed}");
+    let pen = {
+        let x = chalk.x;
+        let y = chalk.y;
+        let pressed = chalk.pressed;
+        format!("{x:+05}:{y:+05} {pressed}")
+    };
 
-    text.sections[0].value = format!("{fps}\n{frame_time}\n{pen}\n",);
+    let text_value = &mut text.sections[0].value;
+
+    *text_value = format!(
+r#"{fps}
+{frame_time}
+{pen}
+"#
+    );
 }
