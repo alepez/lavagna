@@ -52,23 +52,23 @@ impl TryFrom<&Request> for CollabOpt {
 
 impl From<&Request> for Opt {
     fn from(request: &Request) -> Self {
-        let mut options = Self::default();
+        let mut opt = Self::default();
 
-        options.collab = CollabOpt::try_from(request).ok();
+        opt.collab = CollabOpt::try_from(request).ok();
 
         for param in request.0.split('&') {
             let mut param = param.split('=');
             let Some(key) = param.next() else { break };
-            let Some(value) = param.next() else { break };
+            let Some(v) = param.next() else { break };
             match key {
-                "verbose" => options.verbose = value.parse().unwrap_or_default(),
-                "show-debug-pane" => options.show_debug_pane = value.parse().unwrap_or_default(),
-                "ui" => options.ui = value.parse().unwrap_or_default(),
+                "v" | "verbose" => opt.verbose = v.parse().unwrap_or_default(),
+                "dbg" | "show-debug-pane" => opt.show_debug_pane = v.parse().unwrap_or_default(),
+                "ui" => opt.ui = v.parse().unwrap_or_default(),
                 _ => (),
             }
         }
 
-        options
+        opt
     }
 }
 
