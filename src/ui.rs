@@ -2,7 +2,7 @@
 
 use bevy::prelude::*;
 
-use crate::{drawing::ClearEvent, local_chalk::LocalChalk};
+use crate::{drawing::ClearEvent, local_chalk::LocalChalk, Stats};
 
 #[derive(Copy, Clone, Resource)]
 struct UiPluginOpt {
@@ -30,6 +30,7 @@ impl Plugin for UiPlugin {
             .add_system(color_btn_system)
             .add_system(clear_btn_system)
             .add_system(incr_btn_system)
+            .add_system(update_collab_info)
             .add_system(decr_btn_system);
     }
 }
@@ -89,7 +90,13 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, opt: Res<UiPlug
                 .with_children(|parent| {
                     parent.spawn(label("x", &font));
                 });
-        });
+        })
+        .with_children(|parent| {
+            parent.spawn(button()).with_children(|parent| {
+                parent.spawn((CollabText, label(" ", &font)));
+            });
+        })
+        ;
 }
 
 fn label(text: &str, font: &Handle<Font>) -> TextBundle {
@@ -139,6 +146,9 @@ struct DecrementButton;
 
 #[derive(Component)]
 struct ClearButton;
+
+#[derive(Component)]
+struct CollabText;
 
 fn color_btn_system(
     mut chalk: ResMut<LocalChalk>,
@@ -202,4 +212,18 @@ fn toggle_ui_system(
             x => x,
         };
     }
+}
+
+fn update_collab_info(mut txt_query: Query<&mut Text, With<CollabText>>, stats: Res<Stats>) {
+    let text = if stats.collab.active {
+        if stats.collab.peers == 0 {
+            "…".to_string()
+        } else {
+            format!("{}", stats.collab.peers)
+        }
+    } else {
+        "".to_string()
+    };
+
+    txt_query.single_mut().sections[0].value = text;
 }
