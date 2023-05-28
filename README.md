@@ -13,7 +13,13 @@ It's just you, your peers, and your creativity.
 
 ## Online demo
 
-An online demo is available: [demo](https://lavagna.devand.dev/?collab-url=wss://lavagna-server.devand.dev/demo)
+An online demo is available: [demo](https://lavagna.devand.dev)
+
+It supports passing options as url paramters:
+
+- collaboration url: https://lavagna.devand.dev/?collab-url=wss://lavagna-server.devand.dev/demo
+- debug pane: https://lavagna.devand.dev/?collab-url=wss://lavagna-server.devand.dev/demo&dbg=true
+- ui: https://lavagna.devand.dev/?collab-url=wss://lavagna-server.devand.dev/demo&dbg=true&ui=true
 
 ## Keyboard bindings
 
