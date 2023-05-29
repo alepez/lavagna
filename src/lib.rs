@@ -146,7 +146,6 @@ pub struct CollabStats {
     pub peers: usize,
 }
 
-
 #[derive(Debug, Resource, Default)]
 pub struct Stats {
     pub collab: CollabStats,

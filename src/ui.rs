@@ -95,8 +95,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, opt: Res<UiPlug
             parent.spawn(button()).with_children(|parent| {
                 parent.spawn((CollabText, label(" ", &font)));
             });
-        })
-        ;
+        });
 }
 
 fn label(text: &str, font: &Handle<Font>) -> TextBundle {
