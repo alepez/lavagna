@@ -57,7 +57,7 @@ fn update(
     let fps = diagnostics
         .get(FrameTimeDiagnosticsPlugin::FPS)
         .and_then(Diagnostic::smoothed)
-        .map_or("-- fps".to_owned(), |x| format!("{:.1} fps", x));
+        .map_or("-- fps".to_owned(), |x| format!("{x:.1} fps"));
 
     let frame_time = {
         let t = diagnostics
