@@ -1,4 +1,5 @@
 #![allow(clippy::type_complexity)]
+#![allow(clippy::needless_pass_by_value)]
 
 use bevy::prelude::*;
 
@@ -208,7 +209,7 @@ fn toggle_ui_system(
         *visibility = match *visibility {
             Visibility::Visible => Visibility::Hidden,
             Visibility::Hidden => Visibility::Visible,
-            x => x,
+            x @ Visibility::Inherited => x,
         };
     }
 }
@@ -221,7 +222,7 @@ fn update_collab_info(mut txt_query: Query<&mut Text, With<CollabText>>, stats: 
             format!("{}", stats.collab.peers)
         }
     } else {
-        "".to_string()
+        String::new()
     };
 
     txt_query.single_mut().sections[0].value = text;

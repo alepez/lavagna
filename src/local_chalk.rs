@@ -1,3 +1,5 @@
+#![allow(clippy::needless_pass_by_value)]
+
 use std::cmp::max;
 use std::cmp::min;
 
@@ -93,6 +95,7 @@ fn cursor_to_world_position(
     Some(Vec2::new(world_position[0], world_position[1]))
 }
 
+#[allow(clippy::cast_possible_truncation)]
 fn handle_user_input(
     window_q: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
@@ -151,6 +154,7 @@ fn mouse_events(
     chalk.just_released = was_pressed && !chalk.pressed;
 }
 
+#[allow(clippy::cast_possible_truncation)]
 fn touch_events(
     mut touch_evr: EventReader<TouchInput>,
     mut chalk: ResMut<LocalChalk>,
@@ -176,11 +180,7 @@ fn touch_events(
                 press_changed = true;
             }
             TouchPhase::Moved => {}
-            TouchPhase::Ended => {
-                chalk.pressed = false;
-                press_changed = true;
-            }
-            TouchPhase::Cancelled => {
+            TouchPhase::Ended | TouchPhase::Cancelled => {
                 chalk.pressed = false;
                 press_changed = true;
             }
@@ -209,6 +209,7 @@ fn is_updated(old_chalk: &Chalk, new_chalk: &Chalk) -> bool {
         || old_chalk.just_released != new_chalk.just_released
 }
 
+#[allow(clippy::cast_precision_loss)]
 fn update_cursor(
     mut chalk: ResMut<LocalChalk>,
     mut cursor_q: Query<(&mut Fill, &mut Transform), With<LocalCursor>>,

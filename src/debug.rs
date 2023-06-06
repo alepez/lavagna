@@ -1,7 +1,9 @@
+#![allow(clippy::needless_pass_by_value)]
+
 use bevy::prelude::*;
 
 use bevy::{
-    diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
+    diagnostic::{Diagnostic, Diagnostics, FrameTimeDiagnosticsPlugin},
     time::Time,
 };
 
@@ -54,16 +56,15 @@ fn update(
 
     let fps = diagnostics
         .get(FrameTimeDiagnosticsPlugin::FPS)
-        .and_then(|x| x.smoothed())
-        .map(|x| format!("{:.1} fps", x))
-        .unwrap_or("-- fps".to_owned());
+        .and_then(Diagnostic::smoothed)
+        .map_or("-- fps".to_owned(), |x| format!("{:.1} fps", x));
 
     let frame_time = {
         let t = diagnostics
             .get(FrameTimeDiagnosticsPlugin::FRAME_TIME)
-            .and_then(|x| x.smoothed())
+            .and_then(Diagnostic::smoothed)
             .unwrap_or_else(|| time.delta_seconds_f64());
-        format!("{:.3} ms/frame", t)
+        format!("{t:.3} ms/frame")
     };
 
     let chalk = {

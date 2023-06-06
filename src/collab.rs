@@ -1,3 +1,7 @@
+#![allow(clippy::needless_pass_by_value)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::module_name_repetitions)]
+
 use crate::drawing::{make_chalk, ClearEvent};
 use crate::{Chalk, Stats};
 use bevy::prelude::*;
@@ -115,15 +119,16 @@ impl From<&DrawEvent> for Chalk {
         Self {
             pressed: true,
             updated: true,
-            x: event.x as i32,
-            y: event.y as i32,
+            x: event.x.into(),
+            y: event.y.into(),
             color: color_from_u32(event.color),
-            line_width: event.line_width as u32,
+            line_width: event.line_width.into(),
             just_released: false,
         }
     }
 }
 
+#[allow(clippy::many_single_char_names)]
 fn color_from_u32(n: u32) -> Color {
     let r = ((n) & 0xFF) as u8;
     let g = ((n >> 8) & 0xFF) as u8;

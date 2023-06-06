@@ -1,3 +1,6 @@
+#![allow(clippy::needless_pass_by_value)]
+#![allow(clippy::cast_precision_loss)]
+
 use crate::Chalk;
 use bevy::prelude::*;
 
@@ -43,9 +46,10 @@ fn add_point(polyline: &mut Polyline, chalk: &Chalk) {
 }
 
 fn z_from_time(time: &Time) -> f32 {
-    let t = time.elapsed_seconds();
     const MAX_Z: f32 = 500.0;
     const MAX_TIME: f32 = 10_000.0;
+
+    let t = time.elapsed_seconds();
     let step = MAX_Z / MAX_TIME;
     t * step
 }
@@ -160,6 +164,6 @@ fn handle_clear_event(
 ) {
     let clear = events.iter().count() > 0;
     if clear {
-        despawn_all_completed_lines(&mut commands, &lines)
+        despawn_all_completed_lines(&mut commands, &lines);
     }
 }

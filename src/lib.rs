@@ -1,3 +1,6 @@
+#![deny(unsafe_code)]
+#![warn(clippy::all, clippy::pedantic)]
+
 mod collab;
 mod debug;
 mod drawing;
@@ -74,7 +77,7 @@ pub fn run(opt: Opt) {
     app.add_plugin(FramepacePlugin);
     app.add_plugin(LocalChalkPlugin);
     app.add_plugin(DrawingPlugin);
-    app.add_plugin(PanCamPlugin::default());
+    app.add_plugin(PanCamPlugin);
 
     if opt.show_debug_pane {
         app.add_plugin(DebugPlugin);
@@ -128,6 +131,7 @@ struct Chalk {
     line_width: u32,
 }
 
+#[must_use]
 pub fn options() -> Opt {
     #[cfg(target_arch = "wasm32")]
     {

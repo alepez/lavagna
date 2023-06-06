@@ -1,3 +1,5 @@
+#![allow(clippy::needless_pass_by_value)]
+
 use crate::{
     drawing::ClearEvent,
     local_chalk::{ChangeColorEvent, GrowEvent, ShrinkEvent},
