@@ -29,6 +29,7 @@ It supports passing options as url paramters:
 | M      | Grow     | Grow chalk size 2x                   |
 | N      | Shrink   | Shrink chalk size 2x                 |
 | X      | Clear    | Clear the whole blackboard           |
+| U      | Toolbar  | Toggle toolbar visibility            |
 
 ## Installation
 
