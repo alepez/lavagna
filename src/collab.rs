@@ -77,8 +77,8 @@ fn receive_events(
 }
 
 fn handle_release(src: CollabId, room: &mut Room, chalk_q: &mut Query<&mut Chalk>) {
-    if let Some(entity) = room.peers.0.get(&src) {
-        if let Ok(mut chalk) = chalk_q.get_mut(*entity) {
+    if let Some(peer) = room.peers.0.get(&src) {
+        if let Ok(mut chalk) = chalk_q.get_mut(peer.chalk) {
             chalk.pressed = false;
             chalk.just_released = true;
         }
@@ -92,13 +92,12 @@ fn handle_draw(
     room: &mut Room,
     chalk_q: &mut Query<&mut Chalk>,
 ) {
-    let entity: &Entity = room
-        .peers
-        .0
-        .entry(src)
-        .or_insert_with(|| commands.spawn(make_chalk(event.into())).id());
+    let peer: &Peer = room.peers.0.entry(src).or_insert_with(|| {
+        let chalk = commands.spawn(make_chalk(event.into())).id();
+        Peer::new(chalk)
+    });
 
-    if let Ok(mut chalk) = chalk_q.get_mut(*entity) {
+    if let Ok(mut chalk) = chalk_q.get_mut(peer.chalk) {
         *chalk = event.into();
     }
 }
@@ -139,7 +138,17 @@ fn color_from_u32(n: u32) -> Color {
 }
 
 #[derive(Default)]
-struct Peers(HashMap<CollabId, Entity>);
+struct Peers(HashMap<CollabId, Peer>);
+
+struct Peer {
+    chalk: Entity,
+}
+
+impl Peer {
+    fn new(chalk: Entity) -> Self {
+        Self { chalk }
+    }
+}
 
 #[derive(Resource)]
 struct Room {
