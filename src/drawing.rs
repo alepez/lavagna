@@ -88,9 +88,9 @@ pub(crate) fn make_chalk(chalk: Chalk) -> (ShapeBundle, Stroke, Fill, Polyline, 
     // An empty path
     let path = PathBuilder::new().build();
 
-    // z-index at maximum before clipping pane
+    // z-index at maximum before cursor plane
     let transform = Transform {
-        translation: Vec3::new(0., 0., 999.0),
+        translation: Vec3::new(0., 0., 998.0),
         ..default()
     };
 
