@@ -7,6 +7,8 @@ use crate::{Chalk, Stats};
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use bevy_matchbox::prelude::*;
+use bevy_prototype_lyon::prelude::{GeometryBuilder, ShapeBundle, Stroke};
+use bevy_prototype_lyon::shapes;
 use serde::{Deserialize, Serialize};
 
 use crate::local_chalk::LocalChalk;
@@ -58,6 +60,7 @@ fn receive_events(
     mut commands: Commands,
     mut room: ResMut<Room>,
     mut chalk_q: Query<&mut Chalk>,
+    mut cursor_q: Query<(&mut Transform, &mut Stroke), With<PeerCursor>>,
     mut clear_event: EventWriter<ClearEvent>,
 ) {
     // This is needed, otherwise it can hangs forever when the connection is not established
@@ -69,7 +72,14 @@ fn receive_events(
 
     for &AddressedEvent { src, event } in room.receive().iter().filter(|e| e.src != my_id) {
         match event {
-            Event::Move(e) => handle_draw(&mut commands, src, &e, &mut room, &mut chalk_q),
+            Event::Move(e) => handle_draw(
+                &mut commands,
+                src,
+                &e,
+                &mut room,
+                &mut chalk_q,
+                &mut cursor_q,
+            ),
             Event::Release => handle_release(src, &mut room, &mut chalk_q),
             Event::Clear => clear_event.send(ClearEvent::local_only()),
         }
@@ -91,14 +101,26 @@ fn handle_draw(
     event: &MoveEvent,
     room: &mut Room,
     chalk_q: &mut Query<&mut Chalk>,
+    cursor_q: &mut Query<(&mut Transform, &mut Stroke), With<PeerCursor>>,
 ) {
     let peer: &Peer = room.peers.0.entry(src).or_insert_with(|| {
-        let chalk = commands.spawn(make_chalk(event.into())).id();
-        Peer::new(chalk)
+        let cursor_id = commands
+            .spawn(make_peer_cursor(color_from_u32(event.color)))
+            .id();
+
+        let chalk_id = commands.spawn(make_chalk(event.into())).id();
+
+        Peer::new(chalk_id, cursor_id)
     });
 
     if let Ok(mut chalk) = chalk_q.get_mut(peer.chalk) {
         *chalk = event.into();
+    }
+
+    if let Ok((mut t, mut stroke)) = cursor_q.get_mut(peer.cursor) {
+        t.translation.x = event.x.into();
+        t.translation.y = event.y.into();
+        stroke.color = color_from_u32(event.color);
     }
 }
 
@@ -142,11 +164,12 @@ struct Peers(HashMap<CollabId, Peer>);
 
 struct Peer {
     chalk: Entity,
+    cursor: Entity,
 }
 
 impl Peer {
-    fn new(chalk: Entity) -> Self {
-        Self { chalk }
+    fn new(chalk: Entity, cursor: Entity) -> Self {
+        Self { chalk, cursor }
     }
 }
 
@@ -245,4 +268,30 @@ fn handle_clear_event(mut events: EventReader<ClearEvent>, mut room: ResMut<Room
 fn update_stats(room: Res<Room>, mut stats: ResMut<Stats>) {
     stats.collab.active = true;
     stats.collab.peers = room.socket.connected_peers().count();
+}
+
+#[derive(Component)]
+struct PeerCursor;
+
+fn make_peer_cursor(color: Color) -> (ShapeBundle, Stroke, PeerCursor) {
+    let shape = shapes::Circle {
+        radius: 1.0,
+        center: Vec2::new(0.0, 0.0),
+    };
+
+    // z-index at maximum before clipping pane
+    let transform = Transform {
+        translation: Vec3::new(0., 0., 999.0),
+        ..default()
+    };
+
+    let shape = ShapeBundle {
+        path: GeometryBuilder::build_as(&shape),
+        transform,
+        ..default()
+    };
+
+    let stroke = Stroke::new(color, 10.0);
+
+    (shape, stroke, PeerCursor)
 }
