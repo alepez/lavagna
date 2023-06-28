@@ -1,6 +1,6 @@
 [package]
 name = "lavagna"
-version = "2.1.7"
+version = "2.1.8"
 authors = ["Alessandro Pezzato <alessandro@pezzato.net>"]
 edition = "2021"
 description = "The uncluttered blackboard"
