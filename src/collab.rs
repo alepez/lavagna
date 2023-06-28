@@ -45,8 +45,8 @@ impl Plugin for CollabPlugin {
 fn emit_events(chalk: ResMut<LocalChalk>, mut room: ResMut<Room>) {
     let chalk = chalk.get();
 
-    if chalk.updated && chalk.pressed {
-        room.send(Event::Draw(chalk.into()));
+    if chalk.updated {
+        room.send(Event::Move(chalk.into()));
     }
 
     if chalk.just_released {
@@ -69,7 +69,7 @@ fn receive_events(
 
     for &AddressedEvent { src, event } in room.receive().iter().filter(|e| e.src != my_id) {
         match event {
-            Event::Draw(e) => handle_draw(&mut commands, src, &e, &mut room, &mut chalk_q),
+            Event::Move(e) => handle_draw(&mut commands, src, &e, &mut room, &mut chalk_q),
             Event::Release => handle_release(src, &mut room, &mut chalk_q),
             Event::Clear => clear_event.send(ClearEvent::local_only()),
         }
@@ -88,7 +88,7 @@ fn handle_release(src: CollabId, room: &mut Room, chalk_q: &mut Query<&mut Chalk
 fn handle_draw(
     commands: &mut Commands,
     src: CollabId,
-    event: &DrawEvent,
+    event: &MoveEvent,
     room: &mut Room,
     chalk_q: &mut Query<&mut Chalk>,
 ) {
@@ -103,21 +103,22 @@ fn handle_draw(
     }
 }
 
-impl From<&Chalk> for DrawEvent {
+impl From<&Chalk> for MoveEvent {
     fn from(chalk: &Chalk) -> Self {
         Self {
             color: chalk.color.as_rgba_u32(),
             x: chalk.x as i16,
             y: chalk.y as i16,
             line_width: chalk.line_width as u8,
+            pressed: chalk.pressed,
         }
     }
 }
 
-impl From<&DrawEvent> for Chalk {
-    fn from(event: &DrawEvent) -> Self {
+impl From<&MoveEvent> for Chalk {
+    fn from(event: &MoveEvent) -> Self {
         Self {
-            pressed: true,
+            pressed: event.pressed,
             updated: true,
             x: event.x.into(),
             y: event.y.into(),
@@ -185,17 +186,18 @@ impl Room {
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
 enum Event {
-    Draw(DrawEvent),
+    Move(MoveEvent),
     Release,
     Clear,
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
-struct DrawEvent {
+struct MoveEvent {
     color: u32,
     line_width: u8,
     x: i16,
     y: i16,
+    pressed: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
