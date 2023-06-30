@@ -5,7 +5,7 @@
 use crate::drawing::{make_chalk, ClearEvent};
 use crate::{Chalk, Stats};
 use bevy::prelude::*;
-use bevy::utils::{HashMap, Instant};
+use bevy::utils::{Duration, HashMap, Instant};
 use bevy_matchbox::prelude::*;
 use bevy_prototype_lyon::prelude::{GeometryBuilder, ShapeBundle, Stroke};
 use bevy_prototype_lyon::shapes;
@@ -40,6 +40,7 @@ impl Plugin for CollabPlugin {
         app.add_system(emit_events);
         app.add_system(receive_events);
         app.add_system(handle_clear_event);
+        app.add_system(update_peer_cursor_visibility);
         app.add_system(update_stats);
     }
 }
@@ -60,7 +61,7 @@ fn receive_events(
     mut commands: Commands,
     mut room: ResMut<Room>,
     mut chalk_q: Query<&mut Chalk>,
-    mut cursor_q: Query<(&mut Transform, &mut Stroke), With<PeerCursor>>,
+    mut cursor_q: Query<(&mut Transform, &mut Stroke, &mut PeerCursor), With<PeerCursor>>,
     mut clear_event: EventWriter<ClearEvent>,
 ) {
     // This is needed, otherwise it can hangs forever when the connection is not established
@@ -101,7 +102,7 @@ fn handle_draw(
     event: &MoveEvent,
     room: &mut Room,
     chalk_q: &mut Query<&mut Chalk>,
-    cursor_q: &mut Query<(&mut Transform, &mut Stroke), With<PeerCursor>>,
+    cursor_q: &mut Query<(&mut Transform, &mut Stroke, &mut PeerCursor), With<PeerCursor>>,
 ) {
     let peer: &Peer = room.peers.0.entry(src).or_insert_with(|| {
         let peer_cursor = make_peer_cursor(color_from_u32(event.color), src);
@@ -115,10 +116,23 @@ fn handle_draw(
         *chalk = event.into();
     }
 
-    if let Ok((mut t, mut stroke)) = cursor_q.get_mut(peer.cursor) {
+    if let Ok((mut t, mut stroke, mut peer_cursor)) = cursor_q.get_mut(peer.cursor) {
         t.translation.x = event.x.into();
         t.translation.y = event.y.into();
         stroke.color = color_from_u32(event.color);
+        peer_cursor.touch();
+    }
+}
+
+fn update_peer_cursor_visibility(
+    mut cursor_q: Query<(&mut Visibility, &PeerCursor), With<PeerCursor>>,
+) {
+    for (mut visibility, peer_cursor) in cursor_q.iter_mut() {
+        *visibility = if peer_cursor.is_expired() {
+            Visibility::Hidden
+        } else {
+            Visibility::Visible
+        };
     }
 }
 
@@ -282,6 +296,14 @@ impl PeerCursor {
             id,
             last_seen: Instant::now(),
         }
+    }
+
+    fn is_expired(&self) -> bool {
+        self.last_seen.elapsed() > Duration::from_secs(1)
+    }
+
+    fn touch(&mut self) {
+        self.last_seen = Instant::now();
     }
 }
 
