@@ -5,7 +5,7 @@
 use crate::drawing::{make_chalk, ClearEvent};
 use crate::{Chalk, Stats};
 use bevy::prelude::*;
-use bevy::utils::HashMap;
+use bevy::utils::{HashMap, Instant};
 use bevy_matchbox::prelude::*;
 use bevy_prototype_lyon::prelude::{GeometryBuilder, ShapeBundle, Stroke};
 use bevy_prototype_lyon::shapes;
@@ -104,10 +104,8 @@ fn handle_draw(
     cursor_q: &mut Query<(&mut Transform, &mut Stroke), With<PeerCursor>>,
 ) {
     let peer: &Peer = room.peers.0.entry(src).or_insert_with(|| {
-        let cursor_id = commands
-            .spawn(make_peer_cursor(color_from_u32(event.color)))
-            .id();
-
+        let peer_cursor = make_peer_cursor(color_from_u32(event.color), src);
+        let cursor_id = commands.spawn(peer_cursor).id();
         let chalk_id = commands.spawn(make_chalk(event.into())).id();
 
         Peer::new(chalk_id, cursor_id)
@@ -271,9 +269,23 @@ fn update_stats(room: Res<Room>, mut stats: ResMut<Stats>) {
 }
 
 #[derive(Component)]
-struct PeerCursor;
+struct PeerCursor {
+    id: CollabId,
+    last_seen: Instant,
+}
 
-fn make_peer_cursor(color: Color) -> (ShapeBundle, Stroke, PeerCursor) {
+impl PeerCursor {
+    fn new(id: CollabId) -> Self {
+        log::info!("new peer cursor {:?}", id);
+
+        Self {
+            id,
+            last_seen: Instant::now(),
+        }
+    }
+}
+
+fn make_peer_cursor(color: Color, id: CollabId) -> (ShapeBundle, Stroke, PeerCursor) {
     let shape = shapes::Circle {
         radius: 1.0,
         center: Vec2::new(0.0, 0.0),
@@ -292,6 +304,7 @@ fn make_peer_cursor(color: Color) -> (ShapeBundle, Stroke, PeerCursor) {
     };
 
     let stroke = Stroke::new(color, 10.0);
+    let peer_cursor = PeerCursor::new(id);
 
-    (shape, stroke, PeerCursor)
+    (shape, stroke, peer_cursor)
 }
