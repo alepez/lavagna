@@ -128,10 +128,10 @@ fn update_peer_cursor_visibility(
     mut cursor_q: Query<(&mut Visibility, &PeerCursor), With<PeerCursor>>,
 ) {
     for (mut visibility, peer_cursor) in cursor_q.iter_mut() {
-        *visibility = if peer_cursor.is_expired() {
-            Visibility::Hidden
-        } else {
+        *visibility = if peer_cursor.is_active() {
             Visibility::Visible
+        } else {
+            Visibility::Hidden
         };
     }
 }
@@ -284,6 +284,7 @@ fn update_stats(room: Res<Room>, mut stats: ResMut<Stats>) {
 
 #[derive(Component)]
 struct PeerCursor {
+    #[allow(dead_code)]
     id: CollabId,
     last_seen: Instant,
 }
@@ -298,8 +299,8 @@ impl PeerCursor {
         }
     }
 
-    fn is_expired(&self) -> bool {
-        self.last_seen.elapsed() > Duration::from_secs(1)
+    fn is_active(&self) -> bool {
+        self.last_seen.elapsed() < Duration::from_secs(1)
     }
 
     fn touch(&mut self) {
