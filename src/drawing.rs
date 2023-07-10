@@ -143,6 +143,7 @@ fn despawn_all_completed_lines(commands: &mut Commands, lines: &Query<Entity, Wi
     }
 }
 
+#[derive(Event)]
 pub(crate) struct ClearEvent(bool);
 
 impl ClearEvent {

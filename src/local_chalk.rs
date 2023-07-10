@@ -283,8 +283,13 @@ impl LocalChalk {
     }
 }
 
+#[derive(Event)]
 pub(crate) struct ChangeColorEvent;
+
+#[derive(Event)]
 pub(crate) struct GrowEvent;
+
+#[derive(Event)]
 pub(crate) struct ShrinkEvent;
 
 fn handle_change_color_event(

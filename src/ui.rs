@@ -197,6 +197,7 @@ fn clear_btn_system(
     }
 }
 
+#[derive(Event)]
 pub(crate) struct ToggleUiEvent;
 
 fn toggle_ui_system(
