@@ -60,7 +60,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, opt: Res<UiPlug
                         bottom: Val::Px(0.),
                         ..default()
                     },
-                    size: Size::new(Val::Percent(100.), Val::Px(50.)),
+                    width: Val::Percent(100.),
+                    height: Val::Px(50.),
                     justify_content: JustifyContent::Center,
                     ..default()
                 },
@@ -120,7 +121,7 @@ fn button() -> ButtonBundle {
 
     ButtonBundle {
         style: Style {
-            size: Size::width(Val::Px(BTN_WIDTH)),
+            width: Val::Px(BTN_WIDTH),
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
             ..default()
