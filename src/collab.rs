@@ -36,12 +36,12 @@ impl Plugin for CollabPlugin {
         let room = Room::new(socket, collab_id);
         app.insert_resource(room);
 
-        app.add_system(room_system);
-        app.add_system(emit_events);
-        app.add_system(receive_events);
-        app.add_system(handle_clear_event);
-        app.add_system(update_peer_cursor_visibility);
-        app.add_system(update_stats);
+        app.add_systems(Update, room_system);
+        app.add_systems(Update, emit_events);
+        app.add_systems(Update, receive_events);
+        app.add_systems(Update, handle_clear_event);
+        app.add_systems(Update, update_peer_cursor_visibility);
+        app.add_systems(Update, update_stats);
     }
 }
 

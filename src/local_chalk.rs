@@ -50,15 +50,15 @@ impl Plugin for LocalChalkPlugin {
             .add_event::<ChangeColorEvent>()
             .add_event::<GrowEvent>()
             .add_event::<ShrinkEvent>()
-            .add_startup_system(startup)
-            .add_system(handle_user_input)
-            .add_system(handle_change_color_event)
-            .add_system(handle_incr_size_event)
-            .add_system(handle_decr_size_event)
-            .add_system(mouse_events)
-            .add_system(update_chalk)
-            .add_system(touch_events)
-            .add_system(update_cursor);
+            .add_systems(Startup, startup)
+            .add_systems(Update, handle_user_input)
+            .add_systems(Update, handle_change_color_event)
+            .add_systems(Update, handle_incr_size_event)
+            .add_systems(Update, handle_decr_size_event)
+            .add_systems(Update, mouse_events)
+            .add_systems(Update, update_chalk)
+            .add_systems(Update, touch_events)
+            .add_systems(Update, update_cursor);
     }
 }
 
@@ -131,6 +131,7 @@ fn mouse_events(
             MouseButtonInput {
                 button: MouseButton::Left,
                 state: ButtonState::Pressed,
+                ..
             } => {
                 chalk.just_released = false;
                 chalk.pressed = true;
@@ -139,6 +140,7 @@ fn mouse_events(
             MouseButtonInput {
                 button: MouseButton::Left,
                 state: ButtonState::Released,
+                ..
             } => {
                 chalk.pressed = false;
                 press_changed = true;
@@ -180,7 +182,7 @@ fn touch_events(
                 press_changed = true;
             }
             TouchPhase::Moved => {}
-            TouchPhase::Ended | TouchPhase::Cancelled => {
+            TouchPhase::Ended | TouchPhase::Canceled => {
                 chalk.pressed = false;
                 press_changed = true;
             }
@@ -283,8 +285,13 @@ impl LocalChalk {
     }
 }
 
+#[derive(Event)]
 pub(crate) struct ChangeColorEvent;
+
+#[derive(Event)]
 pub(crate) struct GrowEvent;
+
+#[derive(Event)]
 pub(crate) struct ShrinkEvent;
 
 fn handle_change_color_event(

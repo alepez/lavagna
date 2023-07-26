@@ -3,7 +3,7 @@
 use bevy::prelude::*;
 
 use bevy::{
-    diagnostic::{Diagnostic, Diagnostics, FrameTimeDiagnosticsPlugin},
+    diagnostic::{Diagnostic, DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     time::Time,
 };
 
@@ -14,7 +14,8 @@ pub(crate) struct DebugPlugin;
 
 impl Plugin for DebugPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(startup).add_system(update);
+        app.add_systems(Startup, startup)
+            .add_systems(Update, update);
     }
 }
 
@@ -33,11 +34,8 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         )
         .with_style(Style {
             position_type: PositionType::Absolute,
-            position: UiRect {
-                top: Val::Px(5.0),
-                left: Val::Px(15.0),
-                ..default()
-            },
+            top: Val::Px(5.0),
+            left: Val::Px(15.0),
             ..default()
         }),
         DebugText,
@@ -46,7 +44,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 fn update(
     time: Res<Time>,
-    diagnostics: Res<Diagnostics>,
+    diagnostics: Res<DiagnosticsStore>,
     mut text: Query<&mut Text, With<DebugText>>,
     chalk: Res<LocalChalk>,
     stats: Res<Stats>,
