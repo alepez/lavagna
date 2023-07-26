@@ -25,14 +25,14 @@ pub(crate) fn default_font(asset_server: &Res<AssetServer>) -> Handle<Font> {
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(self.0)
-            .add_startup_system(setup)
+            .add_systems(Startup, setup)
             .add_event::<ToggleUiEvent>()
-            .add_system(toggle_ui_system)
-            .add_system(color_btn_system)
-            .add_system(clear_btn_system)
-            .add_system(incr_btn_system)
-            .add_system(update_collab_info)
-            .add_system(decr_btn_system);
+            .add_systems(Update, toggle_ui_system)
+            .add_systems(Update, color_btn_system)
+            .add_systems(Update, clear_btn_system)
+            .add_systems(Update, incr_btn_system)
+            .add_systems(Update, update_collab_info)
+            .add_systems(Update, decr_btn_system);
     }
 }
 
@@ -55,11 +55,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, opt: Res<UiPlug
             NodeBundle {
                 style: Style {
                     position_type: PositionType::Absolute,
-                    position: UiRect {
-                        left: Val::Px(0.),
-                        bottom: Val::Px(0.),
-                        ..default()
-                    },
+                    left: Val::Px(0.),
+                    bottom: Val::Px(0.),
                     width: Val::Percent(100.),
                     height: Val::Px(50.),
                     justify_content: JustifyContent::Center,
@@ -159,7 +156,7 @@ fn color_btn_system(
     let mut bg = btn_query.single_mut();
     *bg = chalk.as_mut().color().into();
     for interaction in &mut interaction_query {
-        if *interaction == Interaction::Clicked {
+        if *interaction == Interaction::Pressed {
             *bg = chalk.as_mut().next_color().into();
         }
     }
@@ -170,7 +167,7 @@ fn incr_btn_system(
     mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<IncrementButton>)>,
 ) {
     for interaction in &mut interaction_query {
-        if *interaction == Interaction::Clicked {
+        if *interaction == Interaction::Pressed {
             chalk.as_mut().grow();
         }
     }
@@ -181,7 +178,7 @@ fn decr_btn_system(
     mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<DecrementButton>)>,
 ) {
     for interaction in &mut interaction_query {
-        if *interaction == Interaction::Clicked {
+        if *interaction == Interaction::Pressed {
             chalk.as_mut().shrink();
         }
     }
@@ -192,7 +189,7 @@ fn clear_btn_system(
     mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<ClearButton>)>,
 ) {
     for interaction in &mut interaction_query {
-        if *interaction == Interaction::Clicked {
+        if *interaction == Interaction::Pressed {
             event.send(ClearEvent::new());
         }
     }

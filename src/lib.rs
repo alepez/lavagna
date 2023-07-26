@@ -71,23 +71,23 @@ pub fn run(opt: Opt) {
 
     app.insert_resource(Stats::default());
 
-    app.add_startup_system(setup);
+    app.add_systems(Startup, setup);
 
-    app.add_plugin(KeybindingPlugin);
-    app.add_plugin(FramepacePlugin);
-    app.add_plugin(LocalChalkPlugin);
-    app.add_plugin(DrawingPlugin);
-    app.add_plugin(PanCamPlugin);
+    app.add_plugins(KeybindingPlugin);
+    app.add_plugins(FramepacePlugin);
+    app.add_plugins(LocalChalkPlugin);
+    app.add_plugins(DrawingPlugin);
+    app.add_plugins(PanCamPlugin);
 
     if opt.show_debug_pane {
-        app.add_plugin(DebugPlugin);
+        app.add_plugins(DebugPlugin);
     }
 
     if let Some(collab_opt) = opt.collab {
-        app.add_plugin(CollabPlugin::new(collab_opt));
+        app.add_plugins(CollabPlugin::new(collab_opt));
     }
 
-    app.add_plugin(UiPlugin::new(opt.ui));
+    app.add_plugins(UiPlugin::new(opt.ui));
 
     app.run();
 }

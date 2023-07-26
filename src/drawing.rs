@@ -10,10 +10,10 @@ pub(crate) struct DrawingPlugin;
 
 impl Plugin for DrawingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugin(ShapePlugin)
+        app.add_plugins(ShapePlugin)
             .add_event::<ClearEvent>()
-            .add_system(handle_clear_event)
-            .add_system(update);
+            .add_systems(Update, handle_clear_event)
+            .add_systems(Update, update);
     }
 }
 

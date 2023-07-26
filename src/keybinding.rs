@@ -11,7 +11,7 @@ pub(crate) struct KeybindingPlugin;
 
 impl Plugin for KeybindingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_system(update);
+        app.add_systems(Update, update);
     }
 }
 
