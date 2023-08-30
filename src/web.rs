@@ -32,7 +32,7 @@ impl TryFrom<&Request> for CollabOpt {
         for param in request.0.split('&') {
             let mut param = param.split('=');
             let Some(key) = param.next() else { break };
-            let Some(value) = param.next() else {  break };
+            let Some(value) = param.next() else { break };
             match key {
                 "collab-url" => url = Some(value.to_owned()),
                 "collab-id" => collab_id = value.parse().ok(),

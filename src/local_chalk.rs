@@ -107,7 +107,9 @@ fn handle_user_input(
 
     let prev_chalk = *chalk;
 
-    let Some(cursor_pos) = window.cursor_position() else { return; };
+    let Some(cursor_pos) = window.cursor_position() else {
+        return;
+    };
 
     if let Some(world_position) = cursor_to_world_position(cursor_pos, camera, camera_transform) {
         chalk.x = world_position[0] as i32;
