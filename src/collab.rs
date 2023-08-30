@@ -81,13 +81,13 @@ fn receive_events(
                 &mut chalk_q,
                 &mut cursor_q,
             ),
-            Event::Release => handle_release(src, &mut room, &mut chalk_q),
+            Event::Release => handle_release(src, &room, &mut chalk_q),
             Event::Clear => clear_event.send(ClearEvent::local_only()),
         }
     }
 }
 
-fn handle_release(src: CollabId, room: &mut Room, chalk_q: &mut Query<&mut Chalk>) {
+fn handle_release(src: CollabId, room: &Room, chalk_q: &mut Query<&mut Chalk>) {
     if let Some(peer) = room.peers.0.get(&src) {
         if let Ok(mut chalk) = chalk_q.get_mut(peer.chalk) {
             chalk.pressed = false;
