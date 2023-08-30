@@ -127,7 +127,7 @@ fn handle_draw(
 fn update_peer_cursor_visibility(
     mut cursor_q: Query<(&mut Visibility, &PeerCursor), With<PeerCursor>>,
 ) {
-    for (mut visibility, peer_cursor) in cursor_q.iter_mut() {
+    for (mut visibility, peer_cursor) in &mut cursor_q {
         *visibility = if peer_cursor.is_active() {
             Visibility::Visible
         } else {

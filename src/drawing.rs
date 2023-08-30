@@ -22,7 +22,7 @@ fn update(
     mut chalk_q: Query<(&mut Chalk, &mut Path, &mut Stroke, &mut Polyline), With<Pending>>,
     time: Res<Time>,
 ) {
-    for (chalk, mut path, mut stroke, mut polyline) in chalk_q.iter_mut() {
+    for (chalk, mut path, mut stroke, mut polyline) in &mut chalk_q {
         let update = chalk.pressed && chalk.updated;
         let just_released = !chalk.pressed && !polyline.points.is_empty();
 

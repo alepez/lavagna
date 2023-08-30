@@ -204,7 +204,7 @@ fn toggle_ui_system(
 ) {
     let visibility: &mut Visibility = &mut visibility_q.single_mut();
 
-    for _ in events.iter() {
+    for _ in &mut events {
         *visibility = match *visibility {
             Visibility::Visible => Visibility::Hidden,
             Visibility::Hidden => Visibility::Visible,

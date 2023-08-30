@@ -128,7 +128,7 @@ fn mouse_events(
     // This is needed to avoid interference with touch (see touch_events)
     let mut press_changed = false;
 
-    for event in mouse_button_input_events.iter() {
+    for event in &mut mouse_button_input_events {
         match event {
             MouseButtonInput {
                 button: MouseButton::Left,
@@ -175,7 +175,7 @@ fn touch_events(
     let mut cursor_position = None;
     let prev_chalk = *chalk;
 
-    for event in touch_evr.iter() {
+    for event in &mut touch_evr {
         cursor_position = Some(event.position);
         match event.phase {
             TouchPhase::Started => {
@@ -300,19 +300,19 @@ fn handle_change_color_event(
     mut events: EventReader<ChangeColorEvent>,
     mut chalk: ResMut<LocalChalk>,
 ) {
-    for _ in events.iter() {
+    for _ in &mut events {
         chalk.next_color();
     }
 }
 
 fn handle_incr_size_event(mut events: EventReader<GrowEvent>, mut chalk: ResMut<LocalChalk>) {
-    for _ in events.iter() {
+    for _ in &mut events {
         chalk.grow();
     }
 }
 
 fn handle_decr_size_event(mut events: EventReader<ShrinkEvent>, mut chalk: ResMut<LocalChalk>) {
-    for _ in events.iter() {
+    for _ in &mut events {
         chalk.shrink();
     }
 }
