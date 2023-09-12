@@ -31,7 +31,7 @@ bevy_embedded_assets = "0.8"
 bevy_framepace = "0.13"
 bevy_pancam = "0.9"
 bevy_prototype_lyon = "0.9"
-bevy_matchbox = { git = "https://github.com/johanhelsing/matchbox", package = "bevy_matchbox", rev = "9d25e6f" }
+bevy_matchbox = "0.7"
 ciborium = "0.2"
 rand = "0.8"
 serde = { version = "1.0", features = ["derive"] }
