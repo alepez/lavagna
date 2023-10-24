@@ -4,10 +4,10 @@
 
 ![preview](.lavagna.gif)
 
-*Lavagna* is a collaborative blackboard software that is perfect for creating
-simple sketches during online meetings. It has an (optional) minimal UI and can
-be hidden to avoid distractions from your drawings. You can control colors and
-line width using the keyboard or the optional toolbar. 
+*Lavagna* is a collaborative blackboard, perfect for creating simple sketches
+during online meetings. It has an (optional) minimal toolbar which can be
+hidden to avoid distractions from your drawings. You can control colors and
+line width using the keyboard or the toolbar.
 
 It's just you, your peers, and your creativity.
 
