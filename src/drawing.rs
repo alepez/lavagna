@@ -84,7 +84,7 @@ fn complete_pending_path(
     commands.spawn((
         ShapeBundle {
             path,
-            transform,
+            spatial: transform.into(),
             ..default()
         },
         Stroke::new(chalk.color, chalk.line_width as f32),
@@ -108,7 +108,7 @@ pub(crate) fn make_chalk(chalk: Chalk) -> (ShapeBundle, Stroke, Fill, Polyline, 
     (
         ShapeBundle {
             path,
-            transform,
+            spatial: transform.into(),
             ..default()
         },
         Stroke::new(Color::WHITE, 10.0),
@@ -174,7 +174,7 @@ fn handle_clear_event(
     lines: Query<Entity, With<Completed>>,
     mut commands: Commands,
 ) {
-    let clear = events.iter().count() > 0;
+    let clear = events.read().count() > 0;
     if clear {
         despawn_all_completed_lines(&mut commands, &lines);
     }

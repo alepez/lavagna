@@ -67,7 +67,7 @@ pub fn run(opt: Opt) {
         DefaultPlugins
             .set(window_plugin)
             .set(log_plugin)
-            .add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin),
+            .add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin::default()),
     );
 
     app.insert_resource(Stats::default());

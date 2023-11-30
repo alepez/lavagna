@@ -2,10 +2,7 @@
 
 use bevy::prelude::*;
 
-use bevy::{
-    diagnostic::{Diagnostic, DiagnosticsStore, FrameTimeDiagnosticsPlugin},
-    time::Time,
-};
+use bevy::diagnostic::{Diagnostic, DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 
 use crate::local_chalk::LocalChalk;
 use crate::Stats;

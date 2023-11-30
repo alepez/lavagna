@@ -270,7 +270,7 @@ fn room_system(mut room: ResMut<Room>) {
 }
 
 fn handle_clear_event(mut events: EventReader<ClearEvent>, mut room: ResMut<Room>) {
-    let clear = events.iter().filter(|e| e.must_be_forwarded()).count() > 0;
+    let clear = events.read().filter(|e| e.must_be_forwarded()).count() > 0;
 
     if clear {
         room.send(Event::Clear);
@@ -322,7 +322,7 @@ fn make_peer_cursor(color: Color, id: CollabId) -> (ShapeBundle, Stroke, PeerCur
 
     let shape = ShapeBundle {
         path: GeometryBuilder::build_as(&shape),
-        transform,
+        spatial: transform.into(),
         ..default()
     };
 
