@@ -14,6 +14,7 @@ pub mod cli;
 #[cfg(target_arch = "wasm32")]
 pub mod web;
 
+use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::log::LogPlugin;
 use bevy::{prelude::*, window::Window};
 use bevy_embedded_assets::EmbeddedAssetPlugin;
@@ -80,6 +81,7 @@ pub fn run(opt: Opt) {
     app.add_plugins(PanCamPlugin);
 
     if opt.show_debug_pane {
+        app.add_plugins(FrameTimeDiagnosticsPlugin::default());
         app.add_plugins(DebugPlugin);
     }
 

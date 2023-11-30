@@ -43,7 +43,6 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 fn update(
-    time: Res<Time>,
     diagnostics: Res<DiagnosticsStore>,
     mut text: Query<&mut Text, With<DebugText>>,
     chalk: Res<LocalChalk>,
@@ -57,13 +56,10 @@ fn update(
         .and_then(Diagnostic::smoothed)
         .map_or("-- fps".to_owned(), |x| format!("{x:.1} fps"));
 
-    let frame_time = {
-        let t = diagnostics
-            .get(FrameTimeDiagnosticsPlugin::FRAME_TIME)
-            .and_then(Diagnostic::smoothed)
-            .unwrap_or_else(|| time.delta_seconds_f64());
-        format!("{t:.3} ms/frame")
-    };
+    let frame_time = diagnostics
+        .get(FrameTimeDiagnosticsPlugin::FRAME_TIME)
+        .and_then(Diagnostic::smoothed)
+        .map_or("-- ms/frame".to_owned(), |x| format!("{x:.1} ms/frame"));
 
     let chalk = {
         let x = chalk.x;
