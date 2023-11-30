@@ -6,6 +6,8 @@ use bevy::prelude::*;
 
 use bevy_prototype_lyon::prelude::*;
 
+const POINTS_CHUNK_THRESHOLD: usize = 100;
+
 pub(crate) struct DrawingPlugin;
 
 impl Plugin for DrawingPlugin {
@@ -23,16 +25,25 @@ fn update(
     time: Res<Time>,
 ) {
     for (chalk, mut path, mut stroke, mut polyline) in &mut chalk_q {
-        let update = chalk.pressed && chalk.updated;
-        let just_released = !chalk.pressed && !polyline.points.is_empty();
+        let updated = chalk.pressed && chalk.updated;
 
         stroke.color = chalk.color;
         stroke.options.line_width = chalk.line_width as f32;
 
-        if just_released {
-            complete_pending_path(&mut polyline, &mut commands, &chalk, &time);
-        } else if update {
+        if updated {
             add_point(&mut polyline, &chalk);
+        }
+
+        let chunk_completed = polyline.points.len() >= POINTS_CHUNK_THRESHOLD;
+        let just_released = chalk.just_released && !polyline.points.is_empty();
+        let completed = just_released || chunk_completed;
+
+        if completed {
+            complete_pending_path(&mut polyline, &mut commands, &chalk, &time);
+
+            if chunk_completed {
+                add_point(&mut polyline, &chalk);
+            }
         }
 
         // Regenerate mesh from list of points
