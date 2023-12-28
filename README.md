@@ -53,15 +53,7 @@ cargo install --path lavagna --locked
 
 ### Install from crates.io
 
-To install from [crates.io](https://crates.io):
-
-```shell
-cargo install lavagna
-```
-
-Note that the version available in *crates.io* may be older than the one you
-find on [latest release
-page](https://github.com/alepez/lavagna/releases/latest).
+Currently, installing from crates.io is not available. [See this issue.](https://github.com/alepez/lavagna/issues/21)
 
 ## Instant collaboration
 
