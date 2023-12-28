@@ -8,21 +8,18 @@ on:
   schedule:
   - cron: '00 01 * * *'
 jobs:
-  fmt_check:
+  rustfmt:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-
+    - name: Checkout repository
+      uses: actions/checkout@v4
     - name: Install Rust
-      uses: actions-rs/toolchain@v1
+      uses: dtolnay/rust-toolchain@master
       with:
         toolchain: stable
-        profile: minimal
-        override: true
         components: rustfmt
-
-    - name: Check Formatting
-      run: cargo +stable fmt --all -- --check
+    - name: Check formatting
+      run: cargo fmt --all --check
 
   test:
     name: test
