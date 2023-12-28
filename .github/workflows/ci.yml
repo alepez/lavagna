@@ -19,7 +19,7 @@ jobs:
         toolchain: stable
         components: rustfmt
     - name: Check formatting
-      run: cargo fmt --all --check
+      run: rm rust-toolchain.toml .cargo/config.toml && cargo fmt --all --check
 
   test:
     name: test
