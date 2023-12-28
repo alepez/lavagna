@@ -81,7 +81,7 @@ pub fn run(opt: Opt) {
     app.add_plugins(PanCamPlugin);
 
     if opt.show_debug_pane {
-        app.add_plugins(FrameTimeDiagnosticsPlugin::default());
+        app.add_plugins(FrameTimeDiagnosticsPlugin);
         app.add_plugins(DebugPlugin);
     }
 
