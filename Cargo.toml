@@ -24,6 +24,7 @@ features = [
   "bevy_winit",
   "x11",
   "png",
+  "webgl2",
 ]
 
 [dependencies]
