@@ -7,7 +7,7 @@ description = "The uncluttered blackboard"
 homepage = "https://github.com/alepez/lavagna"
 repository = "https://github.com/alepez/lavagna"
 readme = "README.md"
-license = "MIT/Apache-2.0"
+license = "MIT OR Apache-2.0"
 include = ["src", "assets", "LICENSE*", "README.md"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
