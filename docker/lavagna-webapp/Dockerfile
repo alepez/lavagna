@@ -1,7 +1,7 @@
 ################################################################################
 # Build the web app
 
-FROM rust:1.70 as builder
+FROM rust:1.74 as builder
 
 RUN rustup target add wasm32-unknown-unknown && \
     cargo install -f wasm-bindgen-cli

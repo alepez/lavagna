@@ -9,6 +9,7 @@ repository = "https://github.com/alepez/lavagna"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
 include = ["src", "assets", "LICENSE*", "README.md"]
+rust-version = "1.74"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies.bevy]

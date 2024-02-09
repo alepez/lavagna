@@ -1,4 +1,4 @@
-FROM rust:1.70 as builder
+FROM rust:1.74 as builder
 
 WORKDIR /src
 
