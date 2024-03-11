@@ -13,7 +13,7 @@ rust-version = "1.74"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies.bevy]
-version = "0.12"
+version = "0.13"
 default_features = false
 features = [
   "bevy_asset",
@@ -29,11 +29,11 @@ features = [
 ]
 
 [dependencies]
-bevy_embedded_assets = "0.9"
-bevy_framepace = "0.14"
-bevy_pancam = "0.10"
-bevy_prototype_lyon = "0.10"
-bevy_matchbox = "0.8"
+bevy_embedded_assets = "0.10"
+bevy_framepace = "0.15"
+bevy_pancam = "0.11"
+bevy_prototype_lyon = "0.11"
+bevy_matchbox = "0.9"
 ciborium = "0.2"
 rand = "0.8"
 serde = { version = "1.0", features = ["derive"] }

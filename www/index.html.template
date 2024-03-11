@@ -37,7 +37,7 @@
     </style>
   </head>
   <div id="container">
-    <canvas id="bevy">
+    <canvas id="bevy" style="width: 100%; height: 100%;">
         Javascript and support for canvas is required
     </canvas>
   </div>

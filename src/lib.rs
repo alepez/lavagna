@@ -16,7 +16,7 @@ pub mod web;
 
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::log::LogPlugin;
-use bevy::{prelude::*, window::Window};
+use bevy::prelude::*;
 use bevy_embedded_assets::EmbeddedAssetPlugin;
 use bevy_framepace::{FramepacePlugin, FramepaceSettings, Limiter};
 use bevy_pancam::{PanCam, PanCamPlugin};
@@ -42,8 +42,6 @@ pub fn run(opt: Opt) {
 
     let window_plugin = WindowPlugin {
         primary_window: Some(Window {
-            fit_canvas_to_parent: true,
-            // Avoid scrolling on mobile
             prevent_default_event_handling: true,
             canvas: Some("#bevy".to_owned()),
             ..default()
@@ -55,11 +53,13 @@ pub fn run(opt: Opt) {
         LogPlugin {
             filter: "warn,lavagna=debug,wgpu_core=warn,wgpu_hal=warn".into(),
             level: bevy::log::Level::DEBUG,
+            ..Default::default()
         }
     } else {
         LogPlugin {
             filter: default(),
             level: bevy::log::Level::ERROR,
+            ..Default::default()
         }
     };
 
