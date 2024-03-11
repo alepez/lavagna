@@ -49,12 +49,12 @@ fn update(
     let chalk = chalk.get();
 
     let fps = diagnostics
-        .get(FrameTimeDiagnosticsPlugin::FPS)
+        .get(&FrameTimeDiagnosticsPlugin::FPS)
         .and_then(Diagnostic::smoothed)
         .map_or("-- fps".to_owned(), |x| format!("{x:.1} fps"));
 
     let frame_time = diagnostics
-        .get(FrameTimeDiagnosticsPlugin::FRAME_TIME)
+        .get(&FrameTimeDiagnosticsPlugin::FRAME_TIME)
         .and_then(Diagnostic::smoothed)
         .map_or("-- ms/frame".to_owned(), |x| format!("{x:.1} ms/frame"));
 

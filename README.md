@@ -40,7 +40,7 @@ and Linux.](https://github.com/alepez/lavagna/releases/latest)
 
 If you're a **Rust programmer**, *lavagna* can be installed with `cargo`.
 
-- Note that the minimum supported version of Rust for *lavagna* is 1.74,
+- Note that the minimum supported version of Rust for *lavagna* is 1.76,
   although *lavagna* may work with older versions.
 
 To install from sources:

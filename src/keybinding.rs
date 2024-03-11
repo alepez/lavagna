@@ -16,30 +16,30 @@ impl Plugin for KeybindingPlugin {
 }
 
 fn update(
-    keyboard_input: Res<Input<KeyCode>>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
     mut clear_event: EventWriter<ClearEvent>,
     mut change_color_event: EventWriter<ChangeColorEvent>,
     mut shrink_event: EventWriter<ShrinkEvent>,
     mut grow_event: EventWriter<GrowEvent>,
     mut toggle_ui_event: EventWriter<ToggleUiEvent>,
 ) {
-    if keyboard_input.just_pressed(KeyCode::X) {
+    if keyboard_input.just_pressed(KeyCode::KeyX) {
         clear_event.send(ClearEvent::new());
     }
 
-    if keyboard_input.just_pressed(KeyCode::C) {
+    if keyboard_input.just_pressed(KeyCode::KeyC) {
         change_color_event.send(ChangeColorEvent);
     }
 
-    if keyboard_input.just_pressed(KeyCode::M) {
+    if keyboard_input.just_pressed(KeyCode::KeyM) {
         grow_event.send(GrowEvent);
     }
 
-    if keyboard_input.just_pressed(KeyCode::N) {
+    if keyboard_input.just_pressed(KeyCode::KeyN) {
         shrink_event.send(ShrinkEvent);
     }
 
-    if keyboard_input.just_pressed(KeyCode::U) {
+    if keyboard_input.just_pressed(KeyCode::KeyU) {
         toggle_ui_event.send(ToggleUiEvent);
     }
 }
