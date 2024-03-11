@@ -10,7 +10,6 @@ use crate::MainCamera;
 use bevy::{
     input::{mouse::MouseButtonInput, ButtonState},
     prelude::*,
-    window::Window,
 };
 use bevy_prototype_lyon::prelude::Fill;
 use bevy_prototype_lyon::prelude::GeometryBuilder;

@@ -82,7 +82,7 @@ fn receive_events(
                 &mut cursor_q,
             ),
             Event::Release => handle_release(src, &room, &mut chalk_q),
-            Event::Clear => clear_event.send(ClearEvent::local_only()),
+            Event::Clear => { clear_event.send(ClearEvent::local_only()); },
         }
     }
 }
