@@ -42,6 +42,7 @@ pub fn run(opt: Opt) {
 
     let window_plugin = WindowPlugin {
         primary_window: Some(Window {
+            // Avoid scrolling on mobile
             prevent_default_event_handling: true,
             canvas: Some("#bevy".to_owned()),
             ..default()
