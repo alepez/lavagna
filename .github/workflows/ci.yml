@@ -40,7 +40,7 @@ jobs:
         # We test lavagna on a pinned version of Rust, along with the moving
         # targets of 'stable', 'beta', 'nightly'.
         rust_version:
-          - 1.74.0
+          - 1.76.0
           - stable
           - beta
           - nightly
