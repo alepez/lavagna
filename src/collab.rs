@@ -263,7 +263,11 @@ impl From<u16> for CollabId {
 
 // regularly call update_peers to update the list of connected peers
 fn room_system(mut room: ResMut<Room>) {
-    for (peer, new_state) in room.socket.update_peers() {
+    let Ok(peers) = room.socket.try_update_peers() else {
+        log::error!("failed to update peers");
+        return;
+    };
+    for (peer, new_state) in peers {
         match new_state {
             PeerState::Connected => info!("peer {peer:?} connected"),
             PeerState::Disconnected => info!("peer {peer:?} disconnected"),
