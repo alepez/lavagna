@@ -11,25 +11,15 @@ line width using the keyboard or the toolbar.
 
 It's just you, your peers, and your creativity.
 
-## Online demo
-
-An online demo is available: [demo](https://lavagna.devand.dev)
-
-It supports passing options as url paramters:
-
-- collaboration url: https://lavagna.devand.dev/?collab-url=wss://lavagna-server.devand.dev/demo
-- debug pane: https://lavagna.devand.dev/?collab-url=wss://lavagna-server.devand.dev/demo&dbg=true
-- ui: https://lavagna.devand.dev/?collab-url=wss://lavagna-server.devand.dev/demo&dbg=true&ui=true
-
 ## Keyboard bindings
 
-| Button | Action   | Note                                 |
-|--------|----------|--------------------------------------|
-| C      | Color    | Change the chalk color               |
-| M      | Grow     | Grow chalk size 2x                   |
-| N      | Shrink   | Shrink chalk size 2x                 |
-| X      | Clear    | Clear the whole blackboard           |
-| U      | Toolbar  | Toggle toolbar visibility            |
+| Button | Action  | Note                       |
+|--------|---------|----------------------------|
+| C      | Color   | Change the chalk color     |
+| M      | Grow    | Grow chalk size 2x         |
+| N      | Shrink  | Shrink chalk size 2x       |
+| X      | Clear   | Clear the whole blackboard |
+| U      | Toolbar | Toggle toolbar visibility  |
 
 ## Installation
 
@@ -53,25 +43,27 @@ cargo install --path lavagna --locked
 
 ### Install from crates.io
 
-Currently, installing from crates.io is not available. [See this issue.](https://github.com/alepez/lavagna/issues/21)
+Currently, installing from crates.io is not
+available. [See this issue.](https://github.com/alepez/lavagna/issues/21)
 
 ## Instant collaboration
 
 *lavagna* uses *WebRtc* for instant collaboration. So you can use it for online
-meetings. You don't even need to install anything, because *lavagna* is available
+meetings. You don't even need to install anything, because *lavagna* is
+available
 as a web-app too.
 
 You need a signaling server
 like [`matchbox_server`](https://github.com/johanhelsing/matchbox/tree/main/matchbox_server)
 installed somewhere.
 
-Don't worry, for quick testing you can borrow *devand.dev* signaling server:
+Don't worry, for quick testing you can borrow my signaling server:
 
 ```shell
-lavagna --collab-url wss://lavagna-server.devand.dev/YOUR_ROOM
+lavagna --collab-url ws://lavagna.alepez.dev:3536/demo
 ```
 
-Change `YOUR_ROOM` to your preferred name or a unique id. If you do the same on
+Change `demo` to your preferred name or a unique id. If you do the same on
 different device, anything you draw will be visible on the other side (and vice
 versa).
 
