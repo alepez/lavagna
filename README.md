@@ -50,12 +50,12 @@ available. [See this issue.](https://github.com/alepez/lavagna/issues/21)
 
 *lavagna* uses *WebRtc* for instant collaboration. So you can use it for online
 meetings. You don't even need to install anything, because *lavagna* is
-available
-as a web-app too.
+available as a web-app too.
 
 You need a signaling server
 like [`matchbox_server`](https://github.com/johanhelsing/matchbox/tree/main/matchbox_server)
 installed somewhere.
+See [this post by Johan Helsing](https://johanhelsing.studio/posts/deploying-matchbox/)
 
 Don't worry, for quick testing you can borrow my signaling server:
 
