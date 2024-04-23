@@ -46,7 +46,7 @@ jobs:
           - nightly
         platform:
           - { target: x86_64-pc-windows-msvc,   os: windows-2019 }
-          # - { target: x86_64-pc-windows-gnu,    os: windows-2019, host: -x86_64-pc-windows-gnu }
+          - { target: x86_64-pc-windows-gnu,    os: windows-2022, host: -x86_64-pc-windows-gnu }
           - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest }
           - { target: x86_64-apple-darwin,      os: macos-latest    }
 
