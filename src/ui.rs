@@ -123,12 +123,12 @@ fn button() -> ButtonBundle {
             align_items: AlignItems::Center,
             ..default()
         },
-        background_color: BackgroundColor(Color::Rgba {
+        background_color: BackgroundColor(Color::Srgba(Srgba {
             red: 0.2,
             green: 0.2,
             blue: 0.2,
             alpha: 0.75,
-        }),
+        })),
         ..default()
     }
 }

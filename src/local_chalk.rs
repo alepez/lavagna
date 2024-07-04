@@ -1,11 +1,11 @@
 #![allow(clippy::needless_pass_by_value)]
 
-use std::cmp::max;
-use std::cmp::min;
-
 use crate::drawing::make_chalk;
 use crate::Chalk;
 use crate::MainCamera;
+use bevy::color::palettes::css::*;
+use std::cmp::max;
+use std::cmp::min;
 
 use bevy::{
     input::{mouse::MouseButtonInput, ButtonState},
@@ -36,7 +36,7 @@ impl LocalChalk {
 impl Default for LocalChalk {
     fn default() -> Self {
         Self(Chalk {
-            color: Color::WHITE,
+            color: WHITE,
             line_width: 8,
             ..default()
         })
@@ -237,17 +237,9 @@ fn update_chalk(
     }
 }
 
-const COLORS: [Color; 7] = [
-    Color::WHITE,
-    Color::BLUE,
-    Color::TURQUOISE,
-    Color::GREEN,
-    Color::YELLOW,
-    Color::ORANGE,
-    Color::RED,
-];
+const COLORS: [Srgba; 7] = [WHITE, BLUE, TURQUOISE, GREEN, YELLOW, ORANGE, RED];
 
-fn next_color(curr_color: Color) -> Color {
+fn next_color(curr_color: Srgba) -> Srgba {
     if let Some(next_color) = COLORS
         .iter()
         .cycle()
@@ -269,10 +261,10 @@ fn decr_size(size: u32) -> u32 {
 }
 
 impl LocalChalk {
-    pub(crate) fn color(&self) -> Color {
+    pub(crate) fn color(&self) -> Srgba {
         self.0.color
     }
-    pub(crate) fn next_color(&mut self) -> Color {
+    pub(crate) fn next_color(&mut self) -> Srgba {
         self.0.color = next_color(self.0.color);
         self.0.color
     }

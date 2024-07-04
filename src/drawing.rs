@@ -27,7 +27,7 @@ fn update(
     for (chalk, mut path, mut stroke, mut polyline) in &mut chalk_q {
         let updated = chalk.pressed && chalk.updated;
 
-        stroke.color = chalk.color;
+        stroke.color = chalk.color.into();
         stroke.options.line_width = chalk.line_width as f32;
 
         if updated {
