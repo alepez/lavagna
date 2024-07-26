@@ -173,11 +173,12 @@ fn color_from_u32(n: u32) -> Srgba {
     Srgba::rgba_u8(r, g, b, a)
 }
 
+#[allow(clippy::cast_sign_loss)]
 fn color_to_u32(color: Srgba) -> u32 {
-    let r = color.red as u32;
-    let g = color.green as u32;
-    let b = color.blue as u32;
-    let a = color.alpha as u32;
+    let r = (color.red * 255.0) as u32;
+    let g = (color.green * 255.0) as u32;
+    let b = (color.blue * 255.0) as u32;
+    let a = (color.alpha * 255.0) as u32;
     (a << 24) | (b << 16) | (g << 8) | r
 }
 

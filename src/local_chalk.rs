@@ -3,7 +3,7 @@
 use crate::drawing::make_chalk;
 use crate::Chalk;
 use crate::MainCamera;
-use bevy::color::palettes::css::*;
+use bevy::color::palettes::css::{BLUE, GREEN, ORANGE, RED, TURQUOISE, WHITE, YELLOW};
 use std::cmp::max;
 use std::cmp::min;
 
