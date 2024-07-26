@@ -121,7 +121,7 @@ fn handle_draw(
     if let Ok((mut t, mut stroke, mut peer_cursor)) = cursor_q.get_mut(peer.cursor) {
         t.translation.x = event.x.into();
         t.translation.y = event.y.into();
-        stroke.color = color_from_u32(event.color);
+        stroke.color = color_from_u32(event.color).into();
         peer_cursor.touch();
     }
 }
@@ -141,7 +141,7 @@ fn update_peer_cursor_visibility(
 impl From<&Chalk> for MoveEvent {
     fn from(chalk: &Chalk) -> Self {
         Self {
-            color: chalk.color.as_rgba_u32(),
+            color: color_to_u32(chalk.color),
             x: chalk.x as i16,
             y: chalk.y as i16,
             line_width: chalk.line_width as u8,
@@ -165,12 +165,21 @@ impl From<&MoveEvent> for Chalk {
 }
 
 #[allow(clippy::many_single_char_names)]
-fn color_from_u32(n: u32) -> Color {
+fn color_from_u32(n: u32) -> Srgba {
     let r = ((n) & 0xFF) as u8;
     let g = ((n >> 8) & 0xFF) as u8;
     let b = ((n >> 16) & 0xFF) as u8;
     let a = ((n >> 24) & 0xFF) as u8;
-    Color::rgba_u8(r, g, b, a)
+    Srgba::rgba_u8(r, g, b, a)
+}
+
+#[allow(clippy::cast_sign_loss)]
+fn color_to_u32(color: Srgba) -> u32 {
+    let r = (color.red * 255.0) as u32;
+    let g = (color.green * 255.0) as u32;
+    let b = (color.blue * 255.0) as u32;
+    let a = (color.alpha * 255.0) as u32;
+    (a << 24) | (b << 16) | (g << 8) | r
 }
 
 #[derive(Default)]
@@ -314,7 +323,7 @@ impl PeerCursor {
     }
 }
 
-fn make_peer_cursor(color: Color, id: CollabId) -> (ShapeBundle, Stroke, PeerCursor) {
+fn make_peer_cursor(color: Srgba, id: CollabId) -> (ShapeBundle, Stroke, PeerCursor) {
     let shape = shapes::Circle {
         radius: 1.0,
         center: Vec2::new(0.0, 0.0),

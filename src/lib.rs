@@ -130,7 +130,7 @@ struct Chalk {
     just_released: bool,
     x: i32,
     y: i32,
-    color: Color,
+    color: Srgba,
     line_width: u32,
 }
 
