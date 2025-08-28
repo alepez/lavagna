@@ -7,7 +7,9 @@ use crate::{Chalk, Stats};
 use bevy::prelude::*;
 use bevy::utils::{Duration, HashMap, Instant};
 use bevy_matchbox::prelude::*;
-use bevy_prototype_lyon::prelude::{GeometryBuilder, ShapeBundle, Stroke};
+use bevy_prototype_lyon::prelude::{
+    GeometryBuilder, LineCap, LineJoin, ShapeBundle, Stroke, StrokeOptions,
+};
 use bevy_prototype_lyon::shapes;
 use serde::{Deserialize, Serialize};
 
@@ -341,7 +343,13 @@ fn make_peer_cursor(color: Srgba, id: CollabId) -> (ShapeBundle, Stroke, PeerCur
         ..default()
     };
 
-    let stroke = Stroke::new(color, 10.0);
+    let stroke = Stroke {
+        color: color.into(),
+        options: StrokeOptions::default()
+            .with_line_width(10.0)
+            .with_line_join(LineJoin::Round)
+            .with_line_cap(LineCap::Round),
+    };
     let peer_cursor = PeerCursor::new(id);
 
     (shape, stroke, peer_cursor)
