@@ -2,7 +2,7 @@
 #![allow(clippy::cast_precision_loss)]
 
 use crate::Chalk;
-use bevy::{math::NormedVectorSpace, prelude::*};
+use bevy::{prelude::*, render::view::NoFrustumCulling, math::NormedVectorSpace};
 
 use bevy_prototype_lyon::prelude::*;
 
@@ -120,7 +120,7 @@ fn complete_pending_path(
     polyline.points.clear();
 }
 
-pub(crate) fn make_chalk(chalk: Chalk) -> (ShapeBundle, Stroke, Fill, Polyline, Pending, Chalk) {
+pub(crate) fn make_chalk(chalk: Chalk) -> impl Bundle {
     // An empty path
     let path = PathBuilder::new().build();
 
@@ -146,6 +146,7 @@ pub(crate) fn make_chalk(chalk: Chalk) -> (ShapeBundle, Stroke, Fill, Polyline, 
         Fill::color(Color::NONE),
         Polyline::default(),
         Pending,
+        NoFrustumCulling,
         chalk,
     )
 }
